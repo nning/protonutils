@@ -50,7 +50,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// fmt.Println(x)
 
 	for id := range x {
 		fmt.Println(id)
