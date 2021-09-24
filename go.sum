@@ -1,0 +1,11 @@
+github.com/andygrunwald/vdf v1.0.0 h1:2HuC85EVF1Sm1bwKH8tiyucny2qzf9GSjB3flsdqoM4=
+github.com/andygrunwald/vdf v1.0.0/go.mod h1:qi5jZfY3lrHXbibKeC2MCEge1tOsLODBgOHoS+RbRLk=
+github.com/davecgh/go-spew v0.0.0-20161028175848-04cdfd42973b/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/mdouchement/vdf v0.0.0-20180601133716-2d1e7ef80670 h1:2j64qZ3I798R4KDeWl28GJmg77nehjEaslifIbEIiLk=
+github.com/mdouchement/vdf v0.0.0-20180601133716-2d1e7ef80670/go.mod h1:9Zk9p7A5m+FTkbCkxSRiUaXpKl+h0kYTC6p5YWsTjDM=
+github.com/pmezard/go-difflib v0.0.0-20151028094244-d8ed2627bdf0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/sanity-io/litter v1.5.1 h1:dwnrSypP6q56o3lFxTU+t2fwQ9A+U5qrXVO4Qg9KwVU=
+github.com/sanity-io/litter v1.5.1/go.mod h1:5Z71SvaYy5kcGtyglXOC9rrUi3c1E8CamFWjQsazTh0=
+github.com/stretchr/testify v0.0.0-20161117074351-18a02ba4a312/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+github.com/yhirose/go-peg v0.0.0-20210804202551-de25d6753cf1 h1:7iTmQ0lZwTtfm4XMgP5ezzWMDCjo7GTS0ZgCj6jpVzM=
+github.com/yhirose/go-peg v0.0.0-20210804202551-de25d6753cf1/go.mod h1:q2QWLflHsZxT6ixYcXveTYicEvxGh5Uv6CnI7f7BfjQ=
