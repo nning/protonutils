@@ -114,8 +114,6 @@ func (self *Steam) IsInstalled(id string) bool {
 		self.libraryConfig = m
 	}
 
-	installed := false
-
 	for i := 0; i < 10; i++ {
 		x := m[fmt.Sprint(i)]
 		if x == nil {
@@ -130,5 +128,5 @@ func (self *Steam) IsInstalled(id string) bool {
 		}
 	}
 
-	return installed
+	return false
 }

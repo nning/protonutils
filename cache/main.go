@@ -2,7 +2,6 @@ package cache
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"os/user"
 	"path"
@@ -14,12 +13,6 @@ type Cache struct {
 	path    string
 	data    map[string]string
 	updated bool
-}
-
-func panicOnError(e error) {
-	if e != nil {
-		log.Panic(e)
-	}
 }
 
 func New(name string) *Cache {
