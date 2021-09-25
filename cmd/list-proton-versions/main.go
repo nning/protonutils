@@ -3,20 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/user"
 	"path"
 
 	"github.com/andygrunwald/vdf"
 	"github.com/nning/list_proton_versions/appid"
-)
 
-func panicOnError(e error) {
-	if e != nil {
-		log.Panic(e)
-	}
-}
+	. "github.com/nning/list_proton_versions"
+)
 
 func get_config_path() string {
 	usr, _ := user.Current()
@@ -43,14 +38,14 @@ func main() {
 	path := get_config_path()
 
 	f, err := os.Open(path)
-	panicOnError(err)
+	PanicOnError(err)
 
 	p := vdf.NewParser(f)
 	m, err := p.Parse()
-	panicOnError(err)
+	PanicOnError(err)
 
 	x, err := lookup(m, "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
-	panicOnError(err)
+	PanicOnError(err)
 
 	versions := make(map[string][]string)
 	appid := appid.New()
@@ -72,7 +67,7 @@ func main() {
 
 		name := appid.GetName(id)
 		if name != "💩" {
-			versions[v] = append(versions[v], name)
+			versions[v] = append(versions[v], name+" ("+id+")")
 		}
 	}
 

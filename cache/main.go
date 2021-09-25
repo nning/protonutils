@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/user"
 	"path"
+
+	. "github.com/nning/list_proton_versions"
 )
 
 type Cache struct {
@@ -22,7 +24,7 @@ func panicOnError(e error) {
 
 func New(name string) *Cache {
 	user, err := user.Current()
-	panicOnError(err)
+	PanicOnError(err)
 
 	home := user.HomeDir
 	p := path.Join(home, ".cache", name+".json")
@@ -35,7 +37,7 @@ func New(name string) *Cache {
 	f, err := os.ReadFile(cache.Path)
 	if err == nil {
 		err = json.Unmarshal(f, &cache.Data)
-		panicOnError(err)
+		PanicOnError(err)
 	} else {
 		fmt.Println("Create file on write")
 	}
@@ -53,8 +55,8 @@ func (cache *Cache) Get(key string) string {
 
 func (cache *Cache) Write() {
 	jsonString, err := json.Marshal(cache.Data)
-	panicOnError(err)
+	PanicOnError(err)
 
 	err = os.WriteFile(cache.Path, jsonString, 0600)
-	panicOnError(err)
+	PanicOnError(err)
 }

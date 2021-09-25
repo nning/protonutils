@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/nning/list_proton_versions/cache"
+
+	. "github.com/nning/list_proton_versions"
 )
 
 type AppId struct {
@@ -37,15 +39,15 @@ func (self *AppId) GetName(id string) string {
 
 	if name == "" {
 		res, err := http.Get("https://store.steampowered.com/api/appdetails/?appids=" + id)
-		panicOnError(err)
+		PanicOnError(err)
 
 		defer res.Body.Close()
 		body, err := io.ReadAll(res.Body)
-		panicOnError(err)
+		PanicOnError(err)
 
 		data := make(map[string]JsonAppData)
 		err = json.Unmarshal(body, &data)
-		panicOnError(err)
+		PanicOnError(err)
 
 		name = data[id].Data.Name
 		val := name
