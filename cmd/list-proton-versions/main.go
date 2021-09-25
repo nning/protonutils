@@ -6,16 +6,23 @@ import (
 	"log"
 	"os"
 	"os/user"
-	"path/filepath"
+	"path"
 
 	"github.com/andygrunwald/vdf"
+	"github.com/nning/list_proton_versions/appid"
 )
+
+func panicOnError(e error) {
+	if e != nil {
+		log.Panic(e)
+	}
+}
 
 func get_config_path() string {
 	usr, _ := user.Current()
 	dir := usr.HomeDir
 
-	return filepath.Join(dir, ".steam/root/config/config.vdf")
+	return path.Join(dir, ".steam", "root", "config", "config.vdf")
 }
 
 func lookup(m map[string]interface{}, x ...string) (map[string]interface{}, error) {
@@ -36,22 +43,48 @@ func main() {
 	path := get_config_path()
 
 	f, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
+	panicOnError(err)
 
 	p := vdf.NewParser(f)
 	m, err := p.Parse()
-	if err != nil {
-		log.Fatal(err)
-	}
+	panicOnError(err)
 
 	x, err := lookup(m, "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
-	if err != nil {
-		log.Fatal(err)
+	panicOnError(err)
+
+	versions := make(map[string][]string)
+	appid := appid.New()
+
+	for id, cfg := range x {
+		if id == "0" {
+			continue
+		}
+
+		v := cfg.(map[string]interface{})["name"].(string)
+
+		if v == "" {
+			v = "Default"
+		}
+
+		if versions[v] == nil {
+			versions[v] = make([]string, 0)
+		}
+
+		name := appid.GetName(id)
+		if name != "💩" {
+			versions[v] = append(versions[v], name)
+		}
 	}
 
-	for id := range x {
-		fmt.Println(id)
+	for version, games := range versions {
+		fmt.Println(version)
+
+		for _, game := range games {
+			fmt.Println("\t" + game)
+		}
+
+		fmt.Println()
 	}
+
+	appid.Write()
 }
