@@ -2,7 +2,6 @@ package cache
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"os/user"
@@ -12,8 +11,9 @@ import (
 )
 
 type Cache struct {
-	Path string
-	Data map[string]string
+	path    string
+	data    map[string]string
+	updated bool
 }
 
 func panicOnError(e error) {
@@ -30,33 +30,36 @@ func New(name string) *Cache {
 	p := path.Join(home, ".cache", name+".json")
 
 	cache := &Cache{
-		Path: p,
-		Data: make(map[string]string),
+		path: p,
+		data: make(map[string]string),
 	}
 
-	f, err := os.ReadFile(cache.Path)
+	f, err := os.ReadFile(cache.path)
 	if err == nil {
-		err = json.Unmarshal(f, &cache.Data)
+		err = json.Unmarshal(f, &cache.data)
 		PanicOnError(err)
-	} else {
-		fmt.Println("Create file on write")
 	}
 
 	return cache
 }
 
 func (cache *Cache) Add(key, value string) {
-	cache.Data[key] = value
+	cache.data[key] = value
+	cache.updated = true
 }
 
 func (cache *Cache) Get(key string) string {
-	return cache.Data[key]
+	return cache.data[key]
 }
 
 func (cache *Cache) Write() {
-	jsonString, err := json.Marshal(cache.Data)
+	if !cache.updated {
+		return
+	}
+
+	jsonString, err := json.Marshal(cache.data)
 	PanicOnError(err)
 
-	err = os.WriteFile(cache.Path, jsonString, 0600)
+	err = os.WriteFile(cache.path, jsonString, 0600)
 	PanicOnError(err)
 }

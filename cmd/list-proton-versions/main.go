@@ -1,54 +1,19 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"os/user"
-	"path"
-
-	"github.com/andygrunwald/vdf"
-	"github.com/nning/list_proton_versions/appid"
 
 	. "github.com/nning/list_proton_versions"
+	"github.com/nning/list_proton_versions/steam"
 )
 
-func get_config_path() string {
-	usr, _ := user.Current()
-	dir := usr.HomeDir
-
-	return path.Join(dir, ".steam", "root", "config", "config.vdf")
-}
-
-func lookup(m map[string]interface{}, x ...string) (map[string]interface{}, error) {
-	y := m
-
-	for _, s := range x {
-		if y[s] == nil {
-			return nil, errors.New("Key not found: " + s)
-		} else {
-			y = y[s].(map[string]interface{})
-		}
-	}
-
-	return y, nil
-}
-
 func main() {
-	path := get_config_path()
+	steam := steam.New()
 
-	f, err := os.Open(path)
-	PanicOnError(err)
-
-	p := vdf.NewParser(f)
-	m, err := p.Parse()
-	PanicOnError(err)
-
-	x, err := lookup(m, "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
+	x, err := steam.GetCompatToolMapping()
 	PanicOnError(err)
 
 	versions := make(map[string][]string)
-	appid := appid.New()
 
 	for id, cfg := range x {
 		if id == "0" {
@@ -65,9 +30,15 @@ func main() {
 			versions[v] = make([]string, 0)
 		}
 
-		name := appid.GetName(id)
+		name := steam.GetName(id)
+		installed := steam.IsInstalled(id)
+		ni := ""
+		if !installed {
+			ni = " [NOT INSTALLED]"
+		}
+
 		if name != "💩" {
-			versions[v] = append(versions[v], name+" ("+id+")")
+			versions[v] = append(versions[v], name+ni)
 		}
 	}
 
@@ -81,5 +52,5 @@ func main() {
 		fmt.Println()
 	}
 
-	appid.Write()
+	steam.SaveCache()
 }
