@@ -1,6 +1,9 @@
 .PHONY: clean
+SOURCES = $(shell find . -name \*.go)
 
-cmd/list-proton-versions/list-proton-versions: cmd/list-proton-versions/main.go
+build: cmd/list-proton-versions/list-proton-versions
+
+cmd/list-proton-versions/list-proton-versions: $(SOURCES)
 	cd cmd/list-proton-versions; go build
 
 clean:

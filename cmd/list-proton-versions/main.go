@@ -7,31 +7,33 @@ import (
 	"github.com/nning/list_proton_versions/steam"
 )
 
-func main() {
-	steam := steam.New()
+type Versions map[string][]string
 
-	x, err := steam.GetCompatToolMapping()
+func main() {
+	s := steam.New()
+
+	x, err := s.GetCompatToolMapping()
 	PanicOnError(err)
 
-	versions := make(map[string][]string)
+	versions := make(Versions)
 
 	for id, cfg := range x {
 		if id == "0" {
 			continue
 		}
 
-		v := cfg.(map[string]interface{})["name"].(string)
+		v := cfg.(steam.MapLevel)["name"].(string)
 
 		if v == "" {
 			v = "Default"
 		}
 
-		if versions[v] == nil {
-			versions[v] = make([]string, 0)
-		}
+		// if versions[v] == nil {
+		// 	versions[v] = make([]string, 0)
+		// }
 
-		name := steam.GetName(id)
-		installed := steam.IsInstalled(id)
+		name := s.GetName(id)
+		installed := s.IsInstalled(id)
 		ni := ""
 		if !installed {
 			ni = " [NOT INSTALLED]"
@@ -52,5 +54,5 @@ func main() {
 		fmt.Println()
 	}
 
-	steam.SaveCache()
+	s.SaveCache()
 }
