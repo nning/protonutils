@@ -23,14 +23,9 @@ func main() {
 		}
 
 		v := cfg.(steam.MapLevel)["name"].(string)
-
 		if v == "" {
 			v = "Default"
 		}
-
-		// if versions[v] == nil {
-		// 	versions[v] = make([]string, 0)
-		// }
 
 		name := s.GetName(id)
 		installed := s.IsInstalled(id)

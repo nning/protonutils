@@ -16,8 +16,8 @@ type JsonAppData struct {
 	} `json:"data"`
 }
 
-func (self *Steam) GetName(id string) string {
-	name := self.cache.Get(id)
+func (s *Steam) GetName(id string) string {
+	name := s.cache.Get(id)
 
 	if name != "" {
 		return name
@@ -40,11 +40,11 @@ func (self *Steam) GetName(id string) string {
 		val = "💩"
 	}
 
-	self.cache.Add(id, val)
+	s.cache.Add(id, val)
 
 	return name
 }
 
-func (self *Steam) SaveCache() {
-	self.cache.Write()
+func (s *Steam) SaveCache() {
+	s.cache.Write()
 }

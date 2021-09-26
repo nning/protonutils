@@ -43,22 +43,22 @@ func vdfLookup(file string, x ...string) (MapLevel, error) {
 	return lookup(m, x)
 }
 
-func (self *Steam) GetCompatToolMapping(x ...string) (MapLevel, error) {
+func (s *Steam) GetCompatToolMapping() (MapLevel, error) {
 	return vdfLookup("config/config.vdf", "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
 }
 
-func (self *Steam) GetLibraryConfig() (MapLevel, error) {
+func (s *Steam) GetLibraryConfig() (MapLevel, error) {
 	return vdfLookup("steamapps/libraryfolders.vdf", "libraryfolders")
 }
 
-func (self *Steam) IsInstalled(id string) bool {
-	m := self.libraryConfig
+func (s *Steam) IsInstalled(id string) bool {
+	m := s.libraryConfig
 	var err error
 
 	if m == nil {
-		m, err = self.GetLibraryConfig()
+		m, err = s.GetLibraryConfig()
 		PanicOnError(err)
-		self.libraryConfig = m
+		s.libraryConfig = m
 	}
 
 	for i := 0; i < 10; i++ {

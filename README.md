@@ -1,6 +1,6 @@
 # list-proton-versions
 
-Lists configured Proton version per game. Can be useful to clean up old runtimes.
+Lists configured Proton version per game. Can be useful to clean up old runtimes. (For now, only works if runtime configuration was overridden at least once.)
 
 ## TODO
 
