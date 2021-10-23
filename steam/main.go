@@ -5,11 +5,17 @@ import (
 )
 
 type Steam struct {
-	cache         *cache.Cache
-	libraryConfig map[string]interface{}
+	cache              *cache.Cache
+	libraryConfig      map[string]interface{}
+	CompatToolVersions CompatToolVersions
 }
 
 func New() *Steam {
 	c := cache.New("steam-appids")
-	return &Steam{c, nil}
+
+	return &Steam{
+		cache:              c,
+		libraryConfig:      nil,
+		CompatToolVersions: make(CompatToolVersions),
+	}
 }

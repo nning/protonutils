@@ -2,71 +2,46 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	. "github.com/nning/list_proton_versions"
-	"github.com/nning/list_proton_versions/set"
 	"github.com/nning/list_proton_versions/steam"
 )
 
-type Versions map[string]set.Set
+func printHelp() {
+	fmt.Println(
+		`list-proton-versions [options]
 
-func (versions Versions) Includes(name string) bool {
-	x := false
-
-	for _, games := range versions {
-		if games.Includes(name) {
-			return true
-		}
-	}
-
-	return x
+    -a      List both installed and non-installed games
+    -h      Show this help text
+`)
 }
 
 func main() {
+	all := false
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "-a":
+			all = true
+		case "-h":
+			printHelp()
+			os.Exit(1)
+		}
+	}
+
 	s := steam.New()
+	s.InitCompatToolVersions()
 
-	x, err := s.GetCompatToolMapping()
-	PanicOnError(err)
-
-	versions := make(Versions)
-
-	for id, cfg := range x {
-		if id == "0" {
-			continue
-		}
-
-		v := cfg.(steam.MapLevel)["name"].(string)
-		if v == "" {
-			v = "Default"
-		}
-
-		name := s.GetNameWithInstallStatus(id)
-		if name != "" {
-			versions[v] = set.Init(versions[v])
-			versions[v].Add(name)
-		}
-	}
-
-	x, err = s.GetLocalConfig()
-	PanicOnError(err)
-
-	for id, cfg := range x {
-		v := cfg.(steam.MapLevel)["ViewedSteamPlay"]
-		if v == nil {
-			continue
-		}
-
-		name := s.GetNameWithInstallStatus(id)
-		if name != "" && !versions.Includes(name) {
-			versions["Default"].Add(name)
-		}
-	}
-
-	for version, games := range versions {
+	for version, games := range s.CompatToolVersions {
 		fmt.Println(version)
 
 		for _, game := range games.Sort() {
-			fmt.Println("\t" + game)
+			if all || games[game].IsInstalled {
+				fmt.Print("\t" + game)
+				if !games[game].IsInstalled {
+					fmt.Print(" [NOT INSTALLED]")
+				}
+				fmt.Println()
+			}
 		}
 
 		fmt.Println()

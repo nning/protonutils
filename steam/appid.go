@@ -16,6 +16,8 @@ type JsonAppData struct {
 	} `json:"data"`
 }
 
+const InvalidId = "💩"
+
 func (s *Steam) GetName(id string) string {
 	name := s.cache.Get(id)
 
@@ -37,7 +39,7 @@ func (s *Steam) GetName(id string) string {
 	name = data[id].Data.Name
 	val := name
 	if val == "" {
-		val = "💩"
+		val = InvalidId
 	}
 
 	s.cache.Add(id, val)
@@ -45,20 +47,8 @@ func (s *Steam) GetName(id string) string {
 	return name
 }
 
-func (s *Steam) GetNameWithInstallStatus(id string) string {
-	name := s.GetName(id)
-	installed := s.IsInstalled(id)
-
-	if name == "💩" {
-		return ""
-	}
-
-	ni := ""
-	if !installed {
-		ni = " [NOT INSTALLED]"
-	}
-
-	return name + ni
+func (s *Steam) GetGameData(id string) *GameData {
+	return &GameData{id, s.IsInstalled(id)}
 }
 
 func (s *Steam) SaveCache() {
