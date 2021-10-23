@@ -45,6 +45,22 @@ func (s *Steam) GetName(id string) string {
 	return name
 }
 
+func (s *Steam) GetNameWithInstallStatus(id string) string {
+	name := s.GetName(id)
+	installed := s.IsInstalled(id)
+
+	if name == "💩" {
+		return ""
+	}
+
+	ni := ""
+	if !installed {
+		ni = " [NOT INSTALLED]"
+	}
+
+	return name + ni
+}
+
 func (s *Steam) SaveCache() {
 	s.cache.Write()
 }

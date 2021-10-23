@@ -3,6 +3,7 @@ package steam
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -13,6 +14,22 @@ import (
 )
 
 type MapLevel = map[string]interface{}
+
+func getUid() string {
+	usr, _ := user.Current()
+	dir := path.Join(usr.HomeDir, ".steam", "root", "userdata")
+
+	entries, err := ioutil.ReadDir(dir)
+	PanicOnError(err)
+
+	uid := entries[0].Name()
+
+	if len(entries) > 1 {
+		fmt.Fprintln(os.Stderr, "Warning: Several Steam users available and only one is currently supported, using "+uid)
+	}
+
+	return uid
+}
 
 func lookup(m MapLevel, x []string) (MapLevel, error) {
 	y := m
@@ -30,8 +47,7 @@ func lookup(m MapLevel, x []string) (MapLevel, error) {
 
 func vdfLookup(file string, x ...string) (MapLevel, error) {
 	usr, _ := user.Current()
-	dir := usr.HomeDir
-	file = path.Join(dir, ".steam", "root", file)
+	file = path.Join(usr.HomeDir, ".steam", "root", file)
 
 	f, err := os.Open(file)
 	PanicOnError(err)
@@ -49,6 +65,10 @@ func (s *Steam) GetCompatToolMapping() (MapLevel, error) {
 
 func (s *Steam) GetLibraryConfig() (MapLevel, error) {
 	return vdfLookup("steamapps/libraryfolders.vdf", "libraryfolders")
+}
+
+func (s *Steam) GetLocalConfig() (MapLevel, error) {
+	return vdfLookup("userdata/"+getUid()+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) IsInstalled(id string) bool {
