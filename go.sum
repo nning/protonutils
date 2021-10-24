@@ -2,3 +2,5 @@ github.com/MrWaggel/gosteamconv v0.0.0-20190214041723-97e1fbb6de26 h1:ueOhRjLBgJ
 github.com/MrWaggel/gosteamconv v0.0.0-20190214041723-97e1fbb6de26/go.mod h1:2/l5MBbGIGPrCN+J8kM0ZDW/IRz1AmlarQai3iajPJc=
 github.com/andygrunwald/vdf v1.0.0 h1:2HuC85EVF1Sm1bwKH8tiyucny2qzf9GSjB3flsdqoM4=
 github.com/andygrunwald/vdf v1.0.0/go.mod h1:qi5jZfY3lrHXbibKeC2MCEge1tOsLODBgOHoS+RbRLk=
+github.com/wakeful-cloud/vdf v0.0.0-20210218214150-0be6ec18b390 h1:qIvdFTfR/iq1g9b6WFii4FLsPp2l3CoYLg6+lzObQuA=
+github.com/wakeful-cloud/vdf v0.0.0-20210218214150-0be6ec18b390/go.mod h1:L8xQNgy5mc4bqdEPR6gB355lmx0wgKmSDZFUrspKXcc=
