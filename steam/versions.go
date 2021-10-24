@@ -24,14 +24,12 @@ func (s *Steam) InitCompatToolVersions() {
 	x, err := s.GetCompatToolMapping()
 	PanicOnError(err)
 
-	for id, cfg := range x {
-		if id == "0" {
-			continue
-		}
+	def := x["0"].(MapLevel)["name"].(string) + " (Default)"
 
+	for id, cfg := range x {
 		v := cfg.(MapLevel)["name"].(string)
 		if v == "" {
-			v = "Default"
+			v = def
 		}
 
 		s.AddGame(v, id)
@@ -47,7 +45,7 @@ func (s *Steam) InitCompatToolVersions() {
 		}
 
 		if !s.IncludesGameId(id) {
-			s.AddGame("Default", id)
+			s.AddGame(def, id)
 		}
 	}
 }
