@@ -86,6 +86,10 @@ func (s *Steam) GetLocalConfig(user string) (MapLevel, error) {
 	return vdfLookup("userdata/"+getUid(user)+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
+func (s *Steam) GetLoginUsers() (MapLevel, error) {
+	return vdfLookup("config/loginusers.vdf", "users")
+}
+
 func (s *Steam) IsInstalled(id string) bool {
 	m := s.libraryConfig
 	var err error

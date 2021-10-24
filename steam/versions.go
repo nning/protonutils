@@ -35,6 +35,11 @@ func (s *Steam) InitCompatToolVersions(user string) {
 		s.AddGame(v, id)
 	}
 
+	if user != "" {
+		user, err = s.UserToId32(user)
+		ExitOnError(err)
+	}
+
 	x, err = s.GetLocalConfig(user)
 	PanicOnError(err)
 

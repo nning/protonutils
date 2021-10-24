@@ -15,7 +15,7 @@ func main() {
 
 	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
 	flag.BoolVar(&json_output, "j", false, "Output JSON (implies -a)")
-	flag.StringVar(&user, "u", "", "Steam user ID")
+	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
 
 	s := steam.New()
