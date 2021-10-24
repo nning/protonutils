@@ -2,36 +2,19 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
-	"os"
 
 	"github.com/nning/list_proton_versions/steam"
 )
 
-func printHelp() {
-	fmt.Println(
-		`list-proton-versions [options]
-
-    -a      List both installed and non-installed games
-    -h      Show this help text
-    -j      Output JSON
-`)
-}
-
 func main() {
-	all := false
-	json_output := false
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "-a":
-			all = true
-		case "-h":
-			printHelp()
-			os.Exit(1)
-		case "-j":
-			json_output = true
-		}
-	}
+	var all bool
+	var json_output bool
+
+	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
+	flag.BoolVar(&json_output, "j", false, "Output JSON (implies -a)")
+	flag.Parse()
 
 	s := steam.New()
 	s.InitCompatToolVersions()
