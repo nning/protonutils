@@ -5,7 +5,7 @@ import (
 )
 
 type GameData struct {
-	Id          string `json:"id"`
+	Id          string `json:"appId"`
 	IsInstalled bool   `json:"isInstalled"`
 }
 

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"strings"
 
 	"github.com/andygrunwald/vdf"
 )
@@ -25,22 +26,19 @@ func getUid(u string) (string, error) {
 	uid := entries[0].Name()
 
 	if len(entries) > 1 {
-		users := ""
-		for i := 0; i < len(entries); i++ {
-			name := entries[i].Name()
+		users := make([]string, len(entries))
+
+		for i, entry := range entries {
+			name := entry.Name()
 			if name == u {
 				return name, nil
 			}
 
-			comma := ", "
-			if i == 0 {
-				comma = ""
-			}
-			users = users + comma + name
+			users[i] = name
 		}
 
 		fmt.Fprintln(os.Stderr, "Warning: Several Steam users available and only one is currently supported, using "+uid)
-		fmt.Fprintln(os.Stderr, "All available users: "+users+"\n")
+		fmt.Fprintln(os.Stderr, "All available users: "+strings.Join(users, ", ")+"\n")
 	}
 
 	return uid, nil

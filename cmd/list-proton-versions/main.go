@@ -11,23 +11,23 @@ import (
 
 func main() {
 	var all bool
-	var ignore_cache bool
-	var json_output bool
+	var ignoreCache bool
+	var jsonOutput bool
 	var user string
 
 	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
-	flag.BoolVar(&json_output, "j", false, "Output JSON (implies -a)")
-	flag.BoolVar(&ignore_cache, "i", false, "Ignore app id/name cache")
+	flag.BoolVar(&jsonOutput, "j", false, "Output JSON (implies -a)")
+	flag.BoolVar(&ignoreCache, "i", false, "Ignore app id/name cache")
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
 
-	s, err := steam.New(!ignore_cache)
+	s, err := steam.New(!ignoreCache)
 	ExitOnError(err)
 
 	err = s.InitCompatToolVersions(user)
 	ExitOnError(err)
 
-	if !json_output {
+	if !jsonOutput {
 		for version, games := range s.CompatToolVersions {
 			fmt.Println(version)
 
@@ -44,7 +44,8 @@ func main() {
 			fmt.Println()
 		}
 	} else {
-		j, _ := json.MarshalIndent(s.CompatToolVersions, "", "  ")
+		j, err := json.MarshalIndent(s.CompatToolVersions, "", "  ")
+		ExitOnError(err)
 		fmt.Println(string(j))
 	}
 

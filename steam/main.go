@@ -10,8 +10,8 @@ type Steam struct {
 	CompatToolVersions CompatToolVersions
 }
 
-func New(not_fake bool) (*Steam, error) {
-	c, err := cache.New("steam-appids", not_fake)
+func New(notFake bool) (*Steam, error) {
+	c, err := cache.New("steam-appids", notFake)
 	if err != nil {
 		return nil, err
 	}

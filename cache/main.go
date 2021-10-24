@@ -14,7 +14,7 @@ type Cache struct {
 	fake    bool
 }
 
-func New(name string, not_fake bool) (*Cache, error) {
+func New(name string, notFake bool) (*Cache, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -26,10 +26,10 @@ func New(name string, not_fake bool) (*Cache, error) {
 	cache := &Cache{
 		path: p,
 		data: make(map[string]string),
-		fake: !not_fake,
+		fake: !notFake,
 	}
 
-	if not_fake {
+	if notFake {
 		f, err := os.ReadFile(cache.path)
 		if err == nil {
 			err = json.Unmarshal(f, &cache.data)
