@@ -15,7 +15,7 @@ import (
 
 type MapLevel = map[string]interface{}
 
-func getUid() string {
+func getUid(u string) string {
 	usr, _ := user.Current()
 	dir := path.Join(usr.HomeDir, ".steam", "root", "userdata")
 
@@ -25,7 +25,22 @@ func getUid() string {
 	uid := entries[0].Name()
 
 	if len(entries) > 1 {
+		users := ""
+		for i := 0; i < len(entries); i++ {
+			name := entries[i].Name()
+			if name == u {
+				return name
+			}
+
+			comma := ", "
+			if i == 0 {
+				comma = ""
+			}
+			users = users + comma + name
+		}
+
 		fmt.Fprintln(os.Stderr, "Warning: Several Steam users available and only one is currently supported, using "+uid)
+		fmt.Fprintln(os.Stderr, "All available users: "+users+"\n")
 	}
 
 	return uid
@@ -67,8 +82,8 @@ func (s *Steam) GetLibraryConfig() (MapLevel, error) {
 	return vdfLookup("steamapps/libraryfolders.vdf", "libraryfolders")
 }
 
-func (s *Steam) GetLocalConfig() (MapLevel, error) {
-	return vdfLookup("userdata/"+getUid()+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
+func (s *Steam) GetLocalConfig(user string) (MapLevel, error) {
+	return vdfLookup("userdata/"+getUid(user)+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) IsInstalled(id string) bool {

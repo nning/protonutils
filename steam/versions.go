@@ -20,7 +20,7 @@ func (s *Steam) IncludesGameId(id string) bool {
 	return s.CompatToolVersions.IncludesGameId(id)
 }
 
-func (s *Steam) InitCompatToolVersions() {
+func (s *Steam) InitCompatToolVersions(user string) {
 	x, err := s.GetCompatToolMapping()
 	PanicOnError(err)
 
@@ -35,7 +35,7 @@ func (s *Steam) InitCompatToolVersions() {
 		s.AddGame(v, id)
 	}
 
-	x, err = s.GetLocalConfig()
+	x, err = s.GetLocalConfig(user)
 	PanicOnError(err)
 
 	for id, cfg := range x {

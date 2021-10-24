@@ -11,13 +11,15 @@ import (
 func main() {
 	var all bool
 	var json_output bool
+	var user string
 
 	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
 	flag.BoolVar(&json_output, "j", false, "Output JSON (implies -a)")
+	flag.StringVar(&user, "u", "", "Steam user ID")
 	flag.Parse()
 
 	s := steam.New()
-	s.InitCompatToolVersions()
+	s.InitCompatToolVersions(user)
 
 	if !json_output {
 		for version, games := range s.CompatToolVersions {
