@@ -44,7 +44,7 @@ func main() {
 			fmt.Println()
 		}
 	} else {
-		j, _ := json.Marshal(s.CompatToolVersions)
+		j, _ := json.MarshalIndent(s.CompatToolVersions, "", "  ")
 		fmt.Println(string(j))
 	}
 
