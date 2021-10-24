@@ -11,16 +11,27 @@ type GameData struct {
 
 type Games map[string]*GameData
 
-func (s *Steam) AddGame(version, id string) {
-	name := s.GetName(id)
+func (s *Steam) AddGame(version, id string) (*GameData, error) {
+	name, err := s.GetName(id)
+	if err != nil {
+		return nil, err
+	}
 
 	if name != InvalidId {
 		if s.CompatToolVersions[version] == nil {
 			s.CompatToolVersions[version] = make(Games)
 		}
 
-		s.CompatToolVersions[version][name] = s.GetGameData(id)
+		data, err := s.GetGameData(id)
+		if err != nil {
+			return nil, err
+		}
+
+		s.CompatToolVersions[version][name] = data
+		return data, nil
 	}
+
+	return nil, nil
 }
 
 func (games Games) IncludesId(id string) bool {

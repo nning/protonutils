@@ -9,18 +9,18 @@ import (
 	"path"
 
 	"github.com/andygrunwald/vdf"
-
-	. "github.com/nning/list_proton_versions"
 )
 
 type MapLevel = map[string]interface{}
 
-func getUid(u string) string {
+func getUid(u string) (string, error) {
 	usr, _ := user.Current()
 	dir := path.Join(usr.HomeDir, ".steam", "root", "userdata")
 
 	entries, err := ioutil.ReadDir(dir)
-	PanicOnError(err)
+	if err != nil {
+		return "", err
+	}
 
 	uid := entries[0].Name()
 
@@ -29,7 +29,7 @@ func getUid(u string) string {
 		for i := 0; i < len(entries); i++ {
 			name := entries[i].Name()
 			if name == u {
-				return name
+				return name, nil
 			}
 
 			comma := ", "
@@ -43,7 +43,7 @@ func getUid(u string) string {
 		fmt.Fprintln(os.Stderr, "All available users: "+users+"\n")
 	}
 
-	return uid
+	return uid, nil
 }
 
 func lookup(m MapLevel, x []string) (MapLevel, error) {
@@ -65,11 +65,15 @@ func vdfLookup(file string, x ...string) (MapLevel, error) {
 	file = path.Join(usr.HomeDir, ".steam", "root", file)
 
 	f, err := os.Open(file)
-	PanicOnError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	p := vdf.NewParser(f)
 	m, err := p.Parse()
-	PanicOnError(err)
+	if err != nil {
+		return nil, err
+	}
 
 	return lookup(m, x)
 }
@@ -83,20 +87,27 @@ func (s *Steam) GetLibraryConfig() (MapLevel, error) {
 }
 
 func (s *Steam) GetLocalConfig(user string) (MapLevel, error) {
-	return vdfLookup("userdata/"+getUid(user)+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
+	uid, err := getUid(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return vdfLookup("userdata/"+uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) GetLoginUsers() (MapLevel, error) {
 	return vdfLookup("config/loginusers.vdf", "users")
 }
 
-func (s *Steam) IsInstalled(id string) bool {
+func (s *Steam) IsInstalled(id string) (bool, error) {
 	m := s.libraryConfig
 	var err error
 
 	if m == nil {
 		m, err = s.GetLibraryConfig()
-		PanicOnError(err)
+		if err != nil {
+			return false, err
+		}
 		s.libraryConfig = m
 	}
 
@@ -109,10 +120,10 @@ func (s *Steam) IsInstalled(id string) bool {
 		apps := x.(MapLevel)["apps"].(MapLevel)
 		for app := range apps {
 			if app == id {
-				return true
+				return true, nil
 			}
 		}
 	}
 
-	return false
+	return false, nil
 }

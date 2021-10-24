@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 
+	. "github.com/nning/list_proton_versions"
 	"github.com/nning/list_proton_versions/steam"
 )
 
@@ -18,8 +19,11 @@ func main() {
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
 
-	s := steam.New()
-	s.InitCompatToolVersions(user)
+	s, err := steam.New()
+	ExitOnError(err)
+
+	err = s.InitCompatToolVersions(user)
+	ExitOnError(err)
 
 	if !json_output {
 		for version, games := range s.CompatToolVersions {
@@ -42,5 +46,6 @@ func main() {
 		fmt.Println(string(j))
 	}
 
-	s.SaveCache()
+	err = s.SaveCache()
+	ExitOnError(err)
 }

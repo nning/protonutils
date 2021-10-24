@@ -10,12 +10,15 @@ type Steam struct {
 	CompatToolVersions CompatToolVersions
 }
 
-func New() *Steam {
-	c := cache.New("steam-appids")
+func New() (*Steam, error) {
+	c, err := cache.New("steam-appids")
+	if err != nil {
+		return nil, err
+	}
 
 	return &Steam{
 		cache:              c,
 		libraryConfig:      nil,
 		CompatToolVersions: make(CompatToolVersions),
-	}
+	}, nil
 }

@@ -1,9 +1,5 @@
 package steam
 
-import (
-	. "github.com/nning/list_proton_versions"
-)
-
 type CompatToolVersions map[string]Games
 
 func (versions CompatToolVersions) IncludesGameId(id string) bool {
@@ -20,9 +16,11 @@ func (s *Steam) IncludesGameId(id string) bool {
 	return s.CompatToolVersions.IncludesGameId(id)
 }
 
-func (s *Steam) InitCompatToolVersions(user string) {
+func (s *Steam) InitCompatToolVersions(user string) error {
 	x, err := s.GetCompatToolMapping()
-	PanicOnError(err)
+	if err != nil {
+		return err
+	}
 
 	def := x["0"].(MapLevel)["name"].(string) + " (Default)"
 
@@ -32,16 +30,23 @@ func (s *Steam) InitCompatToolVersions(user string) {
 			v = def
 		}
 
-		s.AddGame(v, id)
+		_, err = s.AddGame(v, id)
+		if err != nil {
+			return err
+		}
 	}
 
 	if user != "" {
 		user, err = s.UserToId32(user)
-		ExitOnError(err)
+		if err != nil {
+			return err
+		}
 	}
 
 	x, err = s.GetLocalConfig(user)
-	PanicOnError(err)
+	if err != nil {
+		return err
+	}
 
 	for id, cfg := range x {
 		v := cfg.(MapLevel)["ViewedSteamPlay"]
@@ -50,7 +55,12 @@ func (s *Steam) InitCompatToolVersions(user string) {
 		}
 
 		if !s.IncludesGameId(id) {
-			s.AddGame(def, id)
+			_, err = s.AddGame(def, id)
+			if err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }

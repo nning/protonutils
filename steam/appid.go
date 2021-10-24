@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	. "github.com/nning/list_proton_versions"
 )
 
 type JsonResponse map[string]JsonAppData
@@ -18,23 +16,29 @@ type JsonAppData struct {
 
 const InvalidId = "💩"
 
-func (s *Steam) GetName(id string) string {
+func (s *Steam) GetName(id string) (string, error) {
 	name := s.cache.Get(id)
 
 	if name != "" {
-		return name
+		return name, nil
 	}
 
 	res, err := http.Get("https://store.steampowered.com/api/appdetails/?appids=" + id)
-	PanicOnError(err)
+	if err != nil {
+		return "", err
+	}
 
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
-	PanicOnError(err)
+	if err != nil {
+		return "", err
+	}
 
 	data := make(JsonResponse)
 	err = json.Unmarshal(body, &data)
-	PanicOnError(err)
+	if err != nil {
+		return "", err
+	}
 
 	name = data[id].Data.Name
 	val := name
@@ -44,13 +48,18 @@ func (s *Steam) GetName(id string) string {
 
 	s.cache.Add(id, val)
 
-	return name
+	return name, nil
 }
 
-func (s *Steam) GetGameData(id string) *GameData {
-	return &GameData{id, s.IsInstalled(id)}
+func (s *Steam) GetGameData(id string) (*GameData, error) {
+	isInstalled, err := s.IsInstalled(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GameData{id, isInstalled}, nil
 }
 
-func (s *Steam) SaveCache() {
-	s.cache.Write()
+func (s *Steam) SaveCache() error {
+	return s.cache.Write()
 }
