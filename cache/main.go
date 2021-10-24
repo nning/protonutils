@@ -11,9 +11,10 @@ type Cache struct {
 	path    string
 	data    map[string]string
 	updated bool
+	fake    bool
 }
 
-func New(name string) (*Cache, error) {
+func New(name string, not_fake bool) (*Cache, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -25,13 +26,16 @@ func New(name string) (*Cache, error) {
 	cache := &Cache{
 		path: p,
 		data: make(map[string]string),
+		fake: !not_fake,
 	}
 
-	f, err := os.ReadFile(cache.path)
-	if err == nil {
-		err = json.Unmarshal(f, &cache.data)
-		if err != nil {
-			return nil, err
+	if not_fake {
+		f, err := os.ReadFile(cache.path)
+		if err == nil {
+			err = json.Unmarshal(f, &cache.data)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -48,7 +52,7 @@ func (cache *Cache) Get(key string) string {
 }
 
 func (cache *Cache) Write() error {
-	if !cache.updated {
+	if !cache.updated || cache.fake {
 		return nil
 	}
 

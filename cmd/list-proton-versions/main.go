@@ -11,15 +11,17 @@ import (
 
 func main() {
 	var all bool
+	var ignore_cache bool
 	var json_output bool
 	var user string
 
 	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
 	flag.BoolVar(&json_output, "j", false, "Output JSON (implies -a)")
+	flag.BoolVar(&ignore_cache, "i", false, "Ignore app id/name cache")
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
 
-	s, err := steam.New()
+	s, err := steam.New(!ignore_cache)
 	ExitOnError(err)
 
 	err = s.InitCompatToolVersions(user)
