@@ -5,8 +5,8 @@ import (
 )
 
 type GameData struct {
-	id          string
-	IsInstalled bool
+	Id          string `json:"id"`
+	IsInstalled bool   `json:"isInstalled"`
 }
 
 type Games map[string]*GameData
@@ -25,7 +25,7 @@ func (s *Steam) AddGame(version, id string) {
 
 func (games Games) IncludesId(id string) bool {
 	for _, data := range games {
-		if data.id == id {
+		if data.Id == id {
 			return true
 		}
 	}
