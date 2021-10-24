@@ -17,7 +17,7 @@ type JsonAppData struct {
 const InvalidId = "💩"
 
 func (s *Steam) GetName(id string) (string, error) {
-	name := s.cache.Get(id)
+	name := s.appidCache.Get(id)
 
 	if name != "" {
 		return name, nil
@@ -46,7 +46,7 @@ func (s *Steam) GetName(id string) (string, error) {
 		val = InvalidId
 	}
 
-	s.cache.Add(id, val)
+	s.appidCache.Add(id, val)
 
 	return name, nil
 }
@@ -61,5 +61,5 @@ func (s *Steam) GetGameData(id string) (*GameData, error) {
 }
 
 func (s *Steam) SaveCache() error {
-	return s.cache.Write()
+	return s.appidCache.Write()
 }

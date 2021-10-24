@@ -5,8 +5,8 @@ import (
 )
 
 type Steam struct {
-	cache              *cache.Cache
-	libraryConfig      map[string]interface{}
+	appidCache         *cache.Cache
+	vdfCache           MapLevel
 	CompatToolVersions CompatToolVersions
 }
 
@@ -17,8 +17,8 @@ func New(notFake bool) (*Steam, error) {
 	}
 
 	return &Steam{
-		cache:              c,
-		libraryConfig:      nil,
+		appidCache:         c,
+		vdfCache:           make(MapLevel),
 		CompatToolVersions: make(CompatToolVersions),
 	}, nil
 }

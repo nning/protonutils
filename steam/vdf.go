@@ -37,8 +37,9 @@ func getUid(u string) (string, error) {
 			users[i] = name
 		}
 
-		fmt.Fprintln(os.Stderr, "Warning: Several Steam users available and only one is currently supported, using "+uid)
+		fmt.Fprintln(os.Stderr, "Warning: Several Steam users available, using "+uid)
 		fmt.Fprintln(os.Stderr, "All available users: "+strings.Join(users, ", ")+"\n")
+		fmt.Fprintln(os.Stderr, "Option \"-u\" can be used to specify user")
 	}
 
 	return uid, nil
@@ -76,12 +77,27 @@ func vdfLookup(file string, x ...string) (MapLevel, error) {
 	return lookup(m, x)
 }
 
+func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (MapLevel, error) {
+	m := s.vdfCache[cacheKey]
+
+	if m == nil {
+		m, err := vdfLookup(file, x...)
+		if err != nil {
+			return nil, err
+		}
+		s.vdfCache[cacheKey] = m
+		return m, nil
+	} else {
+		return m.(MapLevel), nil
+	}
+}
+
 func (s *Steam) GetCompatToolMapping() (MapLevel, error) {
-	return vdfLookup("config/config.vdf", "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
+	return s.cachedVdfLookup("compatToolMapping", "config/config.vdf", "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
 }
 
 func (s *Steam) GetLibraryConfig() (MapLevel, error) {
-	return vdfLookup("steamapps/libraryfolders.vdf", "libraryfolders")
+	return s.cachedVdfLookup("libraryConfig", "steamapps/libraryfolders.vdf", "libraryfolders")
 }
 
 func (s *Steam) GetLocalConfig(user string) (MapLevel, error) {
@@ -90,23 +106,17 @@ func (s *Steam) GetLocalConfig(user string) (MapLevel, error) {
 		return nil, err
 	}
 
-	return vdfLookup("userdata/"+uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
+	return s.cachedVdfLookup("localConfig"+uid, "userdata/"+uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) GetLoginUsers() (MapLevel, error) {
-	return vdfLookup("config/loginusers.vdf", "users")
+	return s.cachedVdfLookup("loginUsers", "config/loginusers.vdf", "users")
 }
 
 func (s *Steam) IsInstalled(id string) (bool, error) {
-	m := s.libraryConfig
-	var err error
-
-	if m == nil {
-		m, err = s.GetLibraryConfig()
-		if err != nil {
-			return false, err
-		}
-		s.libraryConfig = m
+	m, err := s.GetLibraryConfig()
+	if err != nil {
+		return false, err
 	}
 
 	for i := 0; i < 10; i++ {
