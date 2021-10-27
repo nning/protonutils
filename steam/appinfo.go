@@ -2,8 +2,8 @@ package steam
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
-	"io"
 	"os"
 	"os/user"
 	"path"
@@ -32,7 +32,7 @@ func getNeedle(appid string) ([]byte, error) {
 	return needle[:10], nil
 }
 
-func (s *Steam) getAppInfoBuffer() (*AppInfo, io.Reader, error) {
+func (s *Steam) getAppInfoBuffer() (*AppInfo, *bufio.Reader, error) {
 	usr, _ := user.Current()
 	file := path.Join(usr.HomeDir, ".steam", "root", "appcache", "appinfo.vdf")
 
@@ -49,4 +49,55 @@ func (s *Steam) getAppInfoBuffer() (*AppInfo, io.Reader, error) {
 	}
 
 	return &info, buf, nil
+}
+
+func findNeedleInBuffer(buf *bufio.Reader, needle []byte) (string, error) {
+	l := len(needle)
+
+	for {
+		b, err := buf.ReadByte()
+		if err != nil {
+			return "", err
+		}
+
+		if b == needle[0] {
+			hay, err := buf.Peek(l - 1)
+			if err != nil {
+				return "", err
+			}
+
+			if bytes.Compare(hay, needle[1:]) == 0 {
+				_, err := buf.Discard(l - 1)
+				if err != nil {
+					return "", err
+				}
+
+				newNeedle := []byte{'n', 'a', 'm', 'e', 0}
+				if bytes.Compare(needle, newNeedle) == 0 {
+					s, err := buf.ReadBytes(0)
+					if err != nil {
+						return "", err
+					}
+
+					return string(s[:len(s)-1]), nil
+				} else {
+					return findNeedleInBuffer(buf, newNeedle)
+				}
+			}
+		}
+	}
+}
+
+func (s *Steam) FindNameInAppInfo(id string) (string, error) {
+	_, buf, err := s.getAppInfoBuffer()
+	if err != nil {
+		return "", err
+	}
+
+	needle, err := getNeedle(id)
+	if err != nil {
+		return "", err
+	}
+
+	return findNeedleInBuffer(buf, needle)
 }

@@ -2,6 +2,8 @@ package steam
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,4 +27,34 @@ func Test_getAppInfoBuffer(t *testing.T) {
 	assert.NotEmpty(t, buf)
 	assert.Equal(t, AppInfoMagic, info.Magic, "AppInfo Magic invalid")
 	assert.Equal(t, uint32(1), info.Universe, "Universe invalid")
+}
+
+func Test_FindNameInAppInfo_found(t *testing.T) {
+	s, err := New(true)
+	assert.Empty(t, err)
+
+	games := map[string]string{
+		"292030":  "The Witcher 3: Wild Hunt",
+		"377160":  "Fallout 4",
+		"403640":  "Dishonored 2",
+		"826630":  "Iron Harvest",
+		"1091500": "Cyberpunk 2077",
+		"1151640": "Horizon Zero Dawn",
+		"1174180": "Red Dead Redemption 2",
+		"1328670": "Mass Effect™ Legendary Edition",
+	}
+
+	for id, n := range games {
+		name, err := s.FindNameInAppInfo(id)
+		assert.Empty(t, err)
+		assert.Equal(t, n, name)
+	}
+}
+func Test_FindNameInAppInfo_notFound(t *testing.T) {
+	s, err := New(true)
+	assert.Empty(t, err)
+
+	name, err := s.FindNameInAppInfo("386360")
+	assert.True(t, errors.Is(err, io.EOF))
+	assert.Equal(t, "", name)
 }
