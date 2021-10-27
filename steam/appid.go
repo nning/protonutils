@@ -1,9 +1,8 @@
 package steam
 
 import (
-	"encoding/json"
-	"io"
-	"net/http"
+	"errors"
+	"strconv"
 )
 
 type JsonResponse map[string]JsonAppData
@@ -18,36 +17,20 @@ const InvalidId = "💩"
 
 func (s *Steam) GetName(id string) (string, error) {
 	name := s.appidCache.Get(id)
-
 	if name != "" {
 		return name, nil
 	}
 
-	res, err := http.Get("https://store.steampowered.com/api/appdetails/?appids=" + id)
-	if err != nil {
+	name, err := s.FindNameInAppInfo(id)
+	if err != nil && !errors.Is(err, strconv.ErrRange) {
 		return "", err
 	}
 
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return "", err
+	if name == "" {
+		name = InvalidId
 	}
 
-	data := make(JsonResponse)
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return "", err
-	}
-
-	name = data[id].Data.Name
-	val := name
-	if val == "" {
-		val = InvalidId
-	}
-
-	s.appidCache.Add(id, val)
-
+	s.appidCache.Add(id, name)
 	return name, nil
 }
 

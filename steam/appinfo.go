@@ -60,31 +60,35 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte) (string, error) {
 			return "", err
 		}
 
-		if b == needle[0] {
-			hay, err := buf.Peek(l - 1)
-			if err != nil {
-				return "", err
-			}
-
-			if bytes.Compare(hay, needle[1:]) == 0 {
-				_, err := buf.Discard(l - 1)
-				if err != nil {
-					return "", err
-				}
-
-				newNeedle := []byte{'n', 'a', 'm', 'e', 0}
-				if bytes.Compare(needle, newNeedle) == 0 {
-					s, err := buf.ReadBytes(0)
-					if err != nil {
-						return "", err
-					}
-
-					return string(s[:len(s)-1]), nil
-				} else {
-					return findNeedleInBuffer(buf, newNeedle)
-				}
-			}
+		if b != needle[0] {
+			continue
 		}
+
+		hay, err := buf.Peek(l - 1)
+		if err != nil {
+			return "", err
+		}
+
+		if bytes.Compare(hay, needle[1:]) != 0 {
+			continue
+		}
+
+		_, err = buf.Discard(l - 1)
+		if err != nil {
+			return "", err
+		}
+
+		newNeedle := []byte{'n', 'a', 'm', 'e', 0}
+		if bytes.Compare(needle, newNeedle) != 0 {
+			return findNeedleInBuffer(buf, newNeedle)
+		}
+
+		s, err := buf.ReadBytes(0)
+		if err != nil {
+			return "", err
+		}
+
+		return string(s[:len(s)-1]), nil
 	}
 }
 

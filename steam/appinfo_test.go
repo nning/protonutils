@@ -37,6 +37,7 @@ func Test_FindNameInAppInfo_found(t *testing.T) {
 		"292030":  "The Witcher 3: Wild Hunt",
 		"377160":  "Fallout 4",
 		"403640":  "Dishonored 2",
+		"614570":  "Dishonored®: Death of the Outsider™ ",
 		"826630":  "Iron Harvest",
 		"1091500": "Cyberpunk 2077",
 		"1151640": "Horizon Zero Dawn",
