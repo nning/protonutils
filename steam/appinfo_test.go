@@ -1,45 +1,28 @@
 package steam
 
 import (
-	"fmt"
-	"os"
-	"os/user"
-	"path"
+	"bytes"
 	"testing"
 
-	vdf "github.com/wakeful-cloud/vdf"
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_ReadAppInfo(t *testing.T) {
-	s, err := New(true)
-	if err != nil {
-		t.Error(err)
-	}
+func Test_getNeedle(t *testing.T) {
+	needle, err := getNeedle("403640")
+	assert.Empty(t, err)
+	assert.NotEmpty(t, needle)
 
-	info, err := s.ReadAppInfo()
-	if err != nil {
-		t.Error(err)
-	}
-	if info.Magic != AppInfoMagic {
-		t.Error("AppInfo Magic invalid")
-	}
-	if info.Universe != 1 {
-		t.Error("Universe invalid")
-	}
+	x := bytes.Compare(needle, []byte{'a', 'p', 'p', 'i', 'd', 0, 0xb8, 0x28, 6, 0})
+	assert.Equal(t, 0, x, "Needle should be correct")
 }
 
-func Test_UseExternalLib(t *testing.T) {
-	usr, _ := user.Current()
-	file := path.Join(usr.HomeDir, ".steam", "root", "appcache", "appinfo.vdf")
-	bytes, err := os.ReadFile(file)
-	if err != nil {
-		t.Error(err)
-	}
+func Test_getAppInfoBuffer(t *testing.T) {
+	s, err := New(true)
+	assert.Empty(t, err)
 
-	vdfMap, err := vdf.ReadVdf(bytes)
-	if err != nil {
-		t.Error(err)
-	}
-
-	fmt.Println(vdfMap)
+	info, buf, err := s.getAppInfoBuffer()
+	assert.Empty(t, err)
+	assert.NotEmpty(t, buf)
+	assert.Equal(t, AppInfoMagic, info.Magic, "AppInfo Magic invalid")
+	assert.Equal(t, uint32(1), info.Universe, "Universe invalid")
 }
