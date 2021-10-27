@@ -37,9 +37,10 @@ func getUid(u string) (string, error) {
 			users[i] = name
 		}
 
-		fmt.Fprintln(os.Stderr, "Warning: Several Steam users available, using "+uid)
-		fmt.Fprintln(os.Stderr, "All available users: "+strings.Join(users, ", ")+"\n")
-		fmt.Fprintln(os.Stderr, "Option \"-u\" can be used to specify user")
+		fmt.Fprintln(os.Stderr,
+			"Warning: Several Steam users available, using "+uid+"\n"+
+				"All available users: "+strings.Join(users, ", ")+"\n"+
+				"Option \"-u\" can be used to specify user\n")
 	}
 
 	return uid, nil
@@ -79,17 +80,17 @@ func vdfLookup(file string, x ...string) (MapLevel, error) {
 
 func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (MapLevel, error) {
 	m := s.vdfCache[cacheKey]
-
-	if m == nil {
-		m, err := vdfLookup(file, x...)
-		if err != nil {
-			return nil, err
-		}
-		s.vdfCache[cacheKey] = m
-		return m, nil
-	} else {
+	if m != nil {
 		return m.(MapLevel), nil
 	}
+
+	m, err := vdfLookup(file, x...)
+	if err != nil {
+		return nil, err
+	}
+
+	s.vdfCache[cacheKey] = m
+	return m.(MapLevel), nil
 }
 
 func (s *Steam) GetCompatToolMapping() (MapLevel, error) {

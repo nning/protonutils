@@ -1,9 +1,9 @@
-.PHONY: clean
+.PHONY: clean test
 
 SOURCES = $(shell find . -name \*.go)
 
-LIST_BIN_DIR = "cmd/list-proton-versions"
-LIST_BIN = "$(LIST_BIN_DIR)/list-proton-versions"
+LIST_BIN_DIR = cmd/list-proton-versions
+LIST_BIN = $(LIST_BIN_DIR)/list-proton-versions
 
 build: $(LIST_BIN)
 
@@ -15,3 +15,6 @@ clean:
 
 run: $(LIST_BIN)
 	./$(LIST_BIN)
+
+test:
+	go test ./...

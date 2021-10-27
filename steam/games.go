@@ -17,21 +17,21 @@ func (s *Steam) AddGame(version, id string) (*GameData, error) {
 		return nil, err
 	}
 
-	if name != InvalidId {
-		if s.CompatToolVersions[version] == nil {
-			s.CompatToolVersions[version] = make(Games)
-		}
-
-		data, err := s.GetGameData(id)
-		if err != nil {
-			return nil, err
-		}
-
-		s.CompatToolVersions[version][name] = data
-		return data, nil
+	if name == InvalidId {
+		return nil, nil
 	}
 
-	return nil, nil
+	if s.CompatToolVersions[version] == nil {
+		s.CompatToolVersions[version] = make(Games)
+	}
+
+	data, err := s.GetGameData(id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.CompatToolVersions[version][name] = data
+	return data, nil
 }
 
 func (games Games) IncludesId(id string) bool {
