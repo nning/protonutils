@@ -8,14 +8,14 @@ import (
 	"github.com/MrWaggel/gosteamconv"
 )
 
-func (s *Steam) GetId64(u string) (string, error) {
-	cfg, err := s.GetLoginUsers()
+func (s *Steam) getID64(u string) (string, error) {
+	cfg, err := s.getLoginUsers()
 	if err != nil {
 		return "", err
 	}
 
 	for id, c := range cfg {
-		if c.(MapLevel)["AccountName"] == u {
+		if c.(mapLevel)["AccountName"] == u {
 			return id, nil
 		}
 	}
@@ -23,8 +23,8 @@ func (s *Steam) GetId64(u string) (string, error) {
 	return "", errors.New("User not found: " + u)
 }
 
-func (s *Steam) UserToId32(u string) (string, error) {
-	id_str64, err := s.GetId64(u)
+func (s *Steam) userToID32(u string) (string, error) {
+	idStr64, err := s.getID64(u)
 	if err != nil {
 		x, e := strconv.ParseInt(u, 10, 32)
 		if e != nil {
@@ -34,25 +34,25 @@ func (s *Steam) UserToId32(u string) (string, error) {
 		_, e = gosteamconv.SteamInt32ToString(int32(x))
 		if e != nil {
 			return "", err
-		} else {
-			return u, nil
 		}
+
+		return u, nil
 	}
 
-	id_int64, err := strconv.ParseInt(id_str64, 10, 64)
+	idInt64, err := strconv.ParseInt(idStr64, 10, 64)
 	if err != nil {
 		return "", err
 	}
 
-	str, err := gosteamconv.SteamInt64ToString(id_int64)
+	str, err := gosteamconv.SteamInt64ToString(idInt64)
 	if err != nil {
 		return "", err
 	}
 
-	id_int32, err := gosteamconv.SteamStringToInt32(str)
+	idInt32, err := gosteamconv.SteamStringToInt32(str)
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprint(id_int32), nil
+	return fmt.Sprint(idInt32), nil
 }

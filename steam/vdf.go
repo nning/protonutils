@@ -12,9 +12,9 @@ import (
 	"github.com/andygrunwald/vdf"
 )
 
-type MapLevel = map[string]interface{}
+type mapLevel = map[string]interface{}
 
-func getUid(u string) (string, error) {
+func getUID(u string) (string, error) {
 	usr, _ := user.Current()
 	dir := path.Join(usr.HomeDir, ".steam", "root", "userdata")
 
@@ -46,21 +46,21 @@ func getUid(u string) (string, error) {
 	return uid, nil
 }
 
-func lookup(m MapLevel, x []string) (MapLevel, error) {
+func lookup(m mapLevel, x []string) (mapLevel, error) {
 	y := m
 
 	for _, s := range x {
 		if y[s] == nil {
 			return nil, errors.New("Key not found: " + s)
-		} else {
-			y = y[s].(MapLevel)
 		}
+
+		y = y[s].(mapLevel)
 	}
 
 	return y, nil
 }
 
-func vdfLookup(file string, x ...string) (MapLevel, error) {
+func vdfLookup(file string, x ...string) (mapLevel, error) {
 	usr, _ := user.Current()
 	file = path.Join(usr.HomeDir, ".steam", "root", file)
 
@@ -78,10 +78,10 @@ func vdfLookup(file string, x ...string) (MapLevel, error) {
 	return lookup(m, x)
 }
 
-func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (MapLevel, error) {
+func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (mapLevel, error) {
 	m := s.vdfCache[cacheKey]
 	if m != nil {
-		return m.(MapLevel), nil
+		return m.(mapLevel), nil
 	}
 
 	m, err := vdfLookup(file, x...)
@@ -90,19 +90,19 @@ func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (MapLevel, e
 	}
 
 	s.vdfCache[cacheKey] = m
-	return m.(MapLevel), nil
+	return m.(mapLevel), nil
 }
 
-func (s *Steam) GetCompatToolMapping() (MapLevel, error) {
+func (s *Steam) getCompatToolMapping() (mapLevel, error) {
 	return s.cachedVdfLookup("compatToolMapping", "config/config.vdf", "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
 }
 
-func (s *Steam) GetLibraryConfig() (MapLevel, error) {
+func (s *Steam) getLibraryConfig() (mapLevel, error) {
 	return s.cachedVdfLookup("libraryConfig", "steamapps/libraryfolders.vdf", "libraryfolders")
 }
 
-func (s *Steam) GetLocalConfig(user string) (MapLevel, error) {
-	uid, err := getUid(user)
+func (s *Steam) getLocalConfig(user string) (mapLevel, error) {
+	uid, err := getUID(user)
 	if err != nil {
 		return nil, err
 	}
@@ -110,12 +110,12 @@ func (s *Steam) GetLocalConfig(user string) (MapLevel, error) {
 	return s.cachedVdfLookup("localConfig"+uid, "userdata/"+uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
-func (s *Steam) GetLoginUsers() (MapLevel, error) {
+func (s *Steam) getLoginUsers() (mapLevel, error) {
 	return s.cachedVdfLookup("loginUsers", "config/loginusers.vdf", "users")
 }
 
-func (s *Steam) IsInstalled(id string) (bool, error) {
-	m, err := s.GetLibraryConfig()
+func (s *Steam) isInstalled(id string) (bool, error) {
+	m, err := s.getLibraryConfig()
 	if err != nil {
 		return false, err
 	}
@@ -126,7 +126,7 @@ func (s *Steam) IsInstalled(id string) (bool, error) {
 			break
 		}
 
-		apps := x.(MapLevel)["apps"].(MapLevel)
+		apps := x.(mapLevel)["apps"].(mapLevel)
 		for app := range apps {
 			if app == id {
 				return true, nil

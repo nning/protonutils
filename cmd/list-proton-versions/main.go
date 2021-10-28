@@ -4,30 +4,37 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 
-	. "github.com/nning/list_proton_versions"
 	"github.com/nning/list_proton_versions/steam"
 )
+
+func exitOnError(e error) {
+	if e != nil {
+		fmt.Fprintln(os.Stderr, e)
+		os.Exit(1)
+	}
+}
 
 func main() {
 	var all bool
 	var ignoreCache bool
 	var jsonOutput bool
-	var showAppId bool
+	var showAppID bool
 	var user string
 
 	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
 	flag.BoolVar(&ignoreCache, "c", false, "Ignore app ID/name cache")
 	flag.BoolVar(&jsonOutput, "j", false, "Output JSON (implies -a)")
-	flag.BoolVar(&showAppId, "i", false, "Show app ID")
+	flag.BoolVar(&showAppID, "i", false, "Show app ID")
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
 
 	s, err := steam.New(!ignoreCache)
-	ExitOnError(err)
+	exitOnError(err)
 
-	err = s.InitCompatToolVersions(user)
-	ExitOnError(err)
+	err = s.ReadCompatToolVersions(user)
+	exitOnError(err)
 
 	if !jsonOutput {
 		for version, games := range s.CompatToolVersions {
@@ -36,8 +43,8 @@ func main() {
 			for _, game := range games.Sort() {
 				if all || games[game].IsInstalled {
 					fmt.Print("\t" + game)
-					if showAppId {
-						fmt.Print(" (" + games[game].Id + ")")
+					if showAppID {
+						fmt.Print(" (" + games[game].ID + ")")
 					}
 					if !games[game].IsInstalled {
 						fmt.Print(" [NOT INSTALLED]")
@@ -50,10 +57,10 @@ func main() {
 		}
 	} else {
 		j, err := json.MarshalIndent(s.CompatToolVersions, "", "  ")
-		ExitOnError(err)
+		exitOnError(err)
 		fmt.Println(string(j))
 	}
 
 	err = s.SaveCache()
-	ExitOnError(err)
+	exitOnError(err)
 }

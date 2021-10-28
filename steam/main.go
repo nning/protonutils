@@ -4,12 +4,14 @@ import (
 	"github.com/nning/list_proton_versions/cache"
 )
 
+// Steam struct wraps caches and exposes functions for Steam data retrieval
 type Steam struct {
 	appidCache         *cache.Cache
-	vdfCache           MapLevel
+	vdfCache           mapLevel
 	CompatToolVersions CompatToolVersions
 }
 
+// New instantiates Steam struct
 func New(notFake bool) (*Steam, error) {
 	c, err := cache.New("steam-appids", notFake)
 	if err != nil {
@@ -18,7 +20,7 @@ func New(notFake bool) (*Steam, error) {
 
 	return &Steam{
 		appidCache:         c,
-		vdfCache:           make(MapLevel),
+		vdfCache:           make(mapLevel),
 		CompatToolVersions: make(CompatToolVersions),
 	}, nil
 }

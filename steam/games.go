@@ -4,28 +4,28 @@ import (
 	"sort"
 )
 
-type GameData struct {
-	Id          string `json:"appId"`
+type gameData struct {
+	ID          string `json:"appID"`
 	IsInstalled bool   `json:"isInstalled"`
 }
 
-type Games map[string]*GameData
+type games map[string]*gameData
 
-func (s *Steam) AddGame(version, id string) (*GameData, error) {
+func (s *Steam) addGame(version, id string) (*gameData, error) {
 	name, err := s.GetName(id)
 	if err != nil {
 		return nil, err
 	}
 
-	if name == InvalidId {
+	if name == InvalidID {
 		return nil, nil
 	}
 
 	if s.CompatToolVersions[version] == nil {
-		s.CompatToolVersions[version] = make(Games)
+		s.CompatToolVersions[version] = make(games)
 	}
 
-	data, err := s.GetGameData(id)
+	data, err := s.getGameData(id)
 	if err != nil {
 		return nil, err
 	}
@@ -34,9 +34,9 @@ func (s *Steam) AddGame(version, id string) (*GameData, error) {
 	return data, nil
 }
 
-func (games Games) IncludesId(id string) bool {
+func (games games) includesID(id string) bool {
 	for _, data := range games {
-		if data.Id == id {
+		if data.ID == id {
 			return true
 		}
 	}
@@ -44,11 +44,14 @@ func (games Games) IncludesId(id string) bool {
 	return false
 }
 
-func (games Games) Sort() []string {
-	var keys []string
+// Sort returns slice of alphabetically sorted Game names
+func (games games) Sort() []string {
+	keys := make([]string, len(games))
 
+	i := 0
 	for key := range games {
-		keys = append(keys, key)
+		keys[i] = key
+		i++
 	}
 
 	sort.Strings(keys)

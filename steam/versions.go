@@ -1,10 +1,11 @@
 package steam
 
-type CompatToolVersions map[string]Games
+// CompatToolVersions maps Proton versions to games
+type CompatToolVersions map[string]games
 
-func (versions CompatToolVersions) IncludesGameId(id string) bool {
+func (versions CompatToolVersions) includesGameID(id string) bool {
 	for _, games := range versions {
-		if games.IncludesId(id) {
+		if games.includesID(id) {
 			return true
 		}
 	}
@@ -12,50 +13,51 @@ func (versions CompatToolVersions) IncludesGameId(id string) bool {
 	return false
 }
 
-func (s *Steam) IncludesGameId(id string) bool {
-	return s.CompatToolVersions.IncludesGameId(id)
+func (s *Steam) includesGameID(id string) bool {
+	return s.CompatToolVersions.includesGameID(id)
 }
 
-func (s *Steam) InitCompatToolVersions(user string) error {
-	x, err := s.GetCompatToolMapping()
+// ReadCompatToolVersions reads Proton versions and games from different Steam configs
+func (s *Steam) ReadCompatToolVersions(user string) error {
+	x, err := s.getCompatToolMapping()
 	if err != nil {
 		return err
 	}
 
-	def := x["0"].(MapLevel)["name"].(string) + " (Default)"
+	def := x["0"].(mapLevel)["name"].(string) + " (Default)"
 
 	for id, cfg := range x {
-		v := cfg.(MapLevel)["name"].(string)
+		v := cfg.(mapLevel)["name"].(string)
 		if v == "" {
 			v = def
 		}
 
-		_, err = s.AddGame(v, id)
+		_, err = s.addGame(v, id)
 		if err != nil {
 			return err
 		}
 	}
 
 	if user != "" {
-		user, err = s.UserToId32(user)
+		user, err = s.userToID32(user)
 		if err != nil {
 			return err
 		}
 	}
 
-	x, err = s.GetLocalConfig(user)
+	x, err = s.getLocalConfig(user)
 	if err != nil {
 		return err
 	}
 
 	for id, cfg := range x {
-		v := cfg.(MapLevel)["ViewedSteamPlay"]
+		v := cfg.(mapLevel)["ViewedSteamPlay"]
 		if v == nil {
 			continue
 		}
 
-		if !s.IncludesGameId(id) {
-			_, err = s.AddGame(def, id)
+		if !s.includesGameID(id) {
+			_, err = s.addGame(def, id)
 			if err != nil {
 				return err
 			}

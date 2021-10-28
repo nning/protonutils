@@ -25,7 +25,7 @@ func Test_getAppInfoBuffer(t *testing.T) {
 	info, buf, err := s.getAppInfoBuffer()
 	assert.Empty(t, err)
 	assert.NotEmpty(t, buf)
-	assert.Equal(t, AppInfoMagic, info.Magic, "AppInfo Magic invalid")
+	assert.Equal(t, appInfoMagic, info.Magic, "AppInfo Magic invalid")
 	assert.Equal(t, uint32(1), info.Universe, "Universe invalid")
 }
 
@@ -46,7 +46,7 @@ func Test_FindNameInAppInfo_found(t *testing.T) {
 	}
 
 	for id, n := range games {
-		name, err := s.FindNameInAppInfo(id)
+		name, err := s.findNameInAppInfo(id)
 		assert.Empty(t, err)
 		assert.Equal(t, n, name)
 	}
@@ -55,7 +55,7 @@ func Test_FindNameInAppInfo_notFound(t *testing.T) {
 	s, err := New(true)
 	assert.Empty(t, err)
 
-	name, err := s.FindNameInAppInfo("386360")
+	name, err := s.findNameInAppInfo("386360")
 	assert.True(t, errors.Is(err, io.EOF))
 	assert.Equal(t, "", name)
 }

@@ -10,9 +10,9 @@ import (
 	"strconv"
 )
 
-const AppInfoMagic = uint32(0x07_56_44_27)
+const appInfoMagic = uint32(0x07_56_44_27)
 
-type AppInfo struct {
+type appInfo struct {
 	Magic    uint32
 	Universe uint32
 }
@@ -32,7 +32,7 @@ func getNeedle(appid string) ([]byte, error) {
 	return needle[:10], nil
 }
 
-func (s *Steam) getAppInfoBuffer() (*AppInfo, *bufio.Reader, error) {
+func (s *Steam) getAppInfoBuffer() (*appInfo, *bufio.Reader, error) {
 	usr, _ := user.Current()
 	file := path.Join(usr.HomeDir, ".steam", "root", "appcache", "appinfo.vdf")
 
@@ -42,7 +42,7 @@ func (s *Steam) getAppInfoBuffer() (*AppInfo, *bufio.Reader, error) {
 	}
 
 	buf := bufio.NewReader(f)
-	info := AppInfo{}
+	info := appInfo{}
 	err = binary.Read(buf, binary.LittleEndian, &info)
 	if err != nil {
 		return nil, nil, err
@@ -92,7 +92,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte) (string, error) {
 	}
 }
 
-func (s *Steam) FindNameInAppInfo(id string) (string, error) {
+func (s *Steam) findNameInAppInfo(id string) (string, error) {
 	_, buf, err := s.getAppInfoBuffer()
 	if err != nil {
 		return "", err

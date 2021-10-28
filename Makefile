@@ -1,4 +1,4 @@
-.PHONY: clean test
+.PHONY: clean test lint
 
 SOURCES = $(shell find . -name \*.go)
 
@@ -18,3 +18,6 @@ run: $(LIST_BIN)
 
 test:
 	go test ./...
+
+lint:
+	golint ./...

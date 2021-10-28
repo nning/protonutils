@@ -5,44 +5,39 @@ import (
 	"strconv"
 )
 
-type JsonResponse map[string]JsonAppData
+// InvalidID is a placeholder for cached entries with invalid app ID
+const InvalidID = "💩"
 
-type JsonAppData struct {
-	Data struct {
-		Name string `json:"name"`
-	} `json:"data"`
-}
-
-const InvalidId = "💩"
-
+// GetName returns name for app ID
 func (s *Steam) GetName(id string) (string, error) {
 	name := s.appidCache.Get(id)
 	if name != "" {
 		return name, nil
 	}
 
-	name, err := s.FindNameInAppInfo(id)
+	name, err := s.findNameInAppInfo(id)
 	if err != nil && !errors.Is(err, strconv.ErrRange) {
 		return "", err
 	}
 
 	if name == "" {
-		name = InvalidId
+		name = InvalidID
 	}
 
 	s.appidCache.Add(id, name)
 	return name, nil
 }
 
-func (s *Steam) GetGameData(id string) (*GameData, error) {
-	isInstalled, err := s.IsInstalled(id)
+func (s *Steam) getGameData(id string) (*gameData, error) {
+	isInstalled, err := s.isInstalled(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GameData{id, isInstalled}, nil
+	return &gameData{id, isInstalled}, nil
 }
 
+// SaveCache writes app ID cache to disk
 func (s *Steam) SaveCache() error {
 	return s.appidCache.Write()
 }
