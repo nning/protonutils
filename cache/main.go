@@ -10,9 +10,14 @@ import (
 // Cache represents simple in-memory key/value store that can be persisted
 type Cache struct {
 	path    string
-	data    map[string]string
+	data    map[string]value
 	updated bool
 	fake    bool
+}
+
+type value struct {
+	Name  string `json:"name"`
+	Valid bool   `json:"valid"`
 }
 
 // New instantiates new Cache
@@ -27,17 +32,15 @@ func New(name string, notFake bool) (*Cache, error) {
 
 	cache := &Cache{
 		path: p,
-		data: make(map[string]string),
+		data: make(map[string]value),
 		fake: !notFake,
 	}
 
 	if notFake {
 		f, err := os.ReadFile(cache.path)
 		if err == nil {
-			err = json.Unmarshal(f, &cache.data)
-			if err != nil {
-				return nil, err
-			}
+			// Ignore errors; cache will be overwritten on Write
+			json.Unmarshal(f, &cache.data)
 		}
 	}
 
@@ -45,14 +48,15 @@ func New(name string, notFake bool) (*Cache, error) {
 }
 
 // Add cache entry
-func (cache *Cache) Add(key, value string) {
-	cache.data[key] = value
+func (cache *Cache) Add(id, name string, valid bool) {
+	cache.data[id] = value{name, valid}
 	cache.updated = true
 }
 
 // Get cache entry by key
-func (cache *Cache) Get(key string) string {
-	return cache.data[key]
+func (cache *Cache) Get(id string) (string, bool) {
+	entry := cache.data[id]
+	return entry.Name, entry.Valid
 }
 
 // Write persists cache to disk

@@ -12,12 +12,12 @@ type gameData struct {
 type games map[string]*gameData
 
 func (s *Steam) addGame(version, id string) (*gameData, error) {
-	name, err := s.GetName(id)
+	name, valid, err := s.getName(id)
 	if err != nil {
 		return nil, err
 	}
 
-	if name == InvalidID {
+	if !valid {
 		return nil, nil
 	}
 

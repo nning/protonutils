@@ -5,28 +5,24 @@ import (
 	"strconv"
 )
 
-// InvalidID is a placeholder for cached entries with invalid app ID
-// TODO Transparently cache invalid app IDs
-const InvalidID = "💩"
-
-// GetName returns name for app ID
-func (s *Steam) GetName(id string) (string, error) {
-	name := s.appidCache.Get(id)
-	if name != "" {
-		return name, nil
+func (s *Steam) getName(id string) (string, bool, error) {
+	name, valid := s.appidCache.Get(id)
+	if name != "" && valid {
+		return name, true, nil
 	}
 
 	name, err := s.findNameInAppInfo(id)
 	if err != nil && !errors.Is(err, strconv.ErrRange) {
-		return "", err
+		return "", false, err
 	}
 
+	valid = true
 	if name == "" {
-		name = InvalidID
+		valid = false
 	}
 
-	s.appidCache.Add(id, name)
-	return name, nil
+	s.appidCache.Add(id, name, valid)
+	return name, valid, nil
 }
 
 func (s *Steam) getGameData(id string) (*gameData, error) {

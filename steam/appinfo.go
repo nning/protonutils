@@ -94,6 +94,10 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte) (string, error) {
 }
 
 func (s *Steam) findNameInAppInfo(id string) (string, error) {
+	if id == "0" {
+		return "", nil
+	}
+
 	_, buf, err := s.getAppInfoBuffer()
 	if err != nil {
 		return "", err
