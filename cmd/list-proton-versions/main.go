@@ -37,7 +37,8 @@ func main() {
 	exitOnError(err)
 
 	if !jsonOutput {
-		for version, games := range s.CompatToolVersions {
+		for _, version := range s.CompatToolVersions.Sort() {
+			games := s.CompatToolVersions[version]
 			fmt.Println(version)
 
 			for _, game := range games.Sort() {

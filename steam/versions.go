@@ -1,5 +1,7 @@
 package steam
 
+import "sort"
+
 // CompatToolVersions maps Proton versions to games
 type CompatToolVersions map[string]games
 
@@ -11,6 +13,20 @@ func (versions CompatToolVersions) includesGameID(id string) bool {
 	}
 
 	return false
+}
+
+// Sort returns slice of alphabetically sorted CompatToolVersion names
+func (versions CompatToolVersions) Sort() []string {
+	keys := make([]string, len(versions))
+
+	i := 0
+	for key := range versions {
+		keys[i] = key
+		i++
+	}
+
+	sort.Strings(keys)
+	return keys
 }
 
 func (s *Steam) includesGameID(id string) bool {
