@@ -80,6 +80,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte) (string, error) {
 
 		newNeedle := []byte{'n', 'a', 'm', 'e', 0}
 		if bytes.Compare(needle, newNeedle) != 0 {
+			// TODO Add max look-ahead
 			return findNeedleInBuffer(buf, newNeedle)
 		}
 

@@ -6,6 +6,7 @@ import (
 )
 
 // InvalidID is a placeholder for cached entries with invalid app ID
+// TODO Transparently cache invalid app IDs
 const InvalidID = "💩"
 
 // GetName returns name for app ID
