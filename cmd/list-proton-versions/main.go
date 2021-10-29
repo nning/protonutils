@@ -25,7 +25,7 @@ func main() {
 
 	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
 	flag.BoolVar(&ignoreCache, "c", false, "Ignore app ID/name cache")
-	flag.BoolVar(&jsonOutput, "j", false, "Output JSON (implies -a)")
+	flag.BoolVar(&jsonOutput, "j", false, "Output JSON (implies -a and -i)")
 	flag.BoolVar(&showAppID, "i", false, "Show app ID")
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()

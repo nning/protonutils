@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"io"
 	"os"
 	"os/user"
 	"path"
@@ -51,13 +52,19 @@ func (s *Steam) getAppInfoBuffer() (*appInfo, *bufio.Reader, error) {
 	return &info, buf, nil
 }
 
-func findNeedleInBuffer(buf *bufio.Reader, needle []byte) (string, error) {
+// findNeedleInBuffer searches for needle in buf. Will try lookAhead bytes, use -1 for no limit.
+func findNeedleInBuffer(buf *bufio.Reader, needle []byte, lookAhead int) (string, error) {
 	l := len(needle)
 
 	for {
 		b, err := buf.ReadByte()
 		if err != nil {
 			return "", err
+		}
+
+		lookAhead--
+		if lookAhead == 0 {
+			return "", io.EOF
 		}
 
 		if b != needle[0] {
@@ -80,8 +87,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte) (string, error) {
 
 		newNeedle := []byte{'n', 'a', 'm', 'e', 0}
 		if bytes.Compare(needle, newNeedle) != 0 {
-			// TODO Add max look-ahead
-			return findNeedleInBuffer(buf, newNeedle)
+			return findNeedleInBuffer(buf, newNeedle, 256)
 		}
 
 		s, err := buf.ReadBytes(0)
@@ -108,5 +114,5 @@ func (s *Steam) findNameInAppInfo(id string) (string, error) {
 		return "", err
 	}
 
-	return findNeedleInBuffer(buf, needle)
+	return findNeedleInBuffer(buf, needle, -1)
 }
