@@ -9,7 +9,8 @@ type gameData struct {
 	IsInstalled bool   `json:"isInstalled"`
 }
 
-type games map[string]*gameData
+// Games maps game name to gameData (app ID, install status)
+type Games map[string]*gameData
 
 func (s *Steam) addGame(version, id string) (*gameData, error) {
 	name, valid, err := s.getName(id)
@@ -22,7 +23,7 @@ func (s *Steam) addGame(version, id string) (*gameData, error) {
 	}
 
 	if s.CompatToolVersions[version] == nil {
-		s.CompatToolVersions[version] = make(games)
+		s.CompatToolVersions[version] = make(Games)
 	}
 
 	data, err := s.getGameData(id)
@@ -34,7 +35,7 @@ func (s *Steam) addGame(version, id string) (*gameData, error) {
 	return data, nil
 }
 
-func (games games) includesID(id string) bool {
+func (games Games) includesID(id string) bool {
 	for _, data := range games {
 		if data.ID == id {
 			return true
@@ -45,7 +46,7 @@ func (games games) includesID(id string) bool {
 }
 
 // Sort returns slice of alphabetically sorted Game names
-func (games games) Sort() []string {
+func (games Games) Sort() []string {
 	keys := make([]string, len(games))
 
 	i := 0

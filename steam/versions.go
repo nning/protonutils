@@ -3,7 +3,7 @@ package steam
 import "sort"
 
 // CompatToolVersions maps Proton versions to games
-type CompatToolVersions map[string]games
+type CompatToolVersions map[string]Games
 
 func (versions CompatToolVersions) includesGameID(id string) bool {
 	for _, games := range versions {

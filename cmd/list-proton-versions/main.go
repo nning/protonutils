@@ -16,6 +16,18 @@ func exitOnError(e error) {
 	}
 }
 
+func countVisibleGames(games steam.Games) int {
+	i := 0
+
+	for _, game := range games {
+		if game.IsInstalled {
+			i++
+		}
+	}
+
+	return i
+}
+
 func main() {
 	var all bool
 	var ignoreCache bool
@@ -39,6 +51,10 @@ func main() {
 	if !jsonOutput {
 		for _, version := range s.CompatToolVersions.Sort() {
 			games := s.CompatToolVersions[version]
+			if !all && countVisibleGames(games) == 0 {
+				continue
+			}
+
 			fmt.Println(version)
 
 			for _, game := range games.Sort() {
