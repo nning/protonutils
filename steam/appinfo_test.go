@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_getNeedle(t *testing.T) {
-	needle, err := getNeedle("403640")
+func Test_getAppIDNeedle_uint32(t *testing.T) {
+	needle, err := getAppIDNeedle("403640")
 	assert.Empty(t, err)
 	assert.NotEmpty(t, needle)
 
@@ -18,8 +18,17 @@ func Test_getNeedle(t *testing.T) {
 	assert.Equal(t, 0, x, "Needle should be correct")
 }
 
+func Test_getAppIDNeedle_uint64(t *testing.T) {
+	needle, err := getAppIDNeedle("3372497361")
+	assert.Empty(t, err)
+	assert.NotEmpty(t, needle)
+
+	x := bytes.Compare(needle, []byte{'a', 'p', 'p', 'i', 'd', 0, 0xd1, 0x39, 4, 0xc9})
+	assert.Equal(t, 0, x, "Needle should be correct")
+}
+
 func Test_getAppInfoBuffer(t *testing.T) {
-	s, err := New(true)
+	s, err := New("", true)
 	assert.Empty(t, err)
 
 	info, buf, err := s.getAppInfoBuffer()
@@ -30,7 +39,7 @@ func Test_getAppInfoBuffer(t *testing.T) {
 }
 
 func Test_FindNameInAppInfo_found(t *testing.T) {
-	s, err := New(true)
+	s, err := New("", true)
 	assert.Empty(t, err)
 
 	games := map[string]string{
@@ -51,11 +60,21 @@ func Test_FindNameInAppInfo_found(t *testing.T) {
 		assert.Equal(t, n, name)
 	}
 }
+
 func Test_FindNameInAppInfo_notFound(t *testing.T) {
-	s, err := New(true)
+	s, err := New("", true)
 	assert.Empty(t, err)
 
 	name, err := s.findNameInAppInfo("386360")
 	assert.True(t, errors.Is(err, io.EOF))
 	assert.Equal(t, "", name)
+}
+
+func Test_FindNameInShortcuts_found(t *testing.T) {
+	s, err := New("", true)
+	assert.Empty(t, err)
+
+	name, err := s.findNameInShortcuts("3372497361")
+	assert.Empty(t, err)
+	assert.Equal(t, "Kena - Bridge of Spirits", name)
 }

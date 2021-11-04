@@ -29,6 +29,7 @@ You can download the most recent version [from continuous builds](https://github
             Frostpunk
             Horizon Zero Dawn
             Iron Harvest
+            Kena - Bridge of Spirits [SHORTCUT]
 
     proton_63 (Default)
             Age of Empires II: Definitive Edition

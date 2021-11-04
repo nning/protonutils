@@ -18,19 +18,23 @@ type appInfo struct {
 	Universe uint32
 }
 
-func getNeedle(appid string) ([]byte, error) {
-	needle := make([]byte, 0, 10)
+func getAppIDNeedle(appid string) ([]byte, error) {
+	l := 10
+	needle := make([]byte, 0, l)
 	needle = append(needle, 'a', 'p', 'p', 'i', 'd', 0)
 
 	n, err := strconv.ParseInt(appid, 10, 32)
 	if err != nil {
-		return nil, err
+		n, err = strconv.ParseInt(appid, 10, 64)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	slice := needle[6:10]
+	slice := needle[6:l]
 	binary.LittleEndian.PutUint32(slice, uint32(n))
 
-	return needle[:10], nil
+	return needle[:l], nil
 }
 
 func (s *Steam) getAppInfoBuffer() (*appInfo, *bufio.Reader, error) {
@@ -52,9 +56,23 @@ func (s *Steam) getAppInfoBuffer() (*appInfo, *bufio.Reader, error) {
 	return &info, buf, nil
 }
 
+func (s *Steam) getShortcutsBuffer() (*bufio.Reader, error) {
+	usr, _ := user.Current()
+	file := path.Join(usr.HomeDir, ".steam", "root", "userdata", s.uid, "config", "shortcuts.vdf")
+
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := bufio.NewReader(f)
+
+	return buf, nil
+}
+
 // findNeedleInBuffer searches for needle in buf. Will try lookAhead bytes, use -1 for no limit.
-func findNeedleInBuffer(buf *bufio.Reader, needle []byte, lookAhead int) (string, error) {
-	l := len(needle)
+func findNeedleInBuffer(buf *bufio.Reader, needle1, needle2 []byte, lookAhead int) (string, error) {
+	l := len(needle1)
 
 	for {
 		b, err := buf.ReadByte()
@@ -67,7 +85,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte, lookAhead int) (string
 			return "", io.EOF
 		}
 
-		if b != needle[0] {
+		if b != needle1[0] {
 			continue
 		}
 
@@ -76,7 +94,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte, lookAhead int) (string
 			return "", err
 		}
 
-		if bytes.Compare(hay, needle[1:]) != 0 {
+		if bytes.Compare(hay, needle1[1:]) != 0 {
 			continue
 		}
 
@@ -85,9 +103,8 @@ func findNeedleInBuffer(buf *bufio.Reader, needle []byte, lookAhead int) (string
 			return "", err
 		}
 
-		newNeedle := []byte{'n', 'a', 'm', 'e', 0}
-		if bytes.Compare(needle, newNeedle) != 0 {
-			return findNeedleInBuffer(buf, newNeedle, 1024)
+		if len(needle2) > 0 {
+			return findNeedleInBuffer(buf, needle2, nil, 1024)
 		}
 
 		s, err := buf.ReadBytes(0)
@@ -109,10 +126,28 @@ func (s *Steam) findNameInAppInfo(id string) (string, error) {
 		return "", err
 	}
 
-	needle, err := getNeedle(id)
+	needle1, err := getAppIDNeedle(id)
 	if err != nil {
 		return "", err
 	}
 
-	return findNeedleInBuffer(buf, needle, -1)
+	needle2 := []byte{'n', 'a', 'm', 'e', 0}
+
+	return findNeedleInBuffer(buf, needle1, needle2, -1)
+}
+
+func (s *Steam) findNameInShortcuts(id string) (string, error) {
+	buf, err := s.getShortcutsBuffer()
+	if err != nil {
+		return "", err
+	}
+
+	needle1, err := getAppIDNeedle(id)
+	if err != nil {
+		return "", err
+	}
+
+	needle2 := []byte{'A', 'p', 'p', 'N', 'a', 'm', 'e', 0}
+
+	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }

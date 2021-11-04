@@ -42,7 +42,7 @@ func main() {
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
 
-	s, err := steam.New(!ignoreCache)
+	s, err := steam.New(user, !ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatToolVersions(user)
@@ -65,6 +65,9 @@ func main() {
 					}
 					if !games[game].IsInstalled {
 						fmt.Print(" [NOT INSTALLED]")
+					}
+					if games[game].IsShortcut {
+						fmt.Print(" [SHORTCUT]")
 					}
 					fmt.Println()
 				}

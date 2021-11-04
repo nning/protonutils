@@ -7,13 +7,14 @@ import (
 type gameData struct {
 	ID          string `json:"appID"`
 	IsInstalled bool   `json:"isInstalled"`
+	IsShortcut  bool   `json:"isShortcut"`
 }
 
 // Games maps game name to gameData (app ID, install status)
 type Games map[string]*gameData
 
 func (s *Steam) addGame(version, id string) (*gameData, error) {
-	name, valid, err := s.getName(id)
+	name, data, valid, err := s.getNameAndGameData(id)
 	if err != nil {
 		return nil, err
 	}
@@ -24,11 +25,6 @@ func (s *Steam) addGame(version, id string) (*gameData, error) {
 
 	if s.CompatToolVersions[version] == nil {
 		s.CompatToolVersions[version] = make(Games)
-	}
-
-	data, err := s.getGameData(id)
-	if err != nil {
-		return nil, err
 	}
 
 	s.CompatToolVersions[version][name] = data

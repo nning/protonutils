@@ -3,48 +3,14 @@ package steam
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
-	"strings"
 
 	"github.com/andygrunwald/vdf"
 )
 
 type mapLevel = map[string]interface{}
-
-func getUID(u string) (string, error) {
-	usr, _ := user.Current()
-	dir := path.Join(usr.HomeDir, ".steam", "root", "userdata")
-
-	entries, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return "", err
-	}
-
-	uid := entries[0].Name()
-
-	if len(entries) > 1 {
-		users := make([]string, len(entries))
-
-		for i, entry := range entries {
-			name := entry.Name()
-			if name == u {
-				return name, nil
-			}
-
-			users[i] = name
-		}
-
-		fmt.Fprintln(os.Stderr,
-			"Warning: Several Steam users available, using "+uid+"\n"+
-				"All available users: "+strings.Join(users, ", ")+"\n"+
-				"Option \"-u\" can be used to specify user\n")
-	}
-
-	return uid, nil
-}
 
 func lookup(m mapLevel, x []string) (mapLevel, error) {
 	y := m
@@ -102,12 +68,7 @@ func (s *Steam) getLibraryConfig() (mapLevel, error) {
 }
 
 func (s *Steam) getLocalConfig(user string) (mapLevel, error) {
-	uid, err := getUID(user)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.cachedVdfLookup("localConfig"+uid, "userdata/"+uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
+	return s.cachedVdfLookup("localConfig"+s.uid, "userdata/"+s.uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) getLoginUsers() (mapLevel, error) {
