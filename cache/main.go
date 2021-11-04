@@ -21,7 +21,7 @@ type value struct {
 }
 
 // New instantiates new Cache
-func New(name string, notFake bool) (*Cache, error) {
+func New(name string, fake bool) (*Cache, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -33,10 +33,10 @@ func New(name string, notFake bool) (*Cache, error) {
 	cache := &Cache{
 		path: p,
 		data: make(map[string]value),
-		fake: !notFake,
+		fake: fake,
 	}
 
-	if notFake {
+	if !fake {
 		f, err := os.ReadFile(cache.path)
 		if err == nil {
 			// Ignore errors; cache will be overwritten on Write

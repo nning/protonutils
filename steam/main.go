@@ -52,8 +52,8 @@ func getUID(u string) (string, error) {
 }
 
 // New instantiates Steam struct
-func New(user string, notFake bool) (*Steam, error) {
-	c, err := cache.New("steam-appids", notFake)
+func New(user string, fake bool) (*Steam, error) {
+	c, err := cache.New("steam-appids", fake)
 	if err != nil {
 		return nil, err
 	}

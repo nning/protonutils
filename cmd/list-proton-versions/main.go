@@ -42,7 +42,7 @@ func main() {
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
 
-	s, err := steam.New(user, !ignoreCache)
+	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatToolVersions(user)
