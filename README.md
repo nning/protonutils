@@ -4,7 +4,7 @@ Lists configured Proton version per game. Can be useful to clean up old runtimes
 
 ## Download Binary
 
-[v1.0.0](https://github.com/nning/list_proton_versions/releases/download/v1.0.0/list-proton-versions-v1.0.0) (Linux x86_64)
+[v1.0.1](https://github.com/nning/list_proton_versions/releases/download/v1.0.1/list-proton-versions-v1.0.1) (Linux x86_64)
 
 ## Build & Run
 
