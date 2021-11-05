@@ -22,7 +22,7 @@ clean:
 	rm -f $(LIST_BIN) ./list-proton-versions-*
 
 run: $(LIST_BIN)
-	./$(LIST_BIN)
+	./$(LIST_BIN) $(args)
 
 test:
 	go test ./...
