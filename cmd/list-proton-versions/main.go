@@ -56,7 +56,7 @@ func main() {
 	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 
-	err = s.ReadCompatToolVersions(user)
+	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
 	if !jsonOutput {

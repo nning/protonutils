@@ -67,7 +67,7 @@ func (s *Steam) getLibraryConfig() (mapLevel, error) {
 	return s.cachedVdfLookup("libraryConfig", "steamapps/libraryfolders.vdf", "libraryfolders")
 }
 
-func (s *Steam) getLocalConfig(user string) (mapLevel, error) {
+func (s *Steam) getLocalConfig() (mapLevel, error) {
 	return s.cachedVdfLookup("localConfig"+s.uid, "userdata/"+s.uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 

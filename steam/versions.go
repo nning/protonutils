@@ -34,7 +34,7 @@ func (s *Steam) includesGameID(id string) bool {
 }
 
 // ReadCompatToolVersions reads Proton versions and games from different Steam configs
-func (s *Steam) ReadCompatToolVersions(user string) error {
+func (s *Steam) ReadCompatToolVersions() error {
 	x, err := s.getCompatToolMapping()
 	if err != nil {
 		return err
@@ -54,14 +54,7 @@ func (s *Steam) ReadCompatToolVersions(user string) error {
 		}
 	}
 
-	if user != "" {
-		user, err = s.userToID32(user)
-		if err != nil {
-			return err
-		}
-	}
-
-	x, err = s.getLocalConfig(user)
+	x, err = s.getLocalConfig()
 	if err != nil {
 		return err
 	}

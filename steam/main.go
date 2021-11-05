@@ -58,15 +58,17 @@ func New(user string, fake bool) (*Steam, error) {
 		return nil, err
 	}
 
-	uid, err := getUID(user)
+	s := &Steam{
+		appidCache:         c,
+		vdfCache:           make(mapLevel),
+		CompatToolVersions: make(CompatToolVersions),
+	}
+
+	uid, _ := s.userToID32(user)
+	s.uid, err = getUID(uid)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Steam{
-		appidCache:         c,
-		vdfCache:           make(mapLevel),
-		CompatToolVersions: make(CompatToolVersions),
-		uid:                uid,
-	}, nil
+	return s, nil
 }
