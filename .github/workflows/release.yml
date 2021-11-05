@@ -1,4 +1,6 @@
-on: [push, pull_request]
+on:
+  push:
+    tags: 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build:
@@ -11,9 +13,13 @@ jobs:
         with:
           go-version: '^1.16.8'
 
-      - run: make
+      - run: make release
 
       - uses: actions/upload-artifact@v2
         with:
           name: list-proton-versions
           path: cmd/list-proton-versions/list-proton-versions
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: list-proton-versions-*

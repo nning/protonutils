@@ -9,6 +9,9 @@ import (
 	"github.com/nning/list_proton_versions/steam"
 )
 
+var Version string
+var Buildtime string
+
 func exitOnError(e error) {
 	if e != nil {
 		fmt.Fprintln(os.Stderr, e)
@@ -33,14 +36,22 @@ func main() {
 	var ignoreCache bool
 	var jsonOutput bool
 	var showAppID bool
+	var showVersion bool
 	var user string
 
 	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
 	flag.BoolVar(&ignoreCache, "c", false, "Ignore app ID/name cache")
 	flag.BoolVar(&jsonOutput, "j", false, "Output JSON (implies -a and -i)")
 	flag.BoolVar(&showAppID, "i", false, "Show app ID")
+	flag.BoolVar(&showVersion, "v", false, "Show version")
 	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
 	flag.Parse()
+
+	if showVersion {
+		url := "https://github.com/nning/list_proton_versions/tree/" + Version
+		fmt.Println(Version, Buildtime, url)
+		return
+	}
 
 	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)

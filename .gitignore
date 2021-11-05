@@ -1,1 +1,2 @@
-cmd/list-proton-versions/list-proton-versions
+/cmd/list-proton-versions/list-proton-versions
+/list-proton-versions-*
