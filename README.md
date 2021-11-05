@@ -4,11 +4,14 @@ Lists configured Proton version per game. Can be useful to clean up old runtimes
 
 ## Download Binary
 
-[v1.0.1](https://github.com/nning/list_proton_versions/releases/download/v1.0.1/list-proton-versions-v1.0.1) (Linux x86_64)
+* [Latest version](https://github.com/nning/list_proton_versions/releases/latest/download/list-proton-versions) (Linux x86_64)  
+* [v1.0.1](https://github.com/nning/list_proton_versions/releases/download/v1.0.1/list-proton-versions-v1.0.1) (Linux x86_64)
+
+Make sure, the downloaded binaries are executable (e.g. by running `chmod +x list-proton-versions`).
 
 ## Build & Run
 
-Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
+This step is only necessary if aforementioned binaries do not work for you for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
 
     go install github.com/nning/list_proton_versions/cmd/list-proton-versions@latest
     list-proton-versions

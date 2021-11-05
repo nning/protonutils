@@ -30,5 +30,6 @@ test:
 lint:
 	golint ./...
 
+release: GOLDFLAGS += -s -w
 release: build
-	cp $(LIST_BIN) $(LIST_BIN_FILE)-$(VERSION)
+	upx -qq9 $(LIST_BIN)
