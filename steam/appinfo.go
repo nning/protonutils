@@ -70,7 +70,11 @@ func (s *Steam) getShortcutsBuffer() (*bufio.Reader, error) {
 	return buf, nil
 }
 
-// findNeedleInBuffer searches for needle in buf. Will try lookAhead bytes, use -1 for no limit.
+// findNeedleInBuffer searches in buf:
+//   * First search for needle1
+//   * If needle1 has been found, search for needle2
+//   * If needle2 has been found, return bytes right after (until nullbyte)
+// Will check lookAhead bytes, use -1 for no limit.
 func findNeedleInBuffer(buf *bufio.Reader, needle1, needle2 []byte, lookAhead int) (string, error) {
 	l := len(needle1)
 

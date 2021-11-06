@@ -9,7 +9,10 @@ import (
 	"github.com/nning/list_proton_versions/steam"
 )
 
+// Version is set during build and used in output on -v
 var Version string
+
+// Buildtime is set during build and used in output on -v
 var Buildtime string
 
 func exitOnError(e error) {
