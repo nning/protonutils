@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/nning/list_proton_versions/cache"
+	"github.com/nning/protonutils/cache"
 )
 
 // Steam struct wraps caches and exposes functions for Steam data retrieval

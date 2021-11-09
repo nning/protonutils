@@ -1,24 +1,24 @@
-# list-proton-versions
+# protonutils
 
 Lists configured Proton version per game. Can be useful to clean up old runtimes, for example. (For now, only works if game was launched with Proton at least once.)
 
 ## Download Binary
 
-* [Latest version](https://github.com/nning/list_proton_versions/releases/latest/download/list-proton-versions) (Linux x86_64)  
+* [Latest version](https://github.com/nning/protonutils/releases/latest/download/protonutils) (Linux x86_64)  
 
-Make sure, the downloaded binary is executable (e.g. by running `chmod +x list-proton-versions`).
+Make sure, the downloaded binary is executable (e.g. by running `chmod +x protonutils`).
 
 ## Build & Run
 
 This step is only necessary if aforementioned binary does not suit your needs for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
 
-    go install github.com/nning/list_proton_versions/cmd/list-proton-versions@latest
-    list-proton-versions
+    go install github.com/nning/protonutils/cmd/protonutils@latest
+    protonutils
 
 ## Usage
 
-    $ ./list-proton-versions -h
-    Usage of ./list-proton-versions:
+    $ protonutils -h
+    Usage of protonutils:
       -a    List both installed and non-installed games
       -c    Ignore app ID/name cache
       -i    Show app ID
@@ -28,7 +28,7 @@ This step is only necessary if aforementioned binary does not suit your needs fo
 
 ## Example Output
 
-    $ ./list-proton-versions
+    $ protonutils list
     Proton-6.20-GE-1
             Cyberpunk 2077
             DEATHLOOP

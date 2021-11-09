@@ -21,4 +21,4 @@ jobs:
 
       - uses: softprops/action-gh-release@v1
         with:
-          files: cmd/list-proton-versions/list-proton-versions
+          files: cmd/protonutils/protonutils

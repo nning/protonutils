@@ -15,5 +15,5 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: list-proton-versions
-          path: cmd/list-proton-versions/list-proton-versions
+          name: protonutils
+          path: cmd/protonutils/protonutils
