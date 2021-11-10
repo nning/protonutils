@@ -2,24 +2,32 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
-	"os"
 
-	"github.com/nning/list_proton_versions/steam"
+	"github.com/nning/protonutils/steam"
+	"github.com/spf13/cobra"
 )
 
-// Version is set during build and used in output on -v
-var Version string
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List games by runtime",
+	Run:   list,
+}
 
-// Buildtime is set during build and used in output on -v
-var Buildtime string
+var all bool
+var ignoreCache bool
+var jsonOutput bool
+var showAppID bool
+var user string
 
-func exitOnError(e error) {
-	if e != nil {
-		fmt.Fprintln(os.Stderr, e)
-		os.Exit(1)
-	}
+func init() {
+	rootCmd.AddCommand(listCmd)
+
+	listCmd.Flags().BoolVarP(&all, "all", "a", false, "List both installed and non-installed games")
+	listCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+	listCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output JSON (implies -a and -i)")
+	listCmd.Flags().BoolVarP(&showAppID, "show-id", "i", false, "Show app ID")
+	listCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 }
 
 func countVisibleGames(games steam.Games) int {
@@ -34,28 +42,7 @@ func countVisibleGames(games steam.Games) int {
 	return i
 }
 
-func main() {
-	var all bool
-	var ignoreCache bool
-	var jsonOutput bool
-	var showAppID bool
-	var showVersion bool
-	var user string
-
-	flag.BoolVar(&all, "a", false, "List both installed and non-installed games")
-	flag.BoolVar(&ignoreCache, "c", false, "Ignore app ID/name cache")
-	flag.BoolVar(&jsonOutput, "j", false, "Output JSON (implies -a and -i)")
-	flag.BoolVar(&showAppID, "i", false, "Show app ID")
-	flag.BoolVar(&showVersion, "v", false, "Show version")
-	flag.StringVar(&user, "u", "", "Steam user name (or SteamID3)")
-	flag.Parse()
-
-	if showVersion {
-		url := "https://github.com/nning/list_proton_versions/tree/" + Version
-		fmt.Println(Version, Buildtime, url)
-		return
-	}
-
+func list(cmd *cobra.Command, args []string) {
 	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 

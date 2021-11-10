@@ -2,9 +2,9 @@
 
 SOURCES = $(shell find . -name \*.go)
 
-LIST_BIN_DIR = cmd/list-proton-versions
-LIST_BIN_FILE = list-proton-versions
-LIST_BIN = $(LIST_BIN_DIR)/$(LIST_BIN_FILE)
+UTILS_BIN_DIR = cmd/protonutils
+UTILS_BIN_FILE = protonutils
+UTILS_BIN = $(UTILS_BIN_DIR)/$(UTILS_BIN_FILE)
 
 VERSION := $(shell ./build/version.sh)
 BUILDTIME := $(shell date -u +"%Y%m%d%H%M%S")
@@ -13,16 +13,20 @@ GOLDFLAGS += -X main.Version=$(VERSION)
 GOLDFLAGS += -X main.Buildtime=$(BUILDTIME)
 GOFLAGS = -ldflags "$(GOLDFLAGS)"
 
-build: $(LIST_BIN)
+build: $(UTILS_BIN)
 
-$(LIST_BIN): $(SOURCES)
-	cd $(LIST_BIN_DIR); go build $(GOFLAGS)
+$(UTILS_BIN): $(SOURCES)
+	cd $(UTILS_BIN_DIR); go build $(GOFLAGS)
+
+$(UTILS_BIN_FILE): $(UTILS_BIN)
 
 clean:
-	rm -f $(LIST_BIN) ./list-proton-versions-*
+	rm -f $(UTILS_BIN)
 
-run: $(LIST_BIN)
-	./$(LIST_BIN) $(args)
+run: run_utils
+
+run_utils: $(UTILS_BIN)
+	./$(UTILS_BIN) $(args)
 
 test:
 	go test ./...
@@ -32,4 +36,4 @@ lint:
 
 release: GOLDFLAGS += -s -w
 release: build
-	upx -qq9 $(LIST_BIN)
+	upx -qq9 $(UTILS_BIN)
