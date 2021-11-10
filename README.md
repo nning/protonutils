@@ -1,6 +1,6 @@
 # protonutils
 
-Lists configured Proton version per game. Can be useful to clean up old runtimes, for example. (For now, only works if game was launched with Proton at least once.)
+protonutils is a CLI tool that provides different utilities to make using the Proton compatibility tool more easy. Currently, it lists games by configured Proton version (which can be useful to clean up old runtimes) and it updates [Proton-GE][0].
 
 ## Download Binary
 
@@ -17,14 +17,34 @@ This step is only necessary if aforementioned binary does not suit your needs fo
 
 ## Usage
 
-    $ protonutils -h
-    Usage of protonutils:
-      -a    List both installed and non-installed games
-      -c    Ignore app ID/name cache
-      -i    Show app ID
-      -j    Output JSON (implies -a and -i)
-      -u string
-            Steam user name (or SteamID3)
+### List
+
+    $ protonutils list -h
+    List games by runtime
+    
+    Usage:
+      protonutils list [flags]
+    
+    Flags:
+      -a, --all            List both installed and non-installed games
+      -h, --help           help for list
+      -c, --ignore-cache   Ignore app ID/name cache
+      -j, --json           Output JSON (implies -a and -i)
+      -i, --show-id        Show app ID
+      -u, --user string    Steam user name (or SteamID3)
+
+### Update Proton-GE
+
+    $ protonutils ge update -h
+    Download and extract the latest Proton-GE release
+
+    Usage:
+      protonutils ge update [flags]
+
+    Flags:
+      -f, --force   Force last version update
+      -h, --help    help for update
+      -k, --keep    Keep downloaded archive of last version
 
 ## Example Output
 
@@ -50,3 +70,6 @@ This step is only necessary if aforementioned binary does not suit your needs fo
     proton_experimental
             Mass Effect™ Legendary Edition
             Red Dead Redemption 2
+
+
+[0]: https://github.com/GloriousEggroll/proton-ge-custom
