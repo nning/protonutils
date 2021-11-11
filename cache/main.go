@@ -10,12 +10,12 @@ import (
 // Cache represents simple in-memory key/value store that can be persisted
 type Cache struct {
 	path    string
-	data    map[string]value
+	data    map[string]Value
 	updated bool
 	fake    bool
 }
 
-type value struct {
+type Value struct {
 	Name  string `json:"name"`
 	Valid bool   `json:"valid"`
 }
@@ -32,7 +32,7 @@ func New(name string, fake bool) (*Cache, error) {
 
 	cache := &Cache{
 		path: p,
-		data: make(map[string]value),
+		data: make(map[string]Value),
 		fake: fake,
 	}
 
@@ -49,7 +49,7 @@ func New(name string, fake bool) (*Cache, error) {
 
 // Add cache entry
 func (cache *Cache) Add(id, name string, valid bool) {
-	cache.data[id] = value{name, valid}
+	cache.data[id] = Value{name, valid}
 	cache.updated = true
 }
 
@@ -76,4 +76,8 @@ func (cache *Cache) Write() error {
 	}
 
 	return nil
+}
+
+func (cache *Cache) Dump() map[string]Value {
+	return cache.data
 }

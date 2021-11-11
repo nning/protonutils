@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/dustin/go-humanize"
@@ -34,6 +35,7 @@ type Link struct {
 // WriteCounter implements printing download progress
 type WriteCounter struct {
 	Total    uint64
+	Finished uint64
 	Filename string
 }
 
@@ -54,15 +56,17 @@ var keep bool
 // Write counts bytes already written to wc
 func (wc *WriteCounter) Write(p []byte) (int, error) {
 	n := len(p)
-	wc.Total += uint64(n)
+	wc.Finished += uint64(n)
 	wc.PrintProgress()
 	return n, nil
 }
 
 // PrintProgress prints human-readable count of bytes already written to wc
-func (wc WriteCounter) PrintProgress() {
-	fmt.Printf("\r%s", strings.Repeat(" ", 35))
-	fmt.Printf("\rDownloading %s... %s complete", wc.Filename, humanize.Bytes(wc.Total))
+func (wc *WriteCounter) PrintProgress() {
+	p := uint64(float64(wc.Finished) / float64(wc.Total) * 100)
+
+	fmt.Printf("\r%s", strings.Repeat(" ", 80))
+	fmt.Printf("\rDownloading %s... %d%% (%s of %s) complete", wc.Filename, p, humanize.Bytes(wc.Finished), humanize.Bytes(wc.Total))
 }
 
 func init() {
@@ -73,25 +77,27 @@ func init() {
 	egrollUpdateCmd.Flags().BoolVarP(&keep, "keep", "k", false, "Keep downloaded archive of last version")
 }
 
-func getURL(url string) (io.Reader, error) {
+func getURL(url string) (io.Reader, uint64, error) {
 	c := http.Client{}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	res, err := c.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return res.Body, nil
+	size, _ := strconv.Atoi(res.Header.Get("Content-Length"))
+
+	return res.Body, uint64(size), nil
 }
 
 func egrollUpdate(cmd *cobra.Command, args []string) {
 	feedURL := "https://github.com/GloriousEggroll/proton-ge-custom/releases.atom"
-	r, err := getURL(feedURL)
+	r, _, err := getURL(feedURL)
 	exitOnError(err)
 
 	body, err := ioutil.ReadAll(r)
@@ -113,9 +119,6 @@ func egrollUpdate(cmd *cobra.Command, args []string) {
 	tag := path.Base(releaseURL)
 	dirpath := "Proton-" + tag
 	filepath := dirpath + ".tar.gz"
-	downloadURL := "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/" + tag + "/" + filepath
-	r, err = getURL(downloadURL)
-	exitOnError(err)
 
 	home, err := os.UserHomeDir()
 	exitOnError(err)
@@ -141,12 +144,17 @@ func egrollUpdate(cmd *cobra.Command, args []string) {
 		exitOnError(err)
 	}
 
+	downloadURL := "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/" + tag + "/" + filepath
+	r, size, err := getURL(downloadURL)
+	exitOnError(err)
+
 	out, err := os.Create(filepath)
 	exitOnError(err)
 	defer out.Close()
 
 	counter := &WriteCounter{}
 	counter.Filename = dirpath
+	counter.Total = size
 	_, err = io.Copy(out, io.TeeReader(r, counter))
 	exitOnError(err)
 
