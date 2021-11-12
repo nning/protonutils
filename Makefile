@@ -36,4 +36,5 @@ lint:
 
 release: GOLDFLAGS += -s -w
 release: build
-	upx -qq9 $(UTILS_BIN)
+	upx -qq7 $(UTILS_BIN)
+	ls -lh $(UTILS_BIN)

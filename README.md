@@ -1,6 +1,12 @@
 # protonutils
 
-protonutils is a CLI tool that provides different utilities to make using the Proton compatibility tool more easy. Currently, it lists games by configured Proton version (which can be useful to clean up old runtimes) and it updates [Proton-GE][0].
+protonutils is a CLI tool that provides different utilities to make using the [Proton][0] compatibility tool more easy. It has the following features:
+
+* List games by configured Proton version
+* Download latest [Proton-GE][1] release
+* Download older Proton-GE releases
+* Clean-up unused runtimes automatically
+* Search for app ID by name (works for games that are installed or have been installed)
 
 ## Download Binary
 
@@ -15,9 +21,34 @@ This step is only necessary if aforementioned binary does not suit your needs fo
     go install github.com/nning/protonutils/cmd/protonutils@latest
     protonutils
 
+## Example Output
+
+    $ protonutils list
+    Proton-6.20-GE-1
+            Cyberpunk 2077
+            DEATHLOOP
+            Dishonored 2
+            Frostpunk
+            Horizon Zero Dawn
+            Iron Harvest
+            Kena - Bridge of Spirits [SHORTCUT]
+
+    proton_63 (Default)
+            Age of Empires II: Definitive Edition
+            Fallout 4
+            Grand Theft Auto V
+            It Takes Two
+            Metro Exodus
+            Shadow Tactics: Blades of the Shogun
+            The Witcher 3: Wild Hunt
+
+    proton_experimental
+            Mass Effect™ Legendary Edition
+            Red Dead Redemption 2
+
 ## Usage
 
-### List
+### List Games by Version
 
     $ protonutils list -h
     List games by runtime
@@ -46,30 +77,6 @@ This step is only necessary if aforementioned binary does not suit your needs fo
       -h, --help    help for update
       -k, --keep    Keep downloaded archive of last version
 
-## Example Output
 
-    $ protonutils list
-    Proton-6.20-GE-1
-            Cyberpunk 2077
-            DEATHLOOP
-            Dishonored 2
-            Frostpunk
-            Horizon Zero Dawn
-            Iron Harvest
-            Kena - Bridge of Spirits [SHORTCUT]
-
-    proton_63 (Default)
-            Age of Empires II: Definitive Edition
-            Fallout 4
-            Grand Theft Auto V
-            It Takes Two
-            Metro Exodus
-            Shadow Tactics: Blades of the Shogun
-            The Witcher 3: Wild Hunt
-
-    proton_experimental
-            Mass Effect™ Legendary Edition
-            Red Dead Redemption 2
-
-
-[0]: https://github.com/GloriousEggroll/proton-ge-custom
+[0]: https://github.com/ValveSoftware/Proton
+[1]: https://github.com/GloriousEggroll/proton-ge-custom

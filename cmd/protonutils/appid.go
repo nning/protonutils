@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/nning/protonutils/cache"
 	"github.com/nning/protonutils/steam"
@@ -11,6 +12,7 @@ import (
 var appidCmd = &cobra.Command{
 	Use:   "appid",
 	Short: "Search for app ID of installed game",
+	Args:  cobra.MinimumNArgs(1),
 	Run:   appid,
 }
 
@@ -31,8 +33,11 @@ func appid(cmd *cobra.Command, args []string) {
 	data := c.Dump()
 
 	for id, value := range data {
-		if value.Name == args[0] {
-			fmt.Println(id)
+		a := strings.ToLower(value.Name)
+		b := strings.ToLower(args[0])
+
+		if a == b || strings.HasPrefix(a, b) {
+			fmt.Println(id, " ", value.Name)
 		}
 	}
 }

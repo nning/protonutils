@@ -26,5 +26,6 @@ func exitOnError(e error, a ...string) {
 }
 
 func main() {
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.Execute()
 }
