@@ -1,6 +1,6 @@
 # protonutils
 
-protonutils is a CLI tool that provides different utilities to make using the [Proton][0] compatibility tool more easy. It has the following features:
+protonutils is a CLI tool that provides different utilities to make using the [Proton][0] compatibility tool more easily. It has the following features:
 
 * List games by configured Proton version
 * Download latest [Proton-GE][1] release
@@ -14,7 +14,13 @@ protonutils is a CLI tool that provides different utilities to make using the [P
 
 Make sure, the downloaded binary is executable (e.g. by running `chmod +x protonutils`).
 
-## Build & Run
+## Build on Arch Linux
+
+There is a [package in the AUR][2].
+
+    yay -S protonutils
+
+## Manual Build
 
 This step is only necessary if aforementioned binary does not suit your needs for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
 
@@ -80,3 +86,4 @@ This step is only necessary if aforementioned binary does not suit your needs fo
 
 [0]: https://github.com/ValveSoftware/Proton
 [1]: https://github.com/GloriousEggroll/proton-ge-custom
+[2]: https://aur.archlinux.org/packages/protonutils/
