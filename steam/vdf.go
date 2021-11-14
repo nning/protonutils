@@ -1,7 +1,6 @@
 package steam
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/user"
@@ -12,12 +11,20 @@ import (
 
 type mapLevel = map[string]interface{}
 
+type keyNotFoundError struct {
+	name string
+}
+
+func (e *keyNotFoundError) Error() string {
+	return "Key not found: " + e.name
+}
+
 func lookup(m mapLevel, x []string) (mapLevel, error) {
 	y := m
 
 	for _, s := range x {
 		if y[s] == nil {
-			return nil, errors.New("Key not found: " + s)
+			return nil, &keyNotFoundError{s}
 		}
 
 		y = y[s].(mapLevel)

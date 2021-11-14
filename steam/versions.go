@@ -1,6 +1,8 @@
 package steam
 
-import "sort"
+import (
+	"sort"
+)
 
 // CompatToolVersions maps Proton versions to games
 type CompatToolVersions map[string]Games
@@ -55,7 +57,8 @@ func (s *Steam) ReadCompatToolVersions() error {
 	}
 
 	x, err = s.getLocalConfig()
-	if err != nil {
+	_, isKeyNotFoundError := err.(*keyNotFoundError)
+	if err != nil && !isKeyNotFoundError {
 		return err
 	}
 
