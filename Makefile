@@ -39,5 +39,5 @@ build_pie: GOFLAGS += -trimpath -buildmode=pie -mod=readonly -modcacherw
 build_pie: build
 
 release: build_pie
-	upx -qq7 $(UTILS_BIN)
+	upx -qq --best $(UTILS_BIN)
 	ls -lh $(UTILS_BIN)
