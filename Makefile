@@ -6,12 +6,12 @@ UTILS_BIN_DIR = cmd/protonutils
 UTILS_BIN_FILE = protonutils
 UTILS_BIN = $(UTILS_BIN_DIR)/$(UTILS_BIN_FILE)
 
-VERSION := $(shell ./build/version.sh)
-BUILDTIME := $(shell date -u +"%Y%m%d%H%M%S")
+VERSION = $(shell ./build/version.sh)
+BUILDTIME = $(shell date -u +"%Y%m%d%H%M%S")
 
 GOLDFLAGS += -X main.Version=$(VERSION)
 GOLDFLAGS += -X main.Buildtime=$(BUILDTIME)
-GOFLAGS = -ldflags "$(GOLDFLAGS)"
+GOFLAGS += -ldflags "$(GOLDFLAGS)"
 
 build: $(UTILS_BIN)
 
@@ -34,7 +34,10 @@ test:
 lint:
 	golint ./...
 
-release: GOLDFLAGS += -s -w
-release: build
+build_pie: GOLDFLAGS += -s -w -linkmode external -extldflags \"$(LDFLAGS)\"
+build_pie: GOFLAGS += -trimpath -buildmode=pie -mod=readonly -modcacherw
+build_pie: build
+
+release: build_pie
 	upx -qq7 $(UTILS_BIN)
 	ls -lh $(UTILS_BIN)
