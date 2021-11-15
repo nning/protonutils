@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 
@@ -34,31 +35,28 @@ func init() {
 	compatdataCmd.AddCommand(compatdataOpenCmd)
 }
 
-func getPath(id string) (string, error) {
+func getPath(id string) string {
 	s, err := steam.New("", ignoreCache)
-	if err != nil {
-		return "", err
-	}
+	exitOnError(err)
 
 	p, err := s.GetCompatdataPath(id)
-	if err != nil {
-		return "", err
+	exitOnError(err)
+
+	if p == "" {
+		fmt.Fprintln(os.Stderr, "App ID or compatdata path not found")
+		os.Exit(1)
 	}
 
-	return path.Join(p, "steamapps", "compatdata", id), nil
+	return path.Join(p, "steamapps", "compatdata", id)
 }
 
 func compatdataPath(cmd *cobra.Command, args []string) {
-	p, err := getPath(args[0])
-	exitOnError(err)
-
+	p := getPath(args[0])
 	fmt.Println(p)
 }
 
 func compatdataOpen(cmd *cobra.Command, args []string) {
-	p, err := getPath(args[0])
-	exitOnError(err)
-
-	_, err = exec.Command("xdg-open", p).Output()
+	p := getPath(args[0])
+	_, err := exec.Command("xdg-open", p).Output()
 	exitOnError(err)
 }
