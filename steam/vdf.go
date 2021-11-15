@@ -83,12 +83,21 @@ func (s *Steam) getLoginUsers() (mapLevel, error) {
 }
 
 func (s *Steam) isInstalled(id string) (bool, error) {
-	m, err := s.getLibraryConfig()
-	if err != nil {
+	path, err := s.GetCompatdataPath(id)
+	if err != nil || path == "" {
 		return false, err
 	}
 
-	for i := 0; i < 10; i++ {
+	return true, nil
+}
+
+func (s *Steam) GetCompatdataPath(id string) (string, error) {
+	m, err := s.getLibraryConfig()
+	if err != nil {
+		return "", err
+	}
+
+	for i := 0; i < 42; i++ {
 		x := m[fmt.Sprint(i)]
 		if x == nil {
 			break
@@ -97,10 +106,10 @@ func (s *Steam) isInstalled(id string) (bool, error) {
 		apps := x.(mapLevel)["apps"].(mapLevel)
 		for app := range apps {
 			if app == id {
-				return true, nil
+				return x.(mapLevel)["path"].(string), nil
 			}
 		}
 	}
 
-	return false, nil
+	return "", nil
 }
