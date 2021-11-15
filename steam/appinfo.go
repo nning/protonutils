@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"os"
 	"os/user"
@@ -135,8 +134,6 @@ func (s *Steam) findNameInAppInfo(id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println(id, needle1)
 
 	needle2 := []byte{'n', 'a', 'm', 'e', 0}
 
