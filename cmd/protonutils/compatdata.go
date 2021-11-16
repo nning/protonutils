@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
+	"github.com/nning/protonutils/cache"
 	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
@@ -35,19 +37,42 @@ func init() {
 	compatdataCmd.AddCommand(compatdataOpenCmd)
 }
 
-func getPath(id string) string {
+func getPath(idOrName string) string {
 	s, err := steam.New("", ignoreCache)
 	exitOnError(err)
 
-	p, err := s.GetCompatdataPath(id)
+	p, err := s.GetCompatdataPath(idOrName)
 	exitOnError(err)
 
 	if p == "" {
-		fmt.Fprintln(os.Stderr, "App ID or compatdata path not found")
-		os.Exit(1)
+		err = s.ReadCompatToolVersions()
+		exitOnError(err)
+
+		c, err := cache.New("steam-appids", false)
+		exitOnError(err)
+
+		var id2 string
+		for id, value := range c.Dump() {
+			a := strings.ToLower(value.Name)
+			b := strings.ToLower(idOrName)
+
+			if a == b || strings.HasPrefix(a, b) {
+				id2 = id
+				break
+			}
+		}
+
+		if id2 == "" {
+			fmt.Fprintln(os.Stderr, "App ID or compatdata path not found")
+			os.Exit(1)
+		}
+
+		idOrName = id2
+		p, err = s.GetCompatdataPath(idOrName)
+		exitOnError(err)
 	}
 
-	return path.Join(p, "steamapps", "compatdata", id)
+	return path.Join(p, "steamapps", "compatdata", idOrName)
 }
 
 func compatdataPath(cmd *cobra.Command, args []string) {
