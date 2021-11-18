@@ -7,7 +7,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/nning/protonutils/cache"
 	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
@@ -41,35 +40,35 @@ func getPath(idOrName string) string {
 	s, err := steam.New("", ignoreCache)
 	exitOnError(err)
 
-	p, err := s.GetCompatdataPath(idOrName)
+	p, err := s.GetLibraryPath(idOrName)
 	exitOnError(err)
 
 	if p == "" {
 		err = s.ReadCompatToolVersions()
 		exitOnError(err)
 
-		c, err := cache.New("steam-appids", false)
-		exitOnError(err)
+		var id string
+		for _, games := range s.CompatToolVersions {
+			for name, game := range games {
+				a := strings.ToLower(name)
+				b := strings.ToLower(idOrName)
 
-		var id2 string
-		for id, value := range c.Dump() {
-			a := strings.ToLower(value.Name)
-			b := strings.ToLower(idOrName)
-
-			if a == b || strings.HasPrefix(a, b) {
-				id2 = id
-				break
+				if a == b || strings.HasPrefix(a, b) && game.IsInstalled {
+					id = game.ID
+					break
+				}
 			}
 		}
 
-		if id2 == "" {
+		p, err = s.GetLibraryPath(id)
+		exitOnError(err)
+
+		idOrName = id
+
+		if id == "" || p == "" {
 			fmt.Fprintln(os.Stderr, "App ID or compatdata path not found")
 			os.Exit(1)
 		}
-
-		idOrName = id2
-		p, err = s.GetCompatdataPath(idOrName)
-		exitOnError(err)
 	}
 
 	return path.Join(p, "steamapps", "compatdata", idOrName)

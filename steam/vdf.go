@@ -83,7 +83,7 @@ func (s *Steam) getLoginUsers() (mapLevel, error) {
 }
 
 func (s *Steam) isInstalled(id string) (bool, error) {
-	path, err := s.GetCompatdataPath(id)
+	path, err := s.GetLibraryPath(id)
 	if err != nil || path == "" {
 		return false, err
 	}
@@ -91,7 +91,7 @@ func (s *Steam) isInstalled(id string) (bool, error) {
 	return true, nil
 }
 
-func (s *Steam) GetCompatdataPath(id string) (string, error) {
+func (s *Steam) GetLibraryPath(id string) (string, error) {
 	m, err := s.getLibraryConfig()
 	if err != nil {
 		return "", err
