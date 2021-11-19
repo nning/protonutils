@@ -1,7 +1,6 @@
 package steam
 
 import (
-	"fmt"
 	"os"
 	"os/user"
 	"path"
@@ -97,14 +96,13 @@ func (s *Steam) GetLibraryPath(id string) (string, error) {
 		return "", err
 	}
 
-	for i := 0; i < 42; i++ {
-		x := m[fmt.Sprint(i)]
-		if x == nil {
-			break
+	for _, x := range m {
+		v, isMapLevel := x.(mapLevel)
+		if !isMapLevel {
+			continue
 		}
 
-		apps := x.(mapLevel)["apps"].(mapLevel)
-		for app := range apps {
+		for app := range v["apps"].(mapLevel) {
 			if app == id {
 				return x.(mapLevel)["path"].(string), nil
 			}
