@@ -74,7 +74,7 @@ func Test_FindNameInShortcuts_found(t *testing.T) {
 	s, err := New("", true)
 	assert.Empty(t, err)
 
-	name, err := s.findNameInShortcuts("3372497361")
+	name, err := s.findNameInShortcuts("3228583970")
 	assert.Empty(t, err)
 	assert.Equal(t, "Kena - Bridge of Spirits", name)
 }

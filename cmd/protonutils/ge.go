@@ -17,6 +17,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -142,7 +143,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
-	toDelete := make([]string, 0)
+	toDelete := utils.StringSlice{}
 
 	for version, games := range s.CompatToolVersions {
 		hasInstalledGame := false
@@ -175,7 +176,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 		}
 
 		if !exists {
-			toDelete = append(toDelete[:i], toDelete[i+1:]...)
+			toDelete = toDelete.Delete(i)
 		}
 	}
 

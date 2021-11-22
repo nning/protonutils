@@ -90,6 +90,7 @@ func (s *Steam) isInstalled(id string) (bool, error) {
 	return true, nil
 }
 
+// GetLibraryPath returns path to Steam library folder, the game with specified app ID is installed in
 func (s *Steam) GetLibraryPath(id string) (string, error) {
 	m, err := s.getLibraryConfig()
 	if err != nil {

@@ -15,6 +15,7 @@ type Cache struct {
 	fake    bool
 }
 
+// Value represents value in cache
 type Value struct {
 	Name  string `json:"name"`
 	Valid bool   `json:"valid"`
@@ -78,6 +79,7 @@ func (cache *Cache) Write() error {
 	return nil
 }
 
+// Dump returns cache data
 func (cache *Cache) Dump() map[string]Value {
 	return cache.data
 }
