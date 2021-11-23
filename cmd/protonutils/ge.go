@@ -165,7 +165,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 	files, err := ioutil.ReadDir(dir)
 	exitOnError(err)
 
-	for i, version := range toDelete {
+	for _, version := range toDelete {
 		exists := false
 
 		for _, file := range files {
@@ -176,7 +176,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 		}
 
 		if !exists {
-			toDelete = toDelete.Delete(i)
+			toDelete = toDelete.DeleteValue(version)
 		}
 	}
 
