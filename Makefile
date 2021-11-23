@@ -1,5 +1,6 @@
 .PHONY: clean test lint
 
+PREFIX = ~/.local/bin
 SOURCES = $(shell find . -name \*.go)
 
 UTILS_BIN_DIR = cmd/protonutils
@@ -41,3 +42,6 @@ build_pie: build
 release: build_pie
 	upx -qq --best $(UTILS_BIN)
 	ls -lh $(UTILS_BIN)
+
+install: build_pie
+	mkdir -p $(PREFIX) && cp $(UTILS_BIN) $(PREFIX)
