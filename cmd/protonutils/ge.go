@@ -143,7 +143,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
-	toDelete := utils.StringSlice{}
+	toDelete := utils.Slice[string]{}
 
 	for version, games := range s.CompatToolVersions {
 		hasInstalledGame := false
