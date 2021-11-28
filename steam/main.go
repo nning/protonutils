@@ -64,9 +64,9 @@ func getUID(u string) (string, error) {
 }
 
 // New instantiates Steam struct
-func New(user string, fake bool) (*Steam, error) {
+func New(user string, ignoreCache bool) (*Steam, error) {
 	t := -1
-	if fake {
+	if ignoreCache {
 		t = 0
 	}
 
@@ -76,8 +76,8 @@ func New(user string, fake bool) (*Steam, error) {
 	}
 
 	t = 6 * 60 * 60 // 6h
-	if fake {
-		t = 0
+	if ignoreCache {
+		t = 1
 	}
 
 	protonNameCache, err := cache.New("proton-names", int64(t))
