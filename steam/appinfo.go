@@ -135,7 +135,7 @@ func (s *Steam) findNameInAppInfo(id string) (string, error) {
 		return "", err
 	}
 
-	needle2 := []byte{'n', 'a', 'm', 'e', 0}
+	needle2 := []byte("name\x00")
 
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }
@@ -151,7 +151,27 @@ func (s *Steam) findNameInShortcuts(id string) (string, error) {
 		return "", err
 	}
 
-	needle2 := []byte{'A', 'p', 'p', 'N', 'a', 'm', 'e', 0}
+	needle2 := []byte("AppName\x00")
+
+	return findNeedleInBuffer(buf, needle1, needle2, -1)
+}
+
+func (s *Steam) findCompatToolName(shortName string) (string, error) {
+	if shortName == "" {
+		return "", nil
+	}
+
+	_, buf, err := s.getAppInfoBuffer()
+	if err != nil {
+		return "", err
+	}
+
+	needle1 := []byte("to_oslist\x00linux\x00\x08\x00" + shortName)
+	if err != nil {
+		return "", err
+	}
+
+	needle2 := []byte("display_name\x00")
 
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }

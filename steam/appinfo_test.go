@@ -78,3 +78,28 @@ func Test_FindNameInShortcuts_found(t *testing.T) {
 	assert.Empty(t, err)
 	assert.Equal(t, "Kena - Bridge of Spirits", name)
 }
+
+func Test_FindCompatToolName_found(t *testing.T) {
+	s, err := New("", true)
+	assert.Empty(t, err)
+
+	name, err := s.findCompatToolName("proton_63")
+	assert.Empty(t, err)
+	assert.Equal(t, "Proton 6.3-8", name)
+
+	name, err = s.findCompatToolName("proton_513")
+	assert.Empty(t, err)
+	assert.Equal(t, "Proton 5.13-6", name)
+
+	name, err = s.findCompatToolName("")
+	assert.Empty(t, err)
+	assert.Equal(t, "", name)
+
+	name, err = s.findCompatToolName("Proton-6.21-GE-2")
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, "", name)
+
+	name, err = s.findCompatToolName("proton_experimental")
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, "", name)
+}

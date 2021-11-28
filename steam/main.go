@@ -15,6 +15,7 @@ import (
 // Steam struct wraps caches and exposes functions for Steam data retrieval
 type Steam struct {
 	appidCache         *cache.Cache
+	versionNameCache   *cache.Cache
 	vdfCache           mapLevel
 	CompatToolVersions CompatToolVersions
 	uid                string
@@ -64,13 +65,29 @@ func getUID(u string) (string, error) {
 
 // New instantiates Steam struct
 func New(user string, fake bool) (*Steam, error) {
-	c, err := cache.New("steam-appids", fake)
+	t := -1
+	if fake {
+		t = 0
+	}
+
+	appidCache, err := cache.New("appids", int64(t))
+	if err != nil {
+		return nil, err
+	}
+
+	t = 6 * 60 * 60 // 6h
+	if fake {
+		t = 0
+	}
+
+	protonNameCache, err := cache.New("proton-names", int64(t))
 	if err != nil {
 		return nil, err
 	}
 
 	s := &Steam{
-		appidCache:         c,
+		appidCache:         appidCache,
+		versionNameCache:   protonNameCache,
 		vdfCache:           make(mapLevel),
 		CompatToolVersions: make(CompatToolVersions),
 	}

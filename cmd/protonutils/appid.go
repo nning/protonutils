@@ -27,7 +27,7 @@ func appid(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
-	c, err := cache.New("steam-appids", false)
+	c, err := cache.New("steam-appids", -1)
 	exitOnError(err)
 
 	data := c.Dump()

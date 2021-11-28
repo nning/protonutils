@@ -71,5 +71,15 @@ func (s *Steam) getGameData(id string, isShortcut bool) (*gameData, error) {
 
 // SaveCache writes app ID cache to disk
 func (s *Steam) SaveCache() error {
-	return s.appidCache.Write()
+	err := s.appidCache.Write()
+	if err != nil {
+		return err
+	}
+
+	err = s.versionNameCache.Write()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -35,6 +35,26 @@ func (s *Steam) includesGameID(id string) bool {
 	return s.CompatToolVersions.includesGameID(id)
 }
 
+func (s *Steam) getCompatToolName(shortName string) string {
+	if shortName == "" {
+		return ""
+	}
+
+	str, _ := s.versionNameCache.Get(shortName)
+	if str != "" {
+		return str
+	}
+
+	displayName, err := s.findCompatToolName(shortName)
+	if err != nil || displayName == "" {
+		s.versionNameCache.Add(shortName, shortName, false)
+		return shortName
+	}
+
+	s.versionNameCache.Add(shortName, displayName, true)
+	return displayName
+}
+
 // ReadCompatToolVersions reads Proton versions and games from different Steam configs
 func (s *Steam) ReadCompatToolVersions() error {
 	x, err := s.getCompatToolMapping()
@@ -42,10 +62,11 @@ func (s *Steam) ReadCompatToolVersions() error {
 		return err
 	}
 
-	def := x["0"].(mapLevel)["name"].(string) + " (Default)"
+	name := s.getCompatToolName(x["0"].(mapLevel)["name"].(string))
+	def := name + " (Default)"
 
 	for id, cfg := range x {
-		v := cfg.(mapLevel)["name"].(string)
+		v := s.getCompatToolName(cfg.(mapLevel)["name"].(string))
 		if v == "" {
 			v = def
 		}

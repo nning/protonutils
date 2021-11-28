@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"time"
 )
 
 // Cache represents simple in-memory key/value store that can be persisted
@@ -12,32 +13,42 @@ type Cache struct {
 	path    string
 	data    map[string]Value
 	updated bool
-	fake    bool
+	maxAge  int64 // in seconds
 }
 
 // Value represents value in cache
 type Value struct {
-	Name  string `json:"name"`
-	Valid bool   `json:"valid"`
+	Name      string `json:"name"`
+	Valid     bool   `json:"valid"`
+	UpdatedAt int64  `json:"updatedAt"` // in µs
 }
 
 // New instantiates new Cache
-func New(name string, fake bool) (*Cache, error) {
+//   * name is the name of the cache file
+//   * maxAge controls amount of seconds after which cache returns no entry even though an old one exists
+func New(name string, maxAge int64) (*Cache, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
 	}
 
 	home := user.HomeDir
-	p := path.Join(home, ".cache", name+".json")
+	dirPath := path.Join(home, ".cache", "protonutils")
 
-	cache := &Cache{
-		path: p,
-		data: make(map[string]Value),
-		fake: fake,
+	err = os.MkdirAll(dirPath, 0700)
+	if err != err {
+		return nil, err
 	}
 
-	if !fake {
+	filePath := path.Join(dirPath, name+".json")
+
+	cache := &Cache{
+		path:   filePath,
+		data:   make(map[string]Value),
+		maxAge: maxAge * 1000000, // in µs
+	}
+
+	if maxAge != 0 {
 		f, err := os.ReadFile(cache.path)
 		if err == nil {
 			// Ignore errors; cache will be overwritten on Write
@@ -50,19 +61,24 @@ func New(name string, fake bool) (*Cache, error) {
 
 // Add cache entry
 func (cache *Cache) Add(id, name string, valid bool) {
-	cache.data[id] = Value{name, valid}
+	cache.data[id] = Value{name, valid, time.Now().UnixMicro()}
 	cache.updated = true
 }
 
 // Get cache entry by key
 func (cache *Cache) Get(id string) (string, bool) {
 	entry := cache.data[id]
+
+	if cache.maxAge >= 0 && entry.UpdatedAt < time.Now().UnixMicro()-cache.maxAge {
+		return "", false
+	}
+
 	return entry.Name, entry.Valid
 }
 
 // Write persists cache to disk
 func (cache *Cache) Write() error {
-	if !cache.updated || cache.fake {
+	if !cache.updated {
 		return nil
 	}
 
