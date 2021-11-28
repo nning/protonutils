@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/nning/protonutils/cache"
@@ -23,6 +24,7 @@ func getUID(u string) (string, error) {
 	usr, _ := user.Current()
 	dir := path.Join(usr.HomeDir, ".steam", "root", "userdata")
 
+	// TODO Sort entries by last change?
 	entries, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return "", err
@@ -31,16 +33,25 @@ func getUID(u string) (string, error) {
 	uid := entries[0].Name()
 
 	if len(entries) > 1 {
-		users := make([]string, len(entries))
+		users := make([]string, 0)
 
-		for i, entry := range entries {
+		for _, entry := range entries {
 			name := entry.Name()
 			if name == u {
 				return name, nil
 			}
 
-			users[i] = name
+			isEntryNumeric, err := regexp.MatchString("^[0-9]*$", name)
+			if err != nil {
+				return "", err
+			}
+
+			if name != "0" && isEntryNumeric {
+				users = append(users, name)
+			}
 		}
+
+		uid = users[0]
 
 		fmt.Fprintln(os.Stderr,
 			"Warning: Several Steam users available, using "+uid+"\n"+
