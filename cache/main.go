@@ -25,7 +25,8 @@ type Value struct {
 
 // New instantiates new Cache
 //   * name is the name of the cache file
-//   * maxAge controls amount of seconds after which cache returns no entry even though an old one exists
+//   * maxAge controls amount of seconds after which cache returns no entry even
+//     though an old one exists (-1 disables aging, 0 disables caching)
 func New(name string, maxAge int64) (*Cache, error) {
 	user, err := user.Current()
 	if err != nil {
