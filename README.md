@@ -23,6 +23,8 @@ There is a [package in the AUR][2].
 
 ## Manual Build
 
+Minimal Go version is 1.17.
+
 This step is only necessary if aforementioned binary does not suit your needs for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
 
     go install github.com/nning/protonutils/cmd/protonutils@latest
