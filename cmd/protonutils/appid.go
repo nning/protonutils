@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nning/protonutils/cache"
 	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
@@ -27,10 +26,7 @@ func appid(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
-	c, err := cache.New("steam-appids", -1)
-	exitOnError(err)
-
-	data := c.Dump()
+	data := s.AppidCache.Dump()
 
 	for id, value := range data {
 		a := strings.ToLower(value.Name)

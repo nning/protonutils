@@ -14,8 +14,8 @@ import (
 
 // Steam struct wraps caches and exposes functions for Steam data retrieval
 type Steam struct {
-	appidCache         *cache.Cache
-	versionNameCache   *cache.Cache
+	AppidCache         *cache.Cache
+	VersionNameCache   *cache.Cache
 	vdfCache           mapLevel
 	CompatToolVersions CompatToolVersions
 	uid                string
@@ -86,8 +86,8 @@ func New(user string, ignoreCache bool) (*Steam, error) {
 	}
 
 	s := &Steam{
-		appidCache:         appidCache,
-		versionNameCache:   protonNameCache,
+		AppidCache:         appidCache,
+		VersionNameCache:   protonNameCache,
 		vdfCache:           make(mapLevel),
 		CompatToolVersions: make(CompatToolVersions),
 	}

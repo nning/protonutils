@@ -40,18 +40,18 @@ func (s *Steam) getCompatToolName(shortName string) string {
 		return ""
 	}
 
-	str, _ := s.versionNameCache.Get(shortName)
+	str, _ := s.VersionNameCache.Get(shortName)
 	if str != "" {
 		return str
 	}
 
 	displayName, err := s.findCompatToolName(shortName)
 	if err != nil || displayName == "" {
-		s.versionNameCache.Add(shortName, shortName, false)
+		s.VersionNameCache.Add(shortName, shortName, false)
 		return shortName
 	}
 
-	s.versionNameCache.Add(shortName, displayName, true)
+	s.VersionNameCache.Add(shortName, displayName, true)
 	return displayName
 }
 
