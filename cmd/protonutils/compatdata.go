@@ -34,10 +34,14 @@ func init() {
 	rootCmd.AddCommand(compatdataCmd)
 	compatdataCmd.AddCommand(compatdataPathCmd)
 	compatdataCmd.AddCommand(compatdataOpenCmd)
+	compatdataPathCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+	compatdataPathCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+	compatdataOpenCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+	compatdataOpenCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 }
 
 func getPath(idOrName string) string {
-	s, err := steam.New("", ignoreCache)
+	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 
 	p, err := s.GetLibraryPath(idOrName)

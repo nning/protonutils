@@ -17,6 +17,8 @@ var appidCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(appidCmd)
+	appidCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+	appidCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 }
 
 func appid(cmd *cobra.Command, args []string) {
