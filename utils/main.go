@@ -30,3 +30,21 @@ func (s StringSlice) DeleteValue(str string) StringSlice {
 
 	return s
 }
+
+// Clone returns clone of StringSlice s
+func (s StringSlice) Clone() StringSlice {
+	x := StringSlice{}
+	x = append(x, s...)
+	return x
+}
+
+// DeleteValues removes each value in toDelete from s
+func (s StringSlice) DeleteValues(toDelete StringSlice) StringSlice {
+	newSlice := s.Clone()
+
+	for _, v := range toDelete {
+		newSlice = newSlice.DeleteValue(v)
+	}
+
+	return newSlice
+}
