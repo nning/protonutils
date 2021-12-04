@@ -4,11 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"os"
 	"os/user"
 	"path"
 	"strconv"
+
+	"github.com/go-errors/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 const appInfoMagic = uint32(0x07_56_44_27)
@@ -70,6 +74,15 @@ func (s *Steam) getShortcutsBuffer() (*bufio.Reader, error) {
 	return buf, nil
 }
 
+func debugLogSearch(err error, needle1, needle2 []byte, lookAhead int) {
+	s := fmt.Sprintf("\n%v\n%v\n%v\n%v\n\n",
+		needle1,
+		needle2,
+		lookAhead,
+		errors.Wrap(err, 1).ErrorStack())
+	log.Debug(s)
+}
+
 // findNeedleInBuffer searches in buf:
 //   * First search for needle1
 //   * If needle1 has been found, search for needle2
@@ -81,6 +94,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle1, needle2 []byte, lookAhead in
 	for {
 		b, err := buf.ReadByte()
 		if err != nil {
+			debugLogSearch(err, needle1, needle2, lookAhead)
 			return "", err
 		}
 
@@ -95,6 +109,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle1, needle2 []byte, lookAhead in
 
 		hay, err := buf.Peek(l - 1)
 		if err != nil {
+			debugLogSearch(err, needle1, needle2, lookAhead)
 			return "", err
 		}
 
@@ -137,6 +152,8 @@ func (s *Steam) findNameInAppInfo(id string) (string, error) {
 
 	needle2 := []byte("name\x00")
 
+	log.Debug("findNameInAppInfo(" + id + ")\n")
+
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }
 
@@ -152,6 +169,8 @@ func (s *Steam) findNameInShortcuts(id string) (string, error) {
 	}
 
 	needle2 := []byte("AppName\x00")
+
+	log.Debug("findNameInShortcuts(" + id + ")\n")
 
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }
@@ -172,6 +191,8 @@ func (s *Steam) findCompatToolName(shortName string) (string, error) {
 	}
 
 	needle2 := []byte("display_name\x00")
+
+	log.Debug("findCompatToolName(" + shortName + ")\n")
 
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }
