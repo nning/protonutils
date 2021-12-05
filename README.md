@@ -90,6 +90,12 @@ on Arch Linux if you installed from the AUR).
       -h, --help    help for update
       -k, --keep    Keep downloaded archive of last version
 
+### Configure Default User
+
+`uid` can be a Steam user name or an SteamID3.
+
+    $ protonutils config user <uid>
+
 
 [0]: https://github.com/ValveSoftware/Proton
 [1]: https://github.com/GloriousEggroll/proton-ge-custom
