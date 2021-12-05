@@ -36,7 +36,7 @@ lint:
 	golint ./...
 
 build_pie: GOLDFLAGS += -s -w -linkmode external -extldflags \"$(LDFLAGS)\"
-build_pie: GOFLAGS += -trimpath -buildmode=pie
+build_pie: GOFLAGS += -trimpath -buildmode=pie -mod=readonly -modcacherw
 build_pie: build
 
 release: build_pie
