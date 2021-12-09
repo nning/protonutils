@@ -7,6 +7,7 @@ protonutils is a CLI tool that provides different utilities to make using the [P
 * Download older Proton-GE releases
 * Clean-up unused runtimes automatically
 * Search for app ID by name (works for games that are installed or have been installed)
+* Print or open compatdata directory by game name (handy of you want to mess with savegames or mods, for example)
 
 ## Download Binary
 
@@ -22,6 +23,8 @@ There is a [package in the AUR][2].
 
 ## Manual Build
 
+Minimal Go version is 1.17.
+
 This step is only necessary if aforementioned binary does not suit your needs for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
 
     go install github.com/nning/protonutils/cmd/protonutils@latest
@@ -30,7 +33,7 @@ This step is only necessary if aforementioned binary does not suit your needs fo
 ## Example Output
 
     $ protonutils list
-    Proton-6.20-GE-1
+    Proton-6.21-GE-2
             Cyberpunk 2077
             DEATHLOOP
             Dishonored 2
@@ -39,7 +42,7 @@ This step is only necessary if aforementioned binary does not suit your needs fo
             Iron Harvest
             Kena - Bridge of Spirits [SHORTCUT]
 
-    proton_63 (Default)
+    Proton 6.3-8 (Default)
             Age of Empires II: Definitive Edition
             Fallout 4
             Grand Theft Auto V
@@ -53,6 +56,10 @@ This step is only necessary if aforementioned binary does not suit your needs fo
             Red Dead Redemption 2
 
 ## Usage
+
+The two outputs are just examples for two prominent commands, see full usage
+documentation by running `protonutils -h` on your machine (or `man protonutils`
+on Arch Linux if you installed from the AUR).
 
 ### List Games by Version
 
@@ -82,6 +89,12 @@ This step is only necessary if aforementioned binary does not suit your needs fo
       -f, --force   Force last version update
       -h, --help    help for update
       -k, --keep    Keep downloaded archive of last version
+
+### Configure Default User
+
+`uid` can be a Steam user name or an SteamID3.
+
+    $ protonutils config user <uid>
 
 
 [0]: https://github.com/ValveSoftware/Proton

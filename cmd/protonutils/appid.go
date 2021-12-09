@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nning/protonutils/cache"
 	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
 
 var appidCmd = &cobra.Command{
-	Use:   "appid",
+	Use:   "appid [flags] <game>",
 	Short: "Search for app ID of installed game",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   appid,
@@ -18,6 +17,8 @@ var appidCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(appidCmd)
+	appidCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+	appidCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 }
 
 func appid(cmd *cobra.Command, args []string) {
@@ -27,10 +28,7 @@ func appid(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
-	c, err := cache.New("steam-appids", -1)
-	exitOnError(err)
-
-	data := c.Dump()
+	data := s.AppidCache.Dump()
 
 	for id, value := range data {
 		a := strings.ToLower(value.Name)

@@ -20,7 +20,7 @@ func (s *Steam) getNameAndGameData(id string) (string, *gameData, bool, error) {
 	var err error
 
 	sc := isShortcut(id)
-	name, valid := s.appidCache.Get(id)
+	name, valid := s.AppidCache.Get(id)
 	if name != "" && valid {
 		data, err := s.getGameData(id, sc)
 		if err != nil {
@@ -49,7 +49,7 @@ func (s *Steam) getNameAndGameData(id string) (string, *gameData, bool, error) {
 		return name, nil, valid, err
 	}
 
-	s.appidCache.Add(id, name, valid)
+	s.AppidCache.Add(id, name, valid)
 	return name, data, valid, nil
 }
 
@@ -71,12 +71,12 @@ func (s *Steam) getGameData(id string, isShortcut bool) (*gameData, error) {
 
 // SaveCache writes app ID cache to disk
 func (s *Steam) SaveCache() error {
-	err := s.appidCache.Write()
+	err := s.AppidCache.Write()
 	if err != nil {
 		return err
 	}
 
-	err = s.versionNameCache.Write()
+	err = s.VersionNameCache.Write()
 	if err != nil {
 		return err
 	}

@@ -56,7 +56,7 @@ var egrollCleanCmd = &cobra.Command{
 }
 
 var egrollDownloadCmd = &cobra.Command{
-	Use:   "download",
+	Use:   "download [flags] <version>",
 	Short: "Download and extract version specified in argument",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   egrollDownload,

@@ -17,14 +17,14 @@ var compatdataCmd = &cobra.Command{
 }
 
 var compatdataPathCmd = &cobra.Command{
-	Use:   "path",
+	Use:   "path [flags] <game>",
 	Short: "Print compatdata directory path for game",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   compatdataPath,
 }
 
 var compatdataOpenCmd = &cobra.Command{
-	Use:   "open",
+	Use:   "open [flags] <game>",
 	Short: "Open compatdata directory for game",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   compatdataOpen,
@@ -32,12 +32,18 @@ var compatdataOpenCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(compatdataCmd)
+
 	compatdataCmd.AddCommand(compatdataPathCmd)
+	compatdataPathCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+	compatdataPathCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+
 	compatdataCmd.AddCommand(compatdataOpenCmd)
+	compatdataOpenCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+	compatdataOpenCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 }
 
 func getPath(idOrName string) string {
-	s, err := steam.New("", ignoreCache)
+	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 
 	p, err := s.GetLibraryPath(idOrName)
