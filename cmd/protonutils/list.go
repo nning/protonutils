@@ -15,10 +15,8 @@ var listCmd = &cobra.Command{
 }
 
 var all bool
-var ignoreCache bool
 var jsonOutput bool
 var showAppID bool
-var user string
 
 func init() {
 	rootCmd.AddCommand(listCmd)

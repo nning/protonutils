@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/nning/protonutils/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var rootCmd = &cobra.Command{
@@ -16,6 +18,9 @@ var rootCmd = &cobra.Command{
 }
 
 var manDir string
+
+var ignoreCache bool
+var user string
 
 func exitOnError(e error, a ...string) {
 	if e != nil {
@@ -55,6 +60,11 @@ func main() {
 
 	if _, debug := os.LookupEnv("DEBUG"); debug {
 		log.SetLevel(log.DebugLevel)
+	}
+
+	c, err := config.New()
+	if err == nil {
+		user = c.User
 	}
 
 	rootCmd.Execute()

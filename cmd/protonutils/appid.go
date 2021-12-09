@@ -9,7 +9,7 @@ import (
 )
 
 var appidCmd = &cobra.Command{
-	Use:   "appid",
+	Use:   "appid [flags] <game>",
 	Short: "Search for app ID of installed game",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   appid,
