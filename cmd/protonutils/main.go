@@ -7,6 +7,8 @@ import (
 	"github.com/nning/protonutils/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var rootCmd = &cobra.Command{
@@ -54,6 +56,10 @@ func main() {
 		exitOnError(err)
 
 		return
+	}
+
+	if _, debug := os.LookupEnv("DEBUG"); debug {
+		log.SetLevel(log.DebugLevel)
 	}
 
 	c, err := config.New()
