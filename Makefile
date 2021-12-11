@@ -1,6 +1,7 @@
 .PHONY: clean test lint
 
 PREFIX = ~/.local/bin
+MAN_PREFIX = ~/.local/share/man
 ZSH_PREFIX = ~/.local/share/zsh/functions
 
 SOURCES = $(shell find . -name \*.go)
@@ -45,11 +46,15 @@ build_pie: build
 completion: build
 	$(UTILS_BIN) completion zsh > $(COMPLETION_ZSH_SRC)
 
+man: build
+	$(UTILS_BIN) -m man1
+
 release: build_pie
 	upx -qq --best $(UTILS_BIN)
 	ls -lh $(UTILS_BIN)
 
-install: build_pie completion
-	mkdir -p $(PREFIX) $(ZSH_PREFIX)
+install: build_pie completion man
+	mkdir -p $(PREFIX) $(ZSH_PREFIX) $(MAN_PREFIX)
 	cp $(UTILS_BIN) $(PREFIX)
 	cp $(COMPLETION_ZSH_SRC) $(ZSH_PREFIX)/_protonutils
+	cp -r man1 $(MAN_PREFIX)/
