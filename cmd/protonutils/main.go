@@ -41,7 +41,6 @@ func init() {
 }
 
 func main() {
-	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.ParseFlags(os.Args)
 
 	if manDir != "" {
