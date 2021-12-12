@@ -36,7 +36,7 @@ func (s *Steam) getNameAndGameData(id string) (string, *gameData, bool, error) {
 	} else {
 		name, err = s.findNameInAppInfo(id)
 		if err == io.EOF {
-			name, err = s.getNameFromApi(id)
+			name, err = s.getNameFromAPI(id)
 		}
 		if err != nil {
 			return "", nil, false, err

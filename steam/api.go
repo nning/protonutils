@@ -12,7 +12,7 @@ type jsonAppData struct {
 	} `json:"data"`
 }
 
-func (s *Steam) getNameFromApi(id string) (string, error) {
+func (s *Steam) getNameFromAPI(id string) (string, error) {
 	res, err := http.Get("https://store.steampowered.com/api/appdetails/?appids=" + id)
 	if err != nil {
 		return "", err
