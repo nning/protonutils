@@ -123,7 +123,7 @@ func findNeedleInBuffer(buf *bufio.Reader, needle1, needle2 []byte, lookAhead in
 		}
 
 		if len(needle2) > 0 {
-			return findNeedleInBuffer(buf, needle2, nil, 1024)
+			return findNeedleInBuffer(buf, needle2, nil, 4096)
 		}
 
 		s, err := buf.ReadBytes(0)
@@ -193,6 +193,28 @@ func (s *Steam) findCompatToolName(shortName string) (string, error) {
 	needle2 := []byte("display_name\x00")
 
 	log.Debug("findCompatToolName(" + shortName + ")\n")
+
+	return findNeedleInBuffer(buf, needle1, needle2, -1)
+}
+
+func (s *Steam) findInstallDirInAppInfo(id string) (string, error) {
+	if id == "0" {
+		return "", nil
+	}
+
+	_, buf, err := s.getAppInfoBuffer()
+	if err != nil {
+		return "", err
+	}
+
+	needle1, err := getAppIDNeedle(id)
+	if err != nil {
+		return "", err
+	}
+
+	needle2 := []byte("installdir\x00")
+
+	log.Debug("findInstallDirInAppInfo(" + id + ")\n")
 
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }

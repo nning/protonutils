@@ -52,6 +52,7 @@ func Test_FindNameInAppInfo_found(t *testing.T) {
 		"1151640": "Horizon Zero Dawn",
 		"1174180": "Red Dead Redemption 2",
 		"1328670": "Mass Effect™ Legendary Edition",
+		"813780":  "Age of Empires II: Definitive Edition",
 	}
 
 	for id, n := range games {
@@ -102,4 +103,28 @@ func Test_FindCompatToolName_found(t *testing.T) {
 	name, err = s.findCompatToolName("proton_experimental")
 	assert.Equal(t, io.EOF, err)
 	assert.Equal(t, "", name)
+}
+
+func Test_FindInstallDirInAppInfo_found(t *testing.T) {
+	s, err := New("", true)
+	assert.Empty(t, err)
+
+	games := map[string]string{
+		"292030":  "The Witcher 3",
+		"377160":  "Fallout 4",
+		"403640":  "Dishonored2",
+		"614570":  "Dishonored_DeathOfTheOutsider",
+		"826630":  "Iron Harvest",
+		"1091500": "Cyberpunk 2077",
+		"1151640": "Horizon Zero Dawn",
+		"1174180": "Red Dead Redemption 2",
+		"1328670": "Mass Effect Legendary Edition",
+		"813780":  "AoE2DE",
+	}
+
+	for id, n := range games {
+		dir, err := s.findInstallDirInAppInfo(id)
+		assert.Empty(t, err)
+		assert.Equal(t, n, dir)
+	}
 }
