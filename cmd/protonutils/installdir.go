@@ -46,7 +46,7 @@ func getInstalldirPath(idOrName string) (string, string) {
 	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 
-	info, err := s.GetLibraryPath(idOrName)
+	info, err := s.GetGameInfo(idOrName)
 	exitOnError(err)
 
 	installdir, err := s.FindInstallDirInAppInfo(info.ID)

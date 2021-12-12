@@ -121,8 +121,8 @@ func (s *Steam) GetLibraryPathByID(id string) (string, error) {
 	return "", nil
 }
 
-// GetLibraryPath returns library path (and ID and name) by game ID or name
-func (s *Steam) GetLibraryPath(idOrName string) (*gameInfo, error) {
+// GetGameInfo returns library path (and ID and name) by game ID or name
+func (s *Steam) GetGameInfo(idOrName string) (*gameInfo, error) {
 	p, err := s.GetLibraryPathByID(idOrName)
 	if err != nil {
 		return nil, err

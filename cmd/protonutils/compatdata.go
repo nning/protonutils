@@ -48,7 +48,7 @@ func getCompatdataPath(idOrName string) (string, string) {
 	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 
-	info, err := s.GetLibraryPath(idOrName)
+	info, err := s.GetGameInfo(idOrName)
 	exitOnError(err)
 
 	return path.Join(info.LibraryPath, "steamapps", "compatdata", info.ID), info.Name
