@@ -165,6 +165,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 	files, err := ioutil.ReadDir(dir)
 	exitOnError(err)
 
+	newToDelete := toDelete.Clone()
 	for _, version := range toDelete {
 		exists := false
 
@@ -176,9 +177,10 @@ func egrollClean(cmd *cobra.Command, args []string) {
 		}
 
 		if !exists {
-			toDelete = toDelete.DeleteValue(version)
+			newToDelete = newToDelete.DeleteValue(version)
 		}
 	}
+	toDelete = newToDelete
 
 	for _, file := range files {
 		n := file.Name()
@@ -192,12 +194,14 @@ func egrollClean(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	fmt.Println("Unused versions found:")
+	for _, version := range toDelete {
+		fmt.Println("  * " + version)
+	}
+	fmt.Println()
+
 	if !yes {
-		fmt.Println("Unused versions found:")
-		for _, version := range toDelete {
-			fmt.Println("  * " + version)
-		}
-		fmt.Print("\nReally delete? [y/N] ")
+		fmt.Print("Really delete? [y/N] ")
 
 		reader := bufio.NewReader(os.Stdin)
 		char, _, err := reader.ReadRune()
