@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"path"
-	"strings"
 
 	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
@@ -46,49 +44,18 @@ func init() {
 	compatdataOpenCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show app name")
 }
 
-func getPath(idOrName string) (string, string) {
+func getCompatdataPath(idOrName string) (string, string) {
 	s, err := steam.New(user, ignoreCache)
 	exitOnError(err)
 
-	p, err := s.GetLibraryPath(idOrName)
+	info, err := s.GetLibraryPath(idOrName)
 	exitOnError(err)
 
-	var n string
-
-	if p == "" {
-		err = s.ReadCompatToolVersions()
-		exitOnError(err)
-
-		var id string
-		for _, games := range s.CompatToolVersions {
-			for name, game := range games {
-				a := strings.ToLower(name)
-				b := strings.ToLower(idOrName)
-
-				if a == b || strings.HasPrefix(a, b) && game.IsInstalled {
-					id = game.ID
-					n = name
-					break
-				}
-			}
-		}
-
-		p, err = s.GetLibraryPath(id)
-		exitOnError(err)
-
-		idOrName = id
-
-		if id == "" || p == "" {
-			fmt.Fprintln(os.Stderr, "App ID or compatdata path not found")
-			os.Exit(1)
-		}
-	}
-
-	return path.Join(p, "steamapps", "compatdata", idOrName), n
+	return path.Join(info.LibraryPath, "steamapps", "compatdata", info.ID), info.Name
 }
 
 func compatdataPath(cmd *cobra.Command, args []string) {
-	p, n := getPath(args[0])
+	p, n := getCompatdataPath(args[0])
 
 	if verbose {
 		fmt.Println(n)
@@ -98,7 +65,7 @@ func compatdataPath(cmd *cobra.Command, args []string) {
 }
 
 func compatdataOpen(cmd *cobra.Command, args []string) {
-	p, n := getPath(args[0])
+	p, n := getCompatdataPath(args[0])
 
 	if verbose {
 		fmt.Println(n)

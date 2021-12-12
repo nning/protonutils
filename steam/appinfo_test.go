@@ -123,7 +123,7 @@ func Test_FindInstallDirInAppInfo_found(t *testing.T) {
 	}
 
 	for id, n := range games {
-		dir, err := s.findInstallDirInAppInfo(id)
+		dir, err := s.FindInstallDirInAppInfo(id)
 		assert.Empty(t, err)
 		assert.Equal(t, n, dir)
 	}

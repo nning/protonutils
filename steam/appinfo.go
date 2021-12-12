@@ -197,7 +197,8 @@ func (s *Steam) findCompatToolName(shortName string) (string, error) {
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }
 
-func (s *Steam) findInstallDirInAppInfo(id string) (string, error) {
+// FindInstallDirInAppInfo finds installdir in appinfo data
+func (s *Steam) FindInstallDirInAppInfo(id string) (string, error) {
 	if id == "0" {
 		return "", nil
 	}
@@ -214,7 +215,7 @@ func (s *Steam) findInstallDirInAppInfo(id string) (string, error) {
 
 	needle2 := []byte("installdir\x00")
 
-	log.Debug("findInstallDirInAppInfo(" + id + ")\n")
+	log.Debug("FindInstallDirInAppInfo(" + id + ")\n")
 
 	return findNeedleInBuffer(buf, needle1, needle2, -1)
 }
