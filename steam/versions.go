@@ -1,6 +1,7 @@
 package steam
 
 import (
+	"io"
 	"sort"
 )
 
@@ -72,7 +73,7 @@ func (s *Steam) ReadCompatToolVersions() error {
 		}
 
 		_, err = s.addGame(v, id)
-		if err != nil {
+		if err != nil && err != io.EOF {
 			return err
 		}
 	}
@@ -91,7 +92,7 @@ func (s *Steam) ReadCompatToolVersions() error {
 
 		if !s.includesGameID(id) {
 			_, err = s.addGame(def, id)
-			if err != nil {
+			if err != nil && err != io.EOF {
 				return err
 			}
 		}

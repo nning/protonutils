@@ -1,9 +1,11 @@
 package steam
 
 import (
+	"fmt"
 	"os"
 	"os/user"
 	"path"
+	"strings"
 
 	"github.com/andygrunwald/vdf"
 )
@@ -12,6 +14,12 @@ type mapLevel = map[string]interface{}
 
 type keyNotFoundError struct {
 	name string
+}
+
+type gameInfo struct {
+	ID          string
+	Name        string
+	LibraryPath string
 }
 
 func (e *keyNotFoundError) Error() string {
@@ -66,7 +74,16 @@ func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (mapLevel, e
 }
 
 func (s *Steam) getCompatToolMapping() (mapLevel, error) {
-	return s.cachedVdfLookup("compatToolMapping", "config/config.vdf", "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
+	key := []string{"InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping"}
+	m, err := s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
+
+	_, isKeyNotFoundError := err.(*keyNotFoundError)
+	if err != nil && isKeyNotFoundError {
+		key[3] = "steam"
+		m, err = s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
+	}
+
+	return m, err
 }
 
 func (s *Steam) getLibraryConfig() (mapLevel, error) {
@@ -82,7 +99,7 @@ func (s *Steam) getLoginUsers() (mapLevel, error) {
 }
 
 func (s *Steam) isInstalled(id string) (bool, error) {
-	path, err := s.GetLibraryPath(id)
+	path, err := s.GetLibraryPathByID(id)
 	if err != nil || path == "" {
 		return false, err
 	}
@@ -90,8 +107,8 @@ func (s *Steam) isInstalled(id string) (bool, error) {
 	return true, nil
 }
 
-// GetLibraryPath returns path to Steam library folder, the game with specified app ID is installed in
-func (s *Steam) GetLibraryPath(id string) (string, error) {
+// GetLibraryPathByID returns path to Steam library folder, the game with specified app ID is installed in
+func (s *Steam) GetLibraryPathByID(id string) (string, error) {
 	m, err := s.getLibraryConfig()
 	if err != nil {
 		return "", err
@@ -111,4 +128,50 @@ func (s *Steam) GetLibraryPath(id string) (string, error) {
 	}
 
 	return "", nil
+}
+
+// GetGameInfo returns library path (and ID and name) by game ID or name
+func (s *Steam) GetGameInfo(idOrName string) (*gameInfo, error) {
+	p, err := s.GetLibraryPathByID(idOrName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.ReadCompatToolVersions()
+	if err != nil {
+		return nil, err
+	}
+
+	info := &gameInfo{idOrName, "", p}
+
+	if p != "" {
+		info.Name, _ = s.AppidCache.Get(info.ID)
+		return info, nil
+	}
+
+	for _, games := range s.CompatToolVersions {
+		for name, game := range games {
+			a := strings.ToLower(name)
+			b := strings.ToLower(idOrName)
+
+			if a == b || strings.HasPrefix(a, b) && game.IsInstalled {
+				info = &gameInfo{game.ID, name, ""}
+				break
+			}
+		}
+	}
+
+	p, err = s.GetLibraryPathByID(info.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	info.LibraryPath = p
+
+	if info.ID == "" || p == "" {
+		fmt.Fprintln(os.Stderr, "App ID or path not found")
+		os.Exit(1)
+	}
+
+	return info, nil
 }

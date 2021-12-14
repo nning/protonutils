@@ -114,3 +114,41 @@ func Test_Slice_DeleteValue(t *testing.T) {
 
 	assert.Equal(t, s, Slice[string]{})
 }
+
+func Test_Slice_LoopDeleteValue(t *testing.T) {
+	versions := Slice[string]{"a", "b", "c", "d", "e"}
+	l := len(versions)
+
+	toDelete := Slice[string]{}
+	toDelete = append(toDelete, versions...)
+
+	assert.Equal(t, l, len(versions))
+	assert.Equal(t, l, len(toDelete))
+
+	for i, version := range toDelete {
+		assert.Equal(t, versions[i], version)
+	}
+
+	newVersions := versions.Clone()
+
+	for _, version := range toDelete {
+		newVersions = newVersions.DeleteValue(version)
+	}
+
+	assert.Equal(t, 0, len(newVersions))
+}
+
+func Test_Slice_DeleteValues(t *testing.T) {
+	versions := Slice[string]{"a", "b", "c", "d", "e"}
+	l := len(versions)
+
+	toDelete := Slice[string]{}
+	toDelete = append(toDelete, versions...)
+
+	assert.Equal(t, l, len(versions))
+	assert.Equal(t, l, len(toDelete))
+
+	versions = versions.DeleteValues(toDelete)
+
+	assert.Equal(t, 0, len(versions))
+}

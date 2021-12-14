@@ -8,21 +8,25 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config represents YAML config file structure
 type Config struct {
 	User string `yaml:"user"`
 }
 
+// New instantiates and loads config from file
 func New() (*Config, error) {
 	cfg := &Config{}
 	err := cfg.Load()
 	return cfg, err
 }
 
+// String returns YAML serialization of cfg
 func (cfg *Config) String() string {
 	bytes, _ := yaml.Marshal(cfg)
 	return string(bytes)
 }
 
+// Load loads cfg values from file
 func (cfg *Config) Load() error {
 	u, _ := user.Current()
 	p := path.Join(u.HomeDir, ".config", "protonutils", "protonutils.yml")
@@ -40,6 +44,7 @@ func (cfg *Config) Load() error {
 	return nil
 }
 
+// Save saves cfg values into file
 func (cfg *Config) Save() error {
 	u, _ := user.Current()
 	dirPath := path.Join(u.HomeDir, ".config", "protonutils")
