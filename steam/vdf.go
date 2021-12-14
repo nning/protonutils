@@ -74,7 +74,16 @@ func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (mapLevel, e
 }
 
 func (s *Steam) getCompatToolMapping() (mapLevel, error) {
-	return s.cachedVdfLookup("compatToolMapping", "config/config.vdf", "InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping")
+	key := []string{"InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping"}
+	m, err := s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
+
+	_, isKeyNotFoundError := err.(*keyNotFoundError)
+	if err != nil && isKeyNotFoundError {
+		key[3] = "steam"
+		m, err = s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
+	}
+
+	return m, err
 }
 
 func (s *Steam) getLibraryConfig() (mapLevel, error) {
