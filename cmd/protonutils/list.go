@@ -11,6 +11,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List games by runtime",
+	Long:  "List games by configured Proton/CompatTool version. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once.",
 	Run:   list,
 }
 
