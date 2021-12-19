@@ -3,7 +3,12 @@ package steam
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/MrWaggel/gosteamconv"
 )
@@ -55,4 +60,44 @@ func (s *Steam) userToID32(u string) (string, error) {
 	}
 
 	return fmt.Sprint(idInt32), nil
+}
+
+func (s *Steam) getUID(u string) (string, error) {
+	dir := path.Join(s.root, "userdata")
+	// TODO Sort entries by last change?
+	entries, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return "", err
+	}
+
+	uid := entries[0].Name()
+
+	if len(entries) > 1 {
+		users := make([]string, 0)
+
+		for _, entry := range entries {
+			name := entry.Name()
+			if name == u {
+				return name, nil
+			}
+
+			isEntryNumeric, err := regexp.MatchString("^[0-9]*$", name)
+			if err != nil {
+				return "", err
+			}
+
+			if name != "0" && isEntryNumeric {
+				users = append(users, name)
+			}
+		}
+
+		uid = users[0]
+
+		fmt.Fprintln(os.Stderr,
+			"Warning: Several Steam users available, using "+uid+"\n"+
+				"All available users: "+strings.Join(users, ", ")+"\n"+
+				"Option \"-u\" can be used to specify user\n")
+	}
+
+	return uid, nil
 }
