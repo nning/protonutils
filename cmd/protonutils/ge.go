@@ -224,7 +224,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 func egrollDownload(cmd *cobra.Command, args []string) {
 	tag := args[0]
 
-	valid, err := regexp.MatchString("^[0-9]*\\.[0-9]*-GE-[0-9]*", tag)
+	valid, err := regexp.MatchString("^[0-9]*\\.[0-9]*(rc[0-9])?-GE-[0-9]*", tag)
 	exitOnError(err)
 
 	if !valid {
