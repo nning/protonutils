@@ -2,3 +2,5 @@
 /cmd/protonutils/protonutils.upx
 /completion.zsh
 /man1
+/test/root
+/test/root.tar.xz
