@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
+	"github.com/nning/protonutils/config"
 	"github.com/nning/protonutils/steam"
 	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
@@ -137,7 +138,10 @@ func getCompatDir() (string, error) {
 }
 
 func egrollClean(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, ignoreCache)
+	cfg, err := config.New()
+	exitOnError(err)
+
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatToolVersions()

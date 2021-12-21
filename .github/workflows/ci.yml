@@ -1,0 +1,46 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, Test, Build, Upload Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17.3'
+
+      - name: Lint
+        run: |
+          sudo apt-get install golint
+          make lint
+
+      - name: Prepare Steam Root for Tests
+        run: |
+          echo $KEY > key.age
+          curl -sSL https://dl.filippo.io/age/v1.0.0?for=linux/amd64 | tar xzf -
+          PATH="$(pwd)/age:$PATH" ./test/decrypt.sh ../key.age
+        env:
+          KEY: ${{ secrets.STEAM_ROOT_KEY }}
+
+      - name: Test
+        run: make test
+
+      - name: Build
+        run: make
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: protonutils
+          path: cmd/protonutils/protonutils

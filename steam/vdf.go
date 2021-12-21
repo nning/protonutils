@@ -3,7 +3,6 @@ package steam
 import (
 	"fmt"
 	"os"
-	"os/user"
 	"path"
 	"strings"
 
@@ -40,10 +39,8 @@ func lookup(m mapLevel, x []string) (mapLevel, error) {
 	return y, nil
 }
 
-func vdfLookup(file string, x ...string) (mapLevel, error) {
-	usr, _ := user.Current()
-	file = path.Join(usr.HomeDir, ".steam", "root", file)
-
+func (s *Steam) vdfLookup(file string, x ...string) (mapLevel, error) {
+	file = path.Join(s.root, file)
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -64,7 +61,7 @@ func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (mapLevel, e
 		return m.(mapLevel), nil
 	}
 
-	m, err := vdfLookup(file, x...)
+	m, err := s.vdfLookup(file, x...)
 	if err != nil {
 		return nil, err
 	}

@@ -29,7 +29,8 @@ func configGetOrSet(cmd *cobra.Command, args []string) {
 	key := args[0]
 
 	m := map[string]interface{}{
-		"user": cfg.User,
+		"user":       cfg.User,
+		"steam_root": cfg.SteamRoot,
 	}
 
 	if len(args) == 1 {
@@ -38,6 +39,8 @@ func configGetOrSet(cmd *cobra.Command, args []string) {
 		switch key {
 		case "user":
 			cfg.User = args[1]
+		case "steam_root":
+			cfg.SteamRoot = args[1]
 		}
 		err = cfg.Save()
 		exitOnError(err)
