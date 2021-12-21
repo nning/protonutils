@@ -15,7 +15,8 @@ type keyNotFoundError struct {
 	name string
 }
 
-type gameInfo struct {
+// GameInfo contains ID, Name, and LibraryPath of a game
+type GameInfo struct {
 	ID          string
 	Name        string
 	LibraryPath string
@@ -128,7 +129,7 @@ func (s *Steam) GetLibraryPathByID(id string) (string, error) {
 }
 
 // GetGameInfo returns library path (and ID and name) by game ID or name
-func (s *Steam) GetGameInfo(idOrName string) (*gameInfo, error) {
+func (s *Steam) GetGameInfo(idOrName string) (*GameInfo, error) {
 	p, err := s.GetLibraryPathByID(idOrName)
 	if err != nil {
 		return nil, err
@@ -139,7 +140,7 @@ func (s *Steam) GetGameInfo(idOrName string) (*gameInfo, error) {
 		return nil, err
 	}
 
-	info := &gameInfo{idOrName, "", p}
+	info := &GameInfo{idOrName, "", p}
 
 	if p != "" {
 		info.Name, _ = s.AppidCache.Get(info.ID)
@@ -152,7 +153,7 @@ func (s *Steam) GetGameInfo(idOrName string) (*gameInfo, error) {
 			b := strings.ToLower(idOrName)
 
 			if a == b || strings.HasPrefix(a, b) && game.IsInstalled {
-				info = &gameInfo{game.ID, name, ""}
+				info = &GameInfo{game.ID, name, ""}
 				break
 			}
 		}

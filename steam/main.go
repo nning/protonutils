@@ -1,7 +1,6 @@
 package steam
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -52,7 +51,7 @@ func New(user string, root string, ignoreCache bool) (*Steam, error) {
 	var fInfo fs.FileInfo
 	fInfo, err = os.Stat(root)
 	if err != nil || !fInfo.IsDir() {
-		return nil, errors.New(fmt.Sprintf("Steam root not a directory: %v", root))
+		return nil, fmt.Errorf("Steam root not a directory: %v", root)
 	}
 
 	s := &Steam{
