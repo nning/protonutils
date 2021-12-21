@@ -92,11 +92,21 @@ on Arch Linux if you installed from the AUR).
       -h, --help    help for update
       -k, --keep    Keep downloaded archive of last version
 
-### Configure Default User
+## Configuration
+
+### Default User
 
 `uid` can be a Steam user name or an SteamID3.
 
     $ protonutils config user <uid>
+
+### Flatpak Support / Change Steam Root Path
+
+    $ protonutils config steam_root ~/.var/app/com.valvesoftware.Steam/data/Steam
+
+### Reset Option
+
+    $ protonutils config steam_root ""
 
 
 [0]: https://github.com/ValveSoftware/Proton
