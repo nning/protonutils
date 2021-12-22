@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/nning/protonutils/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,9 +17,6 @@ func init() {
 }
 
 func configGetOrSet(cmd *cobra.Command, args []string) {
-	cfg, err := config.New()
-	exitOnError(err)
-
 	if len(args) == 0 {
 		fmt.Println(cfg)
 		return
@@ -42,7 +38,7 @@ func configGetOrSet(cmd *cobra.Command, args []string) {
 		case "steam_root":
 			cfg.SteamRoot = args[1]
 		}
-		err = cfg.Save()
+		err := cfg.Save()
 		exitOnError(err)
 	}
 }

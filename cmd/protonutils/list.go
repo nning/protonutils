@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/nning/protonutils/config"
 	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
@@ -43,9 +42,6 @@ func countVisibleGames(games steam.Games) int {
 }
 
 func list(cmd *cobra.Command, args []string) {
-	cfg, err := config.New()
-	exitOnError(err)
-
 	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
