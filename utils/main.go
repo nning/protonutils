@@ -55,6 +55,7 @@ func (s StringSlice) DeleteValues(toDelete StringSlice) StringSlice {
 	return newSlice
 }
 
+// Includes returns whether or not a str is included in s
 func (s StringSlice) Includes(str string) bool {
 	for _, v := range s {
 		if v == str {
@@ -65,6 +66,7 @@ func (s StringSlice) Includes(str string) bool {
 	return false
 }
 
+// AskYesOrNo shows text and waits for users to confirm
 func AskYesOrNo(text string) (bool, error) {
 	fmt.Print(text, " [y/N] ")
 

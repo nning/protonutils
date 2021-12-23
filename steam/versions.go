@@ -66,7 +66,8 @@ func (s *Steam) getCompatToolName(shortName string) string {
 	return displayName
 }
 
-// ReadCompatToolVersions reads Proton versions and games from different Steam configs
+// ReadCompatToolVersions reads Proton versions and games from different Steam
+// configs
 func (s *Steam) ReadCompatToolVersions() error {
 	x, err := s.getCompatToolMapping()
 	if err != nil {
@@ -112,6 +113,7 @@ func (s *Steam) ReadCompatToolVersions() error {
 	return nil
 }
 
+// GetGameVersion returns version ID (e.g. "proton_63") for a given game ID
 func (s *Steam) GetGameVersion(id string) string {
 	for name, version := range s.CompatToolVersions {
 		for _, game := range version.Games {
@@ -124,6 +126,10 @@ func (s *Steam) GetGameVersion(id string) string {
 	return ""
 }
 
+// IsValidVersion returns whether a compatibility version is valid. version can
+// either be a version ID (like "proton_63") or a human-readable name (like
+// "Proton 6.3-8"). A version is valid if at least one game uses it or there is
+// a install folder inside `compatibilitytools.d`.
 func (s *Steam) IsValidVersion(version string) (bool, error) {
 	if version == "" {
 		return false, nil
