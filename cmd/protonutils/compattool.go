@@ -64,6 +64,8 @@ func compatToolList(cmd *cobra.Command, args []string) {
 			}
 		}
 	}
+
+	// TODO Add compat tools from .compatibilitytools.d
 }
 
 func compatToolSet(cmd *cobra.Command, args []string) {
