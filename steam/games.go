@@ -4,17 +4,19 @@ import (
 	"sort"
 )
 
-type gameData struct {
+// Game represents Steam game or shortcut
+type Game struct {
 	ID          string `json:"appID"`
+	Name        string `json:"name"`
 	IsInstalled bool   `json:"isInstalled"`
 	IsShortcut  bool   `json:"isShortcut"`
 }
 
-// Games maps game name to gameData (app ID, install status)
-type Games map[string]*gameData
+// Games maps game name to Game (app ID, install status)
+type Games map[string]*Game
 
-func (s *Steam) addGame(versionID, versionName, gameID string, isDefault bool) (*gameData, error) {
-	name, data, valid, err := s.getNameAndGameData(gameID)
+func (s *Steam) addGame(versionID, versionName, gameID string, isDefault bool) (*Game, error) {
+	game, valid, err := s.GetGameData(gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -36,9 +38,9 @@ func (s *Steam) addGame(versionID, versionName, gameID string, isDefault bool) (
 		s.CompatToolVersions[versionName].IsDefault = true
 	}
 
-	s.CompatToolVersions[versionName].Games[name] = data
+	s.CompatToolVersions[versionName].Games[game.Name] = game
 
-	return data, nil
+	return game, nil
 }
 
 func (games Games) includesID(id string) bool {

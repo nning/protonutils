@@ -7,26 +7,6 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
-type Vdf struct {
-	Root *vdf.Node
-	Node *vdf.Node
-	Path string
-}
-
-func (v *Vdf) Save() error {
-	out, err := v.Root.MarshalText()
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(v.Path, out, 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func Lookup(n *vdf.Node, x []string) (*vdf.Node, error) {
 	y := n
 

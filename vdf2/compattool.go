@@ -7,11 +7,27 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
-type CompatToolMapping struct {
+type CompatTools map[string]*CompatTool
+
+type CompatTool = steam.Version
+
+type CompatToolMappingVdf struct {
 	Vdf
 }
 
-func (v *CompatToolMapping) Add(id, version string) {
+type CompatToolsVdf []*vdf.Node
+
+func (c CompatTools) IsValid(v string) bool {
+	for id := range c {
+		if id == v {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (v *CompatToolMappingVdf) Add(id, version string) {
 	var n0 vdf.Node
 	n0.SetName(id)
 
@@ -34,7 +50,7 @@ func (v *CompatToolMapping) Add(id, version string) {
 	v.Node.Append(&n0)
 }
 
-func (v *CompatToolMapping) Update(id, version string) error {
+func (v *CompatToolMappingVdf) Update(id, version string) error {
 	x, err := Lookup(v.Node, []string{id, "name"})
 	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
 
@@ -49,8 +65,42 @@ func (v *CompatToolMapping) Update(id, version string) error {
 	return nil
 }
 
-func GetCompatToolMapping(steamRoot string) (*CompatToolMapping, error) {
-	p := path.Join(steamRoot, "config", "config.vdf")
+func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
+	compatTools := make(CompatTools)
+	var x *vdf.Node
+
+	x = v.Node.FirstSubTree()
+
+	for ; x != nil; x = x.NextChild() {
+		id := x.Name()
+		version := x.FirstByName("name").String()
+
+		game, isValid, err := v.Steam.GetGameData(id)
+		if err != nil {
+			return nil, err
+		}
+
+		if !isValid {
+			continue
+		}
+
+		if compatTools[version] == nil {
+			compatTools[version] = &CompatTool{
+				ID:        version,
+				Name:      v.Steam.GetCompatToolName(version),
+				IsDefault: false,
+				Games:     make(steam.Games),
+			}
+		}
+
+		compatTools[version].Games[game.Name] = game
+	}
+
+	return compatTools, nil
+}
+
+func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
+	p := path.Join(s.Root, "config", "config.vdf")
 
 	n, err := parseTextConfig(p)
 	if err != nil {
@@ -63,5 +113,5 @@ func GetCompatToolMapping(steamRoot string) (*CompatToolMapping, error) {
 		return nil, err
 	}
 
-	return &CompatToolMapping{Vdf{n, x, p}}, nil
+	return &CompatToolMappingVdf{Vdf{n, x, p, s}}, nil
 }

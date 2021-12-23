@@ -46,7 +46,7 @@ func (s *Steam) includesGameID(id string) bool {
 	return s.CompatToolVersions.includesGameID(id)
 }
 
-func (s *Steam) getCompatToolName(shortName string) string {
+func (s *Steam) GetCompatToolName(shortName string) string {
 	if shortName == "" {
 		return ""
 	}
@@ -75,11 +75,11 @@ func (s *Steam) ReadCompatToolVersions() error {
 	}
 
 	defID := x["0"].(mapLevel)["name"].(string)
-	defName := s.getCompatToolName(defID) + " (Default)"
+	defName := s.GetCompatToolName(defID) + " (Default)"
 
 	for id, cfg := range x {
 		vID := cfg.(mapLevel)["name"].(string)
-		vName := s.getCompatToolName(vID)
+		vName := s.GetCompatToolName(vID)
 		if vName == "" {
 			vName = defName
 		}
