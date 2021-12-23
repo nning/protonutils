@@ -123,5 +123,11 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 	err = v.Save()
 	exitOnError(err)
 
+	s, err = steam.New(user, cfg.SteamRoot, true)
+	exitOnError(err)
+
+	err = s.ReadCompatToolVersions()
+	exitOnError(err)
+
 	fmt.Println("Done")
 }
