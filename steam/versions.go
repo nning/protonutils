@@ -91,7 +91,7 @@ func (s *Steam) ReadCompatToolVersions() error {
 	}
 
 	x, err = s.getLocalConfig()
-	_, isKeyNotFoundError := err.(*keyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 	if err != nil && !isKeyNotFoundError {
 		return err
 	}
@@ -141,7 +141,7 @@ func (s *Steam) IsValidVersion(version string) (bool, error) {
 		}
 	}
 
-	fInfo, err := os.Stat(path.Join(s.root, "compatibilitytools.d", version))
+	fInfo, err := os.Stat(path.Join(s.Root, "compatibilitytools.d", version))
 	if err != nil {
 		return false, err
 	}

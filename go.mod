@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/MrWaggel/gosteamconv v0.0.0-20190214041723-97e1fbb6de26
 	github.com/andygrunwald/vdf v1.0.0
+	github.com/benlubar/vdf v0.0.0-20170225232939-7fdcbaf3e86f
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-errors/errors v1.4.1
 	github.com/sirupsen/logrus v1.8.1
@@ -14,6 +15,7 @@ require (
 )
 
 require (
+	github.com/BenLubar/vdf v0.0.0-20170225232939-7fdcbaf3e86f // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

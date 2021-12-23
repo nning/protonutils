@@ -41,7 +41,7 @@ func getAppIDNeedle(appid string) ([]byte, error) {
 }
 
 func (s *Steam) getAppInfoBuffer() (*appInfo, *bufio.Reader, error) {
-	file := path.Join(s.root, "appcache", "appinfo.vdf")
+	file := path.Join(s.Root, "appcache", "appinfo.vdf")
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, nil, err
@@ -58,7 +58,7 @@ func (s *Steam) getAppInfoBuffer() (*appInfo, *bufio.Reader, error) {
 }
 
 func (s *Steam) getShortcutsBuffer() (*bufio.Reader, error) {
-	file := path.Join(s.root, "userdata", s.uid, "config", "shortcuts.vdf")
+	file := path.Join(s.Root, "userdata", s.uid, "config", "shortcuts.vdf")
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
