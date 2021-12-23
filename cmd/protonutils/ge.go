@@ -125,13 +125,8 @@ func getURL(url string) (io.Reader, uint64, error) {
 	return res.Body, uint64(size), nil
 }
 
-func getCompatDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(home, ".steam", "root", "compatibilitytools.d"), nil
+func getCompatDir(s *steam.Steam) (string, error) {
+	return path.Join(s.Root, "compatibilitytools.d"), nil
 }
 
 func egrollClean(cmd *cobra.Command, args []string) {
@@ -158,7 +153,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	dir, err := getCompatDir()
+	dir, err := getCompatDir(s)
 	exitOnError(err)
 	files, err := ioutil.ReadDir(dir)
 	exitOnError(err)
@@ -230,7 +225,10 @@ func egrollDownload(cmd *cobra.Command, args []string) {
 	dirpath := "Proton-" + tag
 	filepath := dirpath + ".tar.gz"
 
-	dir, err := getCompatDir()
+	s, err := steam.New(user, cfg.SteamRoot, false)
+	exitOnError(err)
+
+	dir, err := getCompatDir(s)
 	_, err = os.Stat(dir)
 	if err != nil {
 		err = os.Mkdir(dir, 0700)
