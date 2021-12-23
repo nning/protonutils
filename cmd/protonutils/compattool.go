@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"path"
 
-	"github.com/benlubar/vdf"
 	"github.com/nning/protonutils/steam"
 	"github.com/nning/protonutils/utils"
+	"github.com/nning/protonutils/vdf2"
 	"github.com/spf13/cobra"
 )
 
@@ -42,19 +40,6 @@ func init() {
 	compatToolSetCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 	compatToolSetCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 	compatToolSetCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
-}
-
-func lookup(n *vdf.Node, x []string) (*vdf.Node, error) {
-	y := n
-
-	for _, key := range x {
-		y = y.FirstByName(key)
-		if y == nil {
-			return nil, &steam.KeyNotFoundError{Name: key}
-		}
-	}
-
-	return y, nil
 }
 
 func compatToolList(cmd *cobra.Command, args []string) {
@@ -93,15 +78,22 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 
 	oldVersion := s.GetGameVersion(info.ID)
 
+	// TODO Get version ID if newVersion is name, only save mapping for ID
+
 	isValidVersion, err := s.IsValidVersion(newVersion)
 	if err != nil || !isValidVersion {
 		exitOnError(fmt.Errorf("Invalid version: %v", newVersion))
 	}
 
+	if oldVersion.ID == newVersion || oldVersion.Name == newVersion {
+		fmt.Println(fmt.Sprintf("%v is already using %v", info.Name, newVersion))
+		return
+	}
+
 	fmt.Println("App ID: ", info.ID)
 	fmt.Println("Name:   ", info.Name)
 	fmt.Println()
-	fmt.Println(oldVersion, "->", newVersion)
+	fmt.Println(oldVersion.Name, "->", newVersion)
 	fmt.Println()
 
 	if !yes {
@@ -114,49 +106,22 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	p := path.Join(s.Root, "config", "config.vdf")
-	fmt.Println(p)
-
-	in, err := ioutil.ReadFile(p)
+	v, err := vdf2.GetCompatToolMapping(s.Root)
 	exitOnError(err)
 
-	var n vdf.Node
-	err = n.UnmarshalText(in)
-
-	key := []string{"Software", "Valve", "Steam", "CompatToolMapping"}
-	x, err := lookup(&n, key)
-	exitOnError(err)
-
-	y, err := lookup(x, []string{info.ID, "name"})
+	x, err := vdf2.Lookup(v.Node, []string{info.ID, "name"})
 	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
 
 	if isKeyNotFoundError {
-		var n0 vdf.Node
-		n0.SetName(info.ID)
-
-		var n1 vdf.Node
-		n1.SetName("name")
-		n1.SetString(newVersion)
-
-		var n2 vdf.Node
-		n2.SetName("config")
-		n2.SetString("")
-
-		var n3 vdf.Node
-		n3.SetName("Priority")
-		n3.SetString("250")
-
-		n0.Append(&n1)
-		n0.Append(&n2)
-		n0.Append(&n3)
-
-		x.Append(&n0)
+		v.AddCompatToolMapping(info.ID, newVersion)
 	} else if err != nil {
 		exitOnError(err)
 	} else {
-		y.SetString(newVersion)
+		x.SetString(newVersion)
 	}
 
-	out, err := n.MarshalText()
-	ioutil.WriteFile(p, out, 0600)
+	err = v.Save()
+	exitOnError(err)
+
+	fmt.Println("Done")
 }

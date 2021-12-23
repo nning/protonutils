@@ -1,5 +1,4 @@
-/cmd/protonutils/protonutils
-/cmd/protonutils/protonutils.upx
+/cmd/protonutils/protonutils*
 /completion.zsh
 /man1
 /test/root

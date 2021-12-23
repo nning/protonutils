@@ -113,17 +113,17 @@ func (s *Steam) ReadCompatToolVersions() error {
 	return nil
 }
 
-// GetGameVersion returns version ID (e.g. "proton_63") for a given game ID
-func (s *Steam) GetGameVersion(id string) string {
-	for name, version := range s.CompatToolVersions {
+// GetGameVersion returns Version struct for a given game ID
+func (s *Steam) GetGameVersion(id string) *Version {
+	for _, version := range s.CompatToolVersions {
 		for _, game := range version.Games {
 			if id == game.ID {
-				return name
+				return version
 			}
 		}
 	}
 
-	return ""
+	return nil
 }
 
 // IsValidVersion returns whether a compatibility version is valid. version can
