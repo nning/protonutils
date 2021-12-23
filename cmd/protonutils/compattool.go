@@ -48,12 +48,17 @@ func compatToolList(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
-	for _, version := range s.CompatToolVersions.Sort() {
-		games := s.CompatToolVersions[version].Games
+	for _, versionName := range s.CompatToolVersions.Sort() {
+		version := s.CompatToolVersions[versionName]
+		games := version.Games
 
 		for _, game := range games {
 			if game.IsInstalled {
-				fmt.Println(version)
+				id := ""
+				if versionName != version.ID && !version.IsDefault {
+					id = "[" + version.ID + "]"
+				}
+				fmt.Println(versionName, id)
 				break
 			}
 		}

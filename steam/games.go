@@ -13,8 +13,8 @@ type gameData struct {
 // Games maps game name to gameData (app ID, install status)
 type Games map[string]*gameData
 
-func (s *Steam) addGame(versionID, versionName, id string) (*gameData, error) {
-	name, data, valid, err := s.getNameAndGameData(id)
+func (s *Steam) addGame(versionID, versionName, gameID string, isDefault bool) (*gameData, error) {
+	name, data, valid, err := s.getNameAndGameData(gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -25,13 +25,19 @@ func (s *Steam) addGame(versionID, versionName, id string) (*gameData, error) {
 
 	if s.CompatToolVersions[versionName] == nil {
 		s.CompatToolVersions[versionName] = &Version{
-			Name:  versionName,
-			ID:    versionID,
-			Games: make(Games),
+			ID:        versionID,
+			Name:      versionName,
+			Games:     make(Games),
+			IsDefault: isDefault,
 		}
 	}
 
+	if s.CompatToolVersions[versionName].ID == "" {
+		s.CompatToolVersions[versionName].IsDefault = true
+	}
+
 	s.CompatToolVersions[versionName].Games[name] = data
+
 	return data, nil
 }
 

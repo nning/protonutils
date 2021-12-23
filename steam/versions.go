@@ -9,9 +9,10 @@ import (
 
 // Version represents a compatibility tool version
 type Version struct {
-	ID    string
-	Name  string
-	Games Games
+	ID        string
+	Name      string
+	Games     Games
+	IsDefault bool
 }
 
 // CompatToolVersions maps Proton versions to games
@@ -73,16 +74,16 @@ func (s *Steam) ReadCompatToolVersions() error {
 	}
 
 	defID := x["0"].(mapLevel)["name"].(string)
-	def := s.getCompatToolName(defID) + " (Default)"
+	defName := s.getCompatToolName(defID) + " (Default)"
 
 	for id, cfg := range x {
 		vID := cfg.(mapLevel)["name"].(string)
-		v := s.getCompatToolName(vID)
-		if v == "" {
-			v = def
+		vName := s.getCompatToolName(vID)
+		if vName == "" {
+			vName = defName
 		}
 
-		_, err = s.addGame(vID, v, id)
+		_, err = s.addGame(vID, vName, id, false)
 		if err != nil && err != io.EOF {
 			return err
 		}
@@ -101,7 +102,7 @@ func (s *Steam) ReadCompatToolVersions() error {
 		}
 
 		if !s.includesGameID(id) {
-			_, err = s.addGame(defID, def, id)
+			_, err = s.addGame(defID, defName, id, true)
 			if err != nil && err != io.EOF {
 				return err
 			}
@@ -124,6 +125,10 @@ func (s *Steam) GetGameVersion(id string) string {
 }
 
 func (s *Steam) IsValidVersion(version string) (bool, error) {
+	if version == "" {
+		return false, nil
+	}
+
 	for n, v := range s.CompatToolVersions {
 		if version == n || version == v.ID {
 			return true, nil
