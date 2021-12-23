@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/nning/protonutils/steam"
@@ -38,6 +41,12 @@ var compatToolMigrateCmd = &cobra.Command{
 	Run:   compatToolMigrate,
 }
 
+var compatToolCleanCmd = &cobra.Command{
+	Use:   "clean",
+	Short: "Delete unused compatibility tools",
+	Run:   compatToolClean,
+}
+
 var remove bool
 
 func init() {
@@ -55,6 +64,11 @@ func init() {
 	compatToolCmd.AddCommand(compatToolMigrateCmd)
 	compatToolMigrateCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
 	compatToolMigrateCmd.Flags().BoolVarP(&remove, "remove", "r", false, "Remove fromVersion after migration")
+
+	compatToolCmd.AddCommand(compatToolCleanCmd)
+	compatToolCleanCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+	compatToolCleanCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+	compatToolCleanCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
 }
 
 func validateVersion(vdf *vdf2.CompatToolMappingVdf, tools *vdf2.CompatTools, v string) {
@@ -197,6 +211,92 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	// Update Steam cache
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
+
+	if remove {
+		fmt.Println()
+		compatToolClean(cmd, []string{})
+	}
+
+	fmt.Println("Done")
+}
+
+func compatToolClean(cmd *cobra.Command, args []string) {
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	exitOnError(err)
+
+	err = s.ReadCompatToolVersions()
+	exitOnError(err)
+
+	toDelete := utils.StringSlice{}
+
+	for versionName, version := range s.CompatToolVersions {
+		hasInstalledGame := false
+
+		for _, game := range version.Games {
+			if game.IsInstalled {
+				hasInstalledGame = true
+				break
+			}
+		}
+
+		if !hasInstalledGame {
+			toDelete = append(toDelete, versionName)
+		}
+	}
+
+	dir := getCompatDir(s)
+	files, err := ioutil.ReadDir(dir)
+	exitOnError(err)
+
+	newToDelete := toDelete.Clone()
+	for _, version := range toDelete {
+		exists := false
+
+		for _, file := range files {
+			if file.Name() == version {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			newToDelete = newToDelete.DeleteValue(version)
+		}
+	}
+	toDelete = newToDelete
+
+	for _, file := range files {
+		n := file.Name()
+		if file.IsDir() && !strings.HasPrefix(n, ".") && s.CompatToolVersions[n] == nil {
+			toDelete = append(toDelete, n)
+		}
+	}
+
+	if len(toDelete) == 0 {
+		fmt.Println("No unused compatibility tool found")
+		return
+	}
+
+	fmt.Println("Unused versions found:")
+	for _, version := range toDelete {
+		fmt.Println("  * " + version)
+	}
+	fmt.Println()
+
+	if !yes {
+		isOK, err := utils.AskYesOrNo("Really delete?")
+		exitOnError(err)
+
+		if !isOK {
+			fmt.Println("Aborted")
+			return
+		}
+	}
+
+	for _, version := range toDelete {
+		err := os.RemoveAll(path.Join(dir, version))
+		exitOnError(err)
+	}
 
 	fmt.Println("Done")
 }
