@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/nning/protonutils/steam"
 	"github.com/nning/protonutils/utils"
@@ -56,10 +57,12 @@ func init() {
 	compatToolMigrateCmd.Flags().BoolVarP(&remove, "remove", "r", false, "Remove fromVersion after migration")
 }
 
-func validateVersion(tools *vdf2.CompatTools, v string) {
-	if !tools.IsValid(v) {
-		exitOnError(fmt.Errorf("Invalid version: %v", v))
+func validateVersion(vdf *vdf2.CompatToolMappingVdf, tools *vdf2.CompatTools, v string) {
+	if strings.HasPrefix(v, "proton_") || tools.IsValid(v) || vdf.IsValid(v) {
+		return
 	}
+
+	exitOnError(fmt.Errorf("Invalid version: %v", v))
 }
 
 func compatToolList(cmd *cobra.Command, args []string) {
@@ -159,11 +162,16 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	compatTools, err := ctm.ReadCompatTools()
 	exitOnError(err)
 
-	validateVersion(&compatTools, fromVersion)
-	validateVersion(&compatTools, toVersion)
+	validateVersion(ctm, &compatTools, fromVersion)
+	validateVersion(ctm, &compatTools, toVersion)
+
+	version := compatTools[fromVersion]
+	if version == nil {
+		exitOnError(fmt.Errorf("No installed games for %v", fromVersion))
+	}
 
 	fmt.Printf("%v -> %v\n\n", fromVersion, toVersion)
-	for _, game := range compatTools[fromVersion].Games {
+	for _, game := range version.Games {
 		fmt.Println("  * " + game.Name)
 	}
 	fmt.Println()

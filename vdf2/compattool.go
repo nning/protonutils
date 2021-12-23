@@ -1,6 +1,7 @@
 package vdf2
 
 import (
+	"os"
 	"path"
 
 	vdf "github.com/BenLubar/vdf"
@@ -99,6 +100,11 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 	return compatTools, nil
 }
 
+func (v *CompatToolMappingVdf) IsValid(version string) bool {
+	fInfo, err := os.Stat(path.Join(v.Steam.Root, "compatibilitytools.d", version))
+	return err == nil && fInfo.IsDir()
+}
+
 func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
 	p := path.Join(s.Root, "config", "config.vdf")
 
@@ -107,7 +113,7 @@ func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
 		return nil, err
 	}
 
-	key := []string{"InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping"}
+	key := []string{"Software", "Valve", "Steam", "CompatToolMapping"}
 	x, err := Lookup(n, key)
 	if err != nil {
 		return nil, err

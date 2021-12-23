@@ -10,11 +10,7 @@ import (
 func Lookup(n *vdf.Node, x []string) (*vdf.Node, error) {
 	y := n
 
-	if y.Name() != x[0] {
-		return nil, &steam.KeyNotFoundError{Name: x[0]}
-	}
-
-	for _, key := range x[1:] {
+	for _, key := range x {
 		y = y.FirstByName(key)
 		if y == nil {
 			return nil, &steam.KeyNotFoundError{Name: key}
