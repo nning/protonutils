@@ -108,21 +108,13 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	v, err := vdf2.GetCompatToolMapping(s.Root)
+	ctm, err := vdf2.GetCompatToolMapping(s.Root)
 	exitOnError(err)
 
-	x, err := vdf2.Lookup(v.Node, []string{info.ID, "name"})
-	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
+	err = ctm.Update(info.ID, newVersion)
+	exitOnError(err)
 
-	if isKeyNotFoundError {
-		v.AddCompatToolMapping(info.ID, newVersion)
-	} else if err != nil {
-		exitOnError(err)
-	} else {
-		x.SetString(newVersion)
-	}
-
-	err = v.Save()
+	err = ctm.Save()
 	exitOnError(err)
 
 	s, err = steam.New(user, cfg.SteamRoot, true)
