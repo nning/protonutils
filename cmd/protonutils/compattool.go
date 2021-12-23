@@ -49,7 +49,7 @@ func compatToolList(cmd *cobra.Command, args []string) {
 	exitOnError(err)
 
 	for _, version := range s.CompatToolVersions.Sort() {
-		games := s.CompatToolVersions[version]
+		games := s.CompatToolVersions[version].Games
 
 		for _, game := range games {
 			if game.IsInstalled {

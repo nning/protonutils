@@ -7,12 +7,19 @@ import (
 	"sort"
 )
 
+// Version represents a compatibility tool version
+type Version struct {
+	ID    string
+	Name  string
+	Games Games
+}
+
 // CompatToolVersions maps Proton versions to games
-type CompatToolVersions map[string]Games
+type CompatToolVersions map[string]*Version
 
 func (versions CompatToolVersions) includesGameID(id string) bool {
-	for _, games := range versions {
-		if games.includesID(id) {
+	for _, version := range versions {
+		if version.Games.includesID(id) {
 			return true
 		}
 	}
@@ -65,16 +72,17 @@ func (s *Steam) ReadCompatToolVersions() error {
 		return err
 	}
 
-	name := s.getCompatToolName(x["0"].(mapLevel)["name"].(string))
-	def := name + " (Default)"
+	defID := x["0"].(mapLevel)["name"].(string)
+	def := s.getCompatToolName(defID) + " (Default)"
 
 	for id, cfg := range x {
-		v := s.getCompatToolName(cfg.(mapLevel)["name"].(string))
+		vID := cfg.(mapLevel)["name"].(string)
+		v := s.getCompatToolName(vID)
 		if v == "" {
 			v = def
 		}
 
-		_, err = s.addGame(v, id)
+		_, err = s.addGame(vID, v, id)
 		if err != nil && err != io.EOF {
 			return err
 		}
@@ -93,7 +101,7 @@ func (s *Steam) ReadCompatToolVersions() error {
 		}
 
 		if !s.includesGameID(id) {
-			_, err = s.addGame(def, id)
+			_, err = s.addGame(defID, def, id)
 			if err != nil && err != io.EOF {
 				return err
 			}
@@ -104,10 +112,10 @@ func (s *Steam) ReadCompatToolVersions() error {
 }
 
 func (s *Steam) GetGameVersion(id string) string {
-	for version, games := range s.CompatToolVersions {
-		for _, game := range games {
+	for name, version := range s.CompatToolVersions {
+		for _, game := range version.Games {
 			if id == game.ID {
-				return version
+				return name
 			}
 		}
 	}
@@ -116,8 +124,8 @@ func (s *Steam) GetGameVersion(id string) string {
 }
 
 func (s *Steam) IsValidVersion(version string) (bool, error) {
-	for v := range s.CompatToolVersions {
-		if version == v {
+	for n, v := range s.CompatToolVersions {
+		if version == n || version == v.ID {
 			return true, nil
 		}
 	}

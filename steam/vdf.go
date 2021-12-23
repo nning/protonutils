@@ -147,8 +147,8 @@ func (s *Steam) GetGameInfo(idOrName string) (*GameInfo, error) {
 		return info, nil
 	}
 
-	for _, games := range s.CompatToolVersions {
-		for name, game := range games {
+	for _, version := range s.CompatToolVersions {
+		for name, game := range version.Games {
 			a := strings.ToLower(name)
 			b := strings.ToLower(idOrName)
 

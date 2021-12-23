@@ -50,7 +50,7 @@ func list(cmd *cobra.Command, args []string) {
 
 	if !jsonOutput {
 		for _, version := range s.CompatToolVersions.Sort() {
-			games := s.CompatToolVersions[version]
+			games := s.CompatToolVersions[version].Games
 			if !all && countVisibleGames(games) == 0 {
 				continue
 			}

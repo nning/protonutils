@@ -143,10 +143,10 @@ func egrollClean(cmd *cobra.Command, args []string) {
 
 	toDelete := utils.StringSlice{}
 
-	for version, games := range s.CompatToolVersions {
+	for versionName, version := range s.CompatToolVersions {
 		hasInstalledGame := false
 
-		for _, game := range games {
+		for _, game := range version.Games {
 			if game.IsInstalled {
 				hasInstalledGame = true
 				break
@@ -154,7 +154,7 @@ func egrollClean(cmd *cobra.Command, args []string) {
 		}
 
 		if !hasInstalledGame {
-			toDelete = append(toDelete, version)
+			toDelete = append(toDelete, versionName)
 		}
 	}
 
