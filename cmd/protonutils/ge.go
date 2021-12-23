@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -70,7 +69,6 @@ var egrollUpdateCmd = &cobra.Command{
 
 var force bool
 var keep bool
-var yes bool
 
 // Write counts bytes already written to wc
 func (wc *WriteCounter) Write(p []byte) (int, error) {
@@ -201,13 +199,10 @@ func egrollClean(cmd *cobra.Command, args []string) {
 	fmt.Println()
 
 	if !yes {
-		fmt.Print("Really delete? [y/N] ")
-
-		reader := bufio.NewReader(os.Stdin)
-		char, _, err := reader.ReadRune()
+		isOK, err := utils.AskYesOrNo("Really delete?")
 		exitOnError(err)
 
-		if char != 121 && char != 89 {
+		if !isOK {
 			fmt.Println("Aborted")
 			return
 		}

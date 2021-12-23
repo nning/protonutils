@@ -1,5 +1,11 @@
 package utils
 
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
 // StringSlice is a slice of strings
 type StringSlice []string
 
@@ -47,4 +53,20 @@ func (s StringSlice) DeleteValues(toDelete StringSlice) StringSlice {
 	}
 
 	return newSlice
+}
+
+func AskYesOrNo(text string) (bool, error) {
+	fmt.Print(text, " [y/N] ")
+
+	reader := bufio.NewReader(os.Stdin)
+	char, _, err := reader.ReadRune()
+	if err != nil {
+		return false, err
+	}
+
+	if char != 121 && char != 89 {
+		return false, nil
+	}
+
+	return true, nil
 }

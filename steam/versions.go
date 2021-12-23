@@ -2,6 +2,8 @@ package steam
 
 import (
 	"io"
+	"os"
+	"path"
 	"sort"
 )
 
@@ -99,4 +101,35 @@ func (s *Steam) ReadCompatToolVersions() error {
 	}
 
 	return nil
+}
+
+func (s *Steam) GetGameVersion(id string) string {
+	for version, games := range s.CompatToolVersions {
+		for _, game := range games {
+			if id == game.ID {
+				return version
+			}
+		}
+	}
+
+	return ""
+}
+
+func (s *Steam) IsValidVersion(version string) (bool, error) {
+	for v := range s.CompatToolVersions {
+		if version == v {
+			return true, nil
+		}
+	}
+
+	fInfo, err := os.Stat(path.Join(s.root, "compatibilitytools.d", version))
+	if err != nil {
+		return false, err
+	}
+
+	if fInfo.IsDir() {
+		return true, nil
+	}
+
+	return false, nil
 }
