@@ -3,7 +3,7 @@ package vdf2
 import (
 	"io/ioutil"
 
-	vdf "github.com/BenLubar/vdf"
+	"github.com/BenLubar/vdf"
 	"github.com/nning/protonutils/steam"
 )
 

@@ -17,7 +17,7 @@ type Steam struct {
 	VersionNameCache   *cache.Cache
 	vdfCache           mapLevel
 	CompatToolVersions CompatToolVersions
-	uid                string
+	UID                string
 	Root               string
 }
 
@@ -63,7 +63,7 @@ func New(user string, root string, ignoreCache bool) (*Steam, error) {
 	}
 
 	uid, _ := s.userToID32(user)
-	s.uid, err = s.getUID(uid)
+	s.UID, err = s.getUID(uid)
 	if err != nil {
 		return nil, err
 	}

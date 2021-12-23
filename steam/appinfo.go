@@ -58,7 +58,7 @@ func (s *Steam) getAppInfoBuffer() (*appInfo, *bufio.Reader, error) {
 }
 
 func (s *Steam) getShortcutsBuffer() (*bufio.Reader, error) {
-	file := path.Join(s.Root, "userdata", s.uid, "config", "shortcuts.vdf")
+	file := path.Join(s.Root, "userdata", s.UID, "config", "shortcuts.vdf")
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, err

@@ -89,7 +89,7 @@ func (s *Steam) getLibraryConfig() (mapLevel, error) {
 }
 
 func (s *Steam) getLocalConfig() (mapLevel, error) {
-	return s.cachedVdfLookup("localConfig"+s.uid, "userdata/"+s.uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
+	return s.cachedVdfLookup("localConfig"+s.UID, "userdata/"+s.UID+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) getLoginUsers() (mapLevel, error) {

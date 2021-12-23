@@ -4,28 +4,12 @@ import (
 	"os"
 	"path"
 
-	vdf "github.com/BenLubar/vdf"
+	"github.com/BenLubar/vdf"
 	"github.com/nning/protonutils/steam"
 )
 
-type CompatTools map[string]*CompatTool
-
-type CompatTool = steam.Version
-
 type CompatToolMappingVdf struct {
 	Vdf
-}
-
-type CompatToolsVdf []*vdf.Node
-
-func (c CompatTools) IsValid(v string) bool {
-	for id := range c {
-		if id == v {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (v *CompatToolMappingVdf) Add(id, version string) {
@@ -85,16 +69,8 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 			continue
 		}
 
-		if compatTools[version] == nil {
-			compatTools[version] = &CompatTool{
-				ID:        version,
-				Name:      v.Steam.GetCompatToolName(version),
-				IsDefault: false,
-				Games:     make(steam.Games),
-			}
-		}
-
-		compatTools[version].Games[game.Name] = game
+		compatTools.Add(version, v.Steam.GetCompatToolName(version))
+		compatTools.AddGame(version, game)
 	}
 
 	return compatTools, nil
@@ -115,9 +91,12 @@ func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
 
 	key := []string{"Software", "Valve", "Steam", "CompatToolMapping"}
 	x, err := Lookup(n, key)
-	if err != nil {
-		return nil, err
+
+	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
+	if err != nil && isKeyNotFoundError {
+		key[2] = "steam"
+		x, err = Lookup(n, key)
 	}
 
-	return &CompatToolMappingVdf{Vdf{n, x, p, s}}, nil
+	return &CompatToolMappingVdf{Vdf{n, x, p, s}}, err
 }
