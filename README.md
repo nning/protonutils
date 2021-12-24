@@ -5,11 +5,13 @@ protonutils is a CLI tool that provides different utilities to make using the [P
 * List games by configured Proton version
 * Download latest [Proton-GE][1] release
 * Download older Proton-GE releases
-* Clean-up unused runtimes automatically
+* Clean-up unused compatibility tools automatically
 * Search for app ID by name
-* Print or open compatdata directory by game name (handy of you want to mess with savegames or mods, for example)
+* Print or open compatdata and install directories by game name  
+  (handy of you want to mess with savegames or mods, for example)
+* Update assigned compatibility tool for one or more games
 
-The commands `list`, `appid`, `compatdata`, and `installdir` do only work with (non-native) games that either have an explicit Proton/CompatTool mapping or have been started at least once with Proton.
+The commands `list`, `appid`, `compatdata`, `installdir`, and `compattool` do only work with (non-native) games that either have an explicit Proton/CompatTool mapping or have been started at least once with Proton.
 
 ## Download Binary
 
