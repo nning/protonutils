@@ -46,6 +46,8 @@ func (s *Steam) includesGameID(id string) bool {
 	return s.CompatToolVersions.includesGameID(id)
 }
 
+// GetCompatToolName returns human-readable name of compatibility tool,
+// for example: "proton_63" -> "Proton 6.3-8"
 func (s *Steam) GetCompatToolName(shortName string) string {
 	if shortName == "" {
 		return ""

@@ -7,6 +7,7 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
+// Vdf represents a parsed VDF file
 type Vdf struct {
 	Root  *vdf.Node
 	Node  *vdf.Node
@@ -14,6 +15,7 @@ type Vdf struct {
 	Steam *steam.Steam
 }
 
+// Save saves a parsed VDF file back to disk
 func (v *Vdf) Save() error {
 	out, err := v.Root.MarshalText()
 	if err != nil {

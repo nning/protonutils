@@ -7,6 +7,7 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
+// Lookup looks up a "key path" in a parsed VDF tree
 func Lookup(n *vdf.Node, x []string) (*vdf.Node, error) {
 	y := n
 

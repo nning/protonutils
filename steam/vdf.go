@@ -11,6 +11,7 @@ import (
 
 type mapLevel = map[string]interface{}
 
+// KeyNotFoundError is returned if key in VDF is not found
 type KeyNotFoundError struct {
 	Name string
 }

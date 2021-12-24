@@ -4,10 +4,15 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
+// CompatTools maps compatibility tool version IDs to CompatTool objects
+// containing info like name and games.
 type CompatTools map[string]*CompatTool
 
+// CompatTool holds info about a compatibility tool (like human-readable name
+// and a list of the games that are using it)
 type CompatTool = steam.Version
 
+// IsValid checks whether a version ID (v) exists in the CompatTools config
 func (c CompatTools) IsValid(v string) bool {
 	for id := range c {
 		if id == v {
@@ -18,6 +23,7 @@ func (c CompatTools) IsValid(v string) bool {
 	return false
 }
 
+// Add adds an entry to the CompatTools config (by version id and name)
 func (c CompatTools) Add(id, name string) {
 	if c[id] != nil {
 		return
@@ -31,6 +37,12 @@ func (c CompatTools) Add(id, name string) {
 	}
 }
 
-func (c CompatTools) AddGame(id string, game *steam.Game) {
+// AddGame adds a Game entry to an existing CompatTool entry
+func (c CompatTools) AddGame(id string, game *steam.Game) bool {
+	if c[id] == nil {
+		return false
+	}
+
 	c[id].Games[game.Name] = game
+	return true
 }

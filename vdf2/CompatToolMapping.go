@@ -8,10 +8,12 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
+// CompatToolMappingVdf represents parsed VDF config for CompatToolMapping
 type CompatToolMappingVdf struct {
 	Vdf
 }
 
+// Add adds a new compatibility tool version mapping for a given app id
 func (v *CompatToolMappingVdf) Add(id, version string) {
 	var n0 vdf.Node
 	n0.SetName(id)
@@ -35,6 +37,8 @@ func (v *CompatToolMappingVdf) Add(id, version string) {
 	v.Node.Append(&n0)
 }
 
+// Update changes or adds a compatibility tool version mapping for a given app
+// id
 func (v *CompatToolMappingVdf) Update(id, version string) error {
 	x, err := Lookup(v.Node, []string{id, "name"})
 	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
@@ -50,6 +54,8 @@ func (v *CompatToolMappingVdf) Update(id, version string) error {
 	return nil
 }
 
+// ReadCompatTools reads compatibility tool mappings from VDF config and returns
+// a CompatTools map with existing entries
 func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 	compatTools := make(CompatTools)
 	var x *vdf.Node
@@ -76,11 +82,14 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 	return compatTools, nil
 }
 
+// IsValid checks whether a version exists in the compatibility tools directory
 func (v *CompatToolMappingVdf) IsValid(version string) bool {
 	fInfo, err := os.Stat(path.Join(v.Steam.Root, "compatibilitytools.d", version))
 	return err == nil && fInfo.IsDir()
 }
 
+// GetCompatToolMapping opens and parses config.vdf and returns a
+// CompatToolMappingVdf containing the configurations
 func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
 	p := path.Join(s.Root, "config", "config.vdf")
 

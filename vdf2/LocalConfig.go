@@ -7,10 +7,14 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
+// LocalConfigVdf represents parsed VDF config for app config from
+// localconfig.vdf
 type LocalConfigVdf struct {
 	Vdf
 }
 
+// GetViewedSteamPlay returns a slice of games for which the user confirmed the
+// Steam Play disclaimer
 func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*steam.Game, error) {
 	games := make([]*steam.Game, 0)
 	var x *vdf.Node
@@ -40,6 +44,7 @@ func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*steam.Game, error) {
 	return games, nil
 }
 
+// GetLocalConfig reads and parses localconfig.vdf and returns a LocalConfigVdf
 func GetLocalConfig(s *steam.Steam) (*LocalConfigVdf, error) {
 	p := path.Join(s.Root, "userdata", s.UID, "config", "localconfig.vdf")
 
