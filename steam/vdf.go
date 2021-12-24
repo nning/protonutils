@@ -11,8 +11,9 @@ import (
 
 type mapLevel = map[string]interface{}
 
-type keyNotFoundError struct {
-	name string
+// KeyNotFoundError is returned if key in VDF is not found
+type KeyNotFoundError struct {
+	Name string
 }
 
 // GameInfo contains ID, Name, and LibraryPath of a game
@@ -22,8 +23,8 @@ type GameInfo struct {
 	LibraryPath string
 }
 
-func (e *keyNotFoundError) Error() string {
-	return "Key not found: " + e.name
+func (e *KeyNotFoundError) Error() string {
+	return "Key not found: " + e.Name
 }
 
 func lookup(m mapLevel, x []string) (mapLevel, error) {
@@ -31,7 +32,7 @@ func lookup(m mapLevel, x []string) (mapLevel, error) {
 
 	for _, s := range x {
 		if y[s] == nil {
-			return nil, &keyNotFoundError{s}
+			return nil, &KeyNotFoundError{s}
 		}
 
 		y = y[s].(mapLevel)
@@ -41,7 +42,7 @@ func lookup(m mapLevel, x []string) (mapLevel, error) {
 }
 
 func (s *Steam) vdfLookup(file string, x ...string) (mapLevel, error) {
-	file = path.Join(s.root, file)
+	file = path.Join(s.Root, file)
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -75,7 +76,7 @@ func (s *Steam) getCompatToolMapping() (mapLevel, error) {
 	key := []string{"InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping"}
 	m, err := s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
 
-	_, isKeyNotFoundError := err.(*keyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 	if err != nil && isKeyNotFoundError {
 		key[3] = "steam"
 		m, err = s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
@@ -89,7 +90,7 @@ func (s *Steam) getLibraryConfig() (mapLevel, error) {
 }
 
 func (s *Steam) getLocalConfig() (mapLevel, error) {
-	return s.cachedVdfLookup("localConfig"+s.uid, "userdata/"+s.uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
+	return s.cachedVdfLookup("localConfig"+s.UID, "userdata/"+s.UID+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) getLoginUsers() (mapLevel, error) {
@@ -147,8 +148,8 @@ func (s *Steam) GetGameInfo(idOrName string) (*GameInfo, error) {
 		return info, nil
 	}
 
-	for _, games := range s.CompatToolVersions {
-		for name, game := range games {
+	for _, version := range s.CompatToolVersions {
+		for name, game := range version.Games {
 			a := strings.ToLower(name)
 			b := strings.ToLower(idOrName)
 

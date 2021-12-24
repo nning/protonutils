@@ -63,7 +63,7 @@ func (s *Steam) userToID32(u string) (string, error) {
 }
 
 func (s *Steam) getUID(u string) (string, error) {
-	dir := path.Join(s.root, "userdata")
+	dir := path.Join(s.Root, "userdata")
 	// TODO Sort entries by last change?
 	entries, err := ioutil.ReadDir(dir)
 	if err != nil {

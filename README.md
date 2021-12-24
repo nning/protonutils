@@ -92,6 +92,28 @@ on Arch Linux if you installed from the AUR).
       -h, --help    help for update
       -k, --keep    Keep downloaded archive of last version
 
+### Bulk Update Compatibiliy Tool Versions
+
+    $ protonutils compattool migrate -h
+    Migrate compatibility tool version mappings from on version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options.
+
+    Usage:
+      protonutils compattool migrate [flags] <fromVersion> <toVersion>
+
+    Flags:
+      -h, --help     help for migrate
+      -r, --remove   Remove fromVersion after migration
+      -y, --yes      Do not ask
+
+    $ protonutils compattool migrate Proton-6.21-GE-2 Proton-7.0rc2-GE-1
+    Proton-6.21-GE-2 -> Proton-7.0rc2-GE-1
+
+      * Cyberpunk 2077
+      * DEATHLOOP
+      * Horizon Zero Dawn
+
+    Really update? [y/N]
+
 ## Configuration
 
 ### Default User

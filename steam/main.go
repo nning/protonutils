@@ -17,8 +17,8 @@ type Steam struct {
 	VersionNameCache   *cache.Cache
 	vdfCache           mapLevel
 	CompatToolVersions CompatToolVersions
-	uid                string
-	root               string
+	UID                string
+	Root               string
 }
 
 // New instantiates Steam struct
@@ -59,11 +59,11 @@ func New(user string, root string, ignoreCache bool) (*Steam, error) {
 		VersionNameCache:   protonNameCache,
 		vdfCache:           make(mapLevel),
 		CompatToolVersions: make(CompatToolVersions),
-		root:               root,
+		Root:               root,
 	}
 
 	uid, _ := s.userToID32(user)
-	s.uid, err = s.getUID(uid)
+	s.UID, err = s.getUID(uid)
 	if err != nil {
 		return nil, err
 	}

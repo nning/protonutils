@@ -18,7 +18,7 @@ func init() {
 
 func configGetOrSet(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
-		fmt.Println(cfg)
+		fmt.Println(&cfg)
 		return
 	}
 

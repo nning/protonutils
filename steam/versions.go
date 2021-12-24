@@ -2,15 +2,25 @@ package steam
 
 import (
 	"io"
+	"os"
+	"path"
 	"sort"
 )
 
+// Version represents a compatibility tool version
+type Version struct {
+	ID        string
+	Name      string
+	Games     Games
+	IsDefault bool
+}
+
 // CompatToolVersions maps Proton versions to games
-type CompatToolVersions map[string]Games
+type CompatToolVersions map[string]*Version
 
 func (versions CompatToolVersions) includesGameID(id string) bool {
-	for _, games := range versions {
-		if games.includesID(id) {
+	for _, version := range versions {
+		if version.Games.includesID(id) {
 			return true
 		}
 	}
@@ -36,7 +46,9 @@ func (s *Steam) includesGameID(id string) bool {
 	return s.CompatToolVersions.includesGameID(id)
 }
 
-func (s *Steam) getCompatToolName(shortName string) string {
+// GetCompatToolName returns human-readable name of compatibility tool,
+// for example: "proton_63" -> "Proton 6.3-8"
+func (s *Steam) GetCompatToolName(shortName string) string {
 	if shortName == "" {
 		return ""
 	}
@@ -56,30 +68,32 @@ func (s *Steam) getCompatToolName(shortName string) string {
 	return displayName
 }
 
-// ReadCompatToolVersions reads Proton versions and games from different Steam configs
+// ReadCompatToolVersions reads Proton versions and games from different Steam
+// configs
 func (s *Steam) ReadCompatToolVersions() error {
 	x, err := s.getCompatToolMapping()
 	if err != nil {
 		return err
 	}
 
-	name := s.getCompatToolName(x["0"].(mapLevel)["name"].(string))
-	def := name + " (Default)"
+	defID := x["0"].(mapLevel)["name"].(string)
+	defName := s.GetCompatToolName(defID) + " (Default)"
 
 	for id, cfg := range x {
-		v := s.getCompatToolName(cfg.(mapLevel)["name"].(string))
-		if v == "" {
-			v = def
+		vID := cfg.(mapLevel)["name"].(string)
+		vName := s.GetCompatToolName(vID)
+		if vName == "" {
+			vName = defName
 		}
 
-		_, err = s.addGame(v, id)
+		_, err = s.addGame(vID, vName, id, false)
 		if err != nil && err != io.EOF {
 			return err
 		}
 	}
 
 	x, err = s.getLocalConfig()
-	_, isKeyNotFoundError := err.(*keyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 	if err != nil && !isKeyNotFoundError {
 		return err
 	}
@@ -91,7 +105,7 @@ func (s *Steam) ReadCompatToolVersions() error {
 		}
 
 		if !s.includesGameID(id) {
-			_, err = s.addGame(def, id)
+			_, err = s.addGame(defID, defName, id, true)
 			if err != nil && err != io.EOF {
 				return err
 			}
@@ -99,4 +113,44 @@ func (s *Steam) ReadCompatToolVersions() error {
 	}
 
 	return nil
+}
+
+// GetGameVersion returns Version struct for a given game ID
+func (s *Steam) GetGameVersion(id string) *Version {
+	for _, version := range s.CompatToolVersions {
+		for _, game := range version.Games {
+			if id == game.ID {
+				return version
+			}
+		}
+	}
+
+	return nil
+}
+
+// IsValidVersion returns whether a compatibility version is valid. version can
+// either be a version ID (like "proton_63") or a human-readable name (like
+// "Proton 6.3-8"). A version is valid if at least one game uses it or there is
+// a install folder inside `compatibilitytools.d`.
+func (s *Steam) IsValidVersion(version string) (bool, error) {
+	if version == "" {
+		return false, nil
+	}
+
+	for n, v := range s.CompatToolVersions {
+		if version == n || version == v.ID {
+			return true, nil
+		}
+	}
+
+	fInfo, err := os.Stat(path.Join(s.Root, "compatibilitytools.d", version))
+	if err != nil {
+		return false, err
+	}
+
+	if fInfo.IsDir() {
+		return true, nil
+	}
+
+	return false, nil
 }

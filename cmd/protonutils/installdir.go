@@ -17,7 +17,7 @@ var installdirCmd = &cobra.Command{
 var installdirPathCmd = &cobra.Command{
 	Use:   "path [flags] <game>",
 	Short: "Print installdir directory path for game",
-	Long:  "Print installdir directory path for game. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once. Game search string can be prefix of game name and is matched case-insensitively.",
+	Long:  "Print installdir directory path for game. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once. Game search string can be app ID, game name, or prefix of game name. It is matched case-insensitively.",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   installdirPath,
 }
@@ -25,7 +25,7 @@ var installdirPathCmd = &cobra.Command{
 var installdirOpenCmd = &cobra.Command{
 	Use:   "open [flags] <game>",
 	Short: "Open installdir directory for game",
-	Long:  "Open installdir directory for game. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once. Game search string can be prefix of game name and is matched case-insensitively.",
+	Long:  "Open installdir directory for game. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once. Game search string can be app ID, game name, or prefix of game name. It is matched case-insensitively.",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   installdirOpen,
 }
