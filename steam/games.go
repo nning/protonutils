@@ -7,7 +7,7 @@ import (
 // Game represents Steam game or shortcut
 type Game struct {
 	ID          string `json:"appID"`
-	Name        string `json:"name"`
+	Name        string `json:"-"`
 	IsInstalled bool   `json:"isInstalled"`
 	IsShortcut  bool   `json:"isShortcut"`
 }
