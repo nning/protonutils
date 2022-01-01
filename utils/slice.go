@@ -48,3 +48,14 @@ func (s Slice[T]) DeleteValues(toDelete Slice[T]) Slice[T] {
 
 	return newSlice
 }
+
+// Includes returns whether or not a value x is included in Slice s
+func (s Slice[T]) Includes(x T) bool {
+	for _, v := range s {
+		if v == x {
+			return true
+		}
+	}
+
+	return false
+}

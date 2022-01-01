@@ -36,7 +36,10 @@ run_utils: $(UTILS_BIN)
 	./$(UTILS_BIN) $(args)
 
 test:
-	go test ./...
+	go test -cover -coverprofile .coverage ./...
+
+coverage: test
+	go tool cover -html .coverage
 
 lint:
 	golint ./...

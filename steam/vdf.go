@@ -3,7 +3,6 @@ package steam
 import (
 	"fmt"
 	"os"
-	"os/user"
 	"path"
 	"strings"
 
@@ -12,18 +11,20 @@ import (
 
 type mapLevel = map[string]interface{}
 
-type keyNotFoundError struct {
-	name string
+// KeyNotFoundError is returned if key in VDF is not found
+type KeyNotFoundError struct {
+	Name string
 }
 
-type gameInfo struct {
+// GameInfo contains ID, Name, and LibraryPath of a game
+type GameInfo struct {
 	ID          string
 	Name        string
 	LibraryPath string
 }
 
-func (e *keyNotFoundError) Error() string {
-	return "Key not found: " + e.name
+func (e *KeyNotFoundError) Error() string {
+	return "Key not found: " + e.Name
 }
 
 func lookup(m mapLevel, x []string) (mapLevel, error) {
@@ -31,7 +32,7 @@ func lookup(m mapLevel, x []string) (mapLevel, error) {
 
 	for _, s := range x {
 		if y[s] == nil {
-			return nil, &keyNotFoundError{s}
+			return nil, &KeyNotFoundError{s}
 		}
 
 		y = y[s].(mapLevel)
@@ -40,10 +41,8 @@ func lookup(m mapLevel, x []string) (mapLevel, error) {
 	return y, nil
 }
 
-func vdfLookup(file string, x ...string) (mapLevel, error) {
-	usr, _ := user.Current()
-	file = path.Join(usr.HomeDir, ".steam", "root", file)
-
+func (s *Steam) vdfLookup(file string, x ...string) (mapLevel, error) {
+	file = path.Join(s.Root, file)
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -64,7 +63,7 @@ func (s *Steam) cachedVdfLookup(cacheKey, file string, x ...string) (mapLevel, e
 		return m.(mapLevel), nil
 	}
 
-	m, err := vdfLookup(file, x...)
+	m, err := s.vdfLookup(file, x...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +76,7 @@ func (s *Steam) getCompatToolMapping() (mapLevel, error) {
 	key := []string{"InstallConfigStore", "Software", "Valve", "Steam", "CompatToolMapping"}
 	m, err := s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
 
-	_, isKeyNotFoundError := err.(*keyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 	if err != nil && isKeyNotFoundError {
 		key[3] = "steam"
 		m, err = s.cachedVdfLookup("compatToolMapping", "config/config.vdf", key...)
@@ -91,7 +90,7 @@ func (s *Steam) getLibraryConfig() (mapLevel, error) {
 }
 
 func (s *Steam) getLocalConfig() (mapLevel, error) {
-	return s.cachedVdfLookup("localConfig"+s.uid, "userdata/"+s.uid+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
+	return s.cachedVdfLookup("localConfig"+s.UID, "userdata/"+s.UID+"/config/localconfig.vdf", "UserLocalConfigStore", "Software", "Valve", "Steam", "apps")
 }
 
 func (s *Steam) getLoginUsers() (mapLevel, error) {
@@ -131,7 +130,7 @@ func (s *Steam) GetLibraryPathByID(id string) (string, error) {
 }
 
 // GetGameInfo returns library path (and ID and name) by game ID or name
-func (s *Steam) GetGameInfo(idOrName string) (*gameInfo, error) {
+func (s *Steam) GetGameInfo(idOrName string) (*GameInfo, error) {
 	p, err := s.GetLibraryPathByID(idOrName)
 	if err != nil {
 		return nil, err
@@ -142,20 +141,20 @@ func (s *Steam) GetGameInfo(idOrName string) (*gameInfo, error) {
 		return nil, err
 	}
 
-	info := &gameInfo{idOrName, "", p}
+	info := &GameInfo{idOrName, "", p}
 
 	if p != "" {
 		info.Name, _ = s.AppidCache.Get(info.ID)
 		return info, nil
 	}
 
-	for _, games := range s.CompatToolVersions {
-		for name, game := range games {
+	for _, version := range s.CompatToolVersions {
+		for name, game := range version.Games {
 			a := strings.ToLower(name)
 			b := strings.ToLower(idOrName)
 
 			if a == b || strings.HasPrefix(a, b) && game.IsInstalled {
-				info = &gameInfo{game.ID, name, ""}
+				info = &GameInfo{game.ID, name, ""}
 				break
 			}
 		}

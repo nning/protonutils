@@ -3,6 +3,7 @@ module github.com/nning/protonutils
 go 1.18
 
 require (
+	github.com/BenLubar/vdf v0.0.0-20170225232939-7fdcbaf3e86f
 	github.com/MrWaggel/gosteamconv v0.0.0-20190214041723-97e1fbb6de26
 	github.com/andygrunwald/vdf v1.0.0
 	github.com/dustin/go-humanize v1.0.0

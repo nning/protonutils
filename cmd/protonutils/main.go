@@ -21,6 +21,9 @@ var manDir string
 
 var ignoreCache bool
 var user string
+var yes bool
+
+var cfg config.Config
 
 func exitOnError(e error, a ...string) {
 	if e != nil {
@@ -63,6 +66,7 @@ func main() {
 
 	c, err := config.New()
 	if err == nil {
+		cfg = *c
 		user = c.User
 	}
 

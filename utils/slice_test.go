@@ -152,3 +152,24 @@ func Test_Slice_DeleteValues(t *testing.T) {
 
 	assert.Equal(t, 0, len(versions))
 }
+
+func Test_Slice_Includes(t *testing.T) {
+	values1 := Slice[string]{"a", "b", "c"}
+	values2 := Slice[string]{"d", "e", "f"}
+
+	for _, v := range values1 {
+		assert.Equal(t, true, values1.Includes(v))
+		assert.Equal(t, false, values2.Includes(v))
+	}
+
+	for _, v := range values2 {
+		assert.Equal(t, false, values1.Includes(v))
+		assert.Equal(t, true, values2.Includes(v))
+	}
+
+	assert.Equal(t, false, values1.Includes("g"))
+	assert.Equal(t, false, values2.Includes("g"))
+
+	assert.Equal(t, false, values1.Includes(""))
+	assert.Equal(t, false, values2.Includes(""))
+}

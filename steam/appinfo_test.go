@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const steamRoot = "../test/root"
+
 func Test_getAppIDNeedle_uint32(t *testing.T) {
 	needle, err := getAppIDNeedle("403640")
 	assert.Empty(t, err)
@@ -28,7 +30,7 @@ func Test_getAppIDNeedle_uint64(t *testing.T) {
 }
 
 func Test_getAppInfoBuffer(t *testing.T) {
-	s, err := New("", true)
+	s, err := New("", steamRoot, true)
 	assert.Empty(t, err)
 
 	info, buf, err := s.getAppInfoBuffer()
@@ -39,7 +41,7 @@ func Test_getAppInfoBuffer(t *testing.T) {
 }
 
 func Test_FindNameInAppInfo_found(t *testing.T) {
-	s, err := New("", true)
+	s, err := New("", steamRoot, true)
 	assert.Empty(t, err)
 
 	games := map[string]string{
@@ -63,7 +65,7 @@ func Test_FindNameInAppInfo_found(t *testing.T) {
 }
 
 func Test_FindNameInAppInfo_notFound(t *testing.T) {
-	s, err := New("", true)
+	s, err := New("", steamRoot, true)
 	assert.Empty(t, err)
 
 	name, err := s.findNameInAppInfo("386360")
@@ -72,7 +74,7 @@ func Test_FindNameInAppInfo_notFound(t *testing.T) {
 }
 
 func Test_FindNameInShortcuts_found(t *testing.T) {
-	s, err := New("", true)
+	s, err := New("", steamRoot, true)
 	assert.Empty(t, err)
 
 	name, err := s.findNameInShortcuts("3228583970")
@@ -81,7 +83,7 @@ func Test_FindNameInShortcuts_found(t *testing.T) {
 }
 
 func Test_FindCompatToolName_found(t *testing.T) {
-	s, err := New("", true)
+	s, err := New("", steamRoot, true)
 	assert.Empty(t, err)
 
 	name, err := s.findCompatToolName("proton_63")
@@ -106,7 +108,7 @@ func Test_FindCompatToolName_found(t *testing.T) {
 }
 
 func Test_FindInstallDirInAppInfo_found(t *testing.T) {
-	s, err := New("", true)
+	s, err := New("", steamRoot, true)
 	assert.Empty(t, err)
 
 	games := map[string]string{

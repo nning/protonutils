@@ -17,18 +17,19 @@ func isShortcut(id string) bool {
 	return false
 }
 
-func (s *Steam) getNameAndGameData(id string) (string, *gameData, bool, error) {
+// GetGameData returns intialized Game struct by app ID
+func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 	var err error
 
 	sc := isShortcut(id)
 	name, valid := s.AppidCache.Get(id)
 	if name != "" && valid {
-		data, err := s.getGameData(id, sc)
+		data, err := s.getGameData(id, name, sc)
 		if err != nil {
-			return "", nil, false, err
+			return nil, false, err
 		}
 
-		return name, data, true, nil
+		return data, true, nil
 	}
 
 	if sc {
@@ -39,7 +40,7 @@ func (s *Steam) getNameAndGameData(id string) (string, *gameData, bool, error) {
 			name, err = s.getNameFromAPI(id)
 		}
 		if err != nil {
-			return "", nil, false, err
+			return nil, false, err
 		}
 	}
 
@@ -48,16 +49,16 @@ func (s *Steam) getNameAndGameData(id string) (string, *gameData, bool, error) {
 		valid = false
 	}
 
-	data, err := s.getGameData(id, sc)
+	data, err := s.getGameData(id, name, sc)
 	if err != nil {
-		return name, nil, valid, err
+		return nil, valid, err
 	}
 
 	s.AppidCache.Add(id, name, valid)
-	return name, data, valid, nil
+	return data, valid, nil
 }
 
-func (s *Steam) getGameData(id string, isShortcut bool) (*gameData, error) {
+func (s *Steam) getGameData(id string, name string, isShortcut bool) (*Game, error) {
 	var isInstalled bool
 	var err error
 
@@ -70,7 +71,7 @@ func (s *Steam) getGameData(id string, isShortcut bool) (*gameData, error) {
 		}
 	}
 
-	return &gameData{id, isInstalled, isShortcut}, nil
+	return &Game{id, name, isInstalled, isShortcut}, nil
 }
 
 // SaveCache writes app ID cache to disk

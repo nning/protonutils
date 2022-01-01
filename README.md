@@ -5,9 +5,13 @@ protonutils is a CLI tool that provides different utilities to make using the [P
 * List games by configured Proton version
 * Download latest [Proton-GE][1] release
 * Download older Proton-GE releases
-* Clean-up unused runtimes automatically
-* Search for app ID by name (works for games that are installed or have been installed)
-* Print or open compatdata directory by game name (handy of you want to mess with savegames or mods, for example)
+* Clean-up unused compatibility tools automatically
+* Search for app ID by name
+* Print or open compatdata and install directories by game name  
+  (handy of you want to mess with savegames or mods, for example)
+* Update assigned compatibility tool for one or more games
+
+The commands `list`, `appid`, `compatdata`, `installdir`, and `compattool` do only work with (non-native) games that either have an explicit Proton/CompatTool mapping or have been started at least once with Proton.
 
 ## Download Binary
 
@@ -90,11 +94,43 @@ on Arch Linux if you installed from the AUR).
       -h, --help    help for update
       -k, --keep    Keep downloaded archive of last version
 
-### Configure Default User
+### Bulk Update Compatibiliy Tool Versions
+
+    $ protonutils compattool migrate -h
+    Migrate compatibility tool version mappings from on version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options.
+
+    Usage:
+      protonutils compattool migrate [flags] <fromVersion> <toVersion>
+
+    Flags:
+      -h, --help     help for migrate
+      -r, --remove   Remove fromVersion after migration
+      -y, --yes      Do not ask
+
+    $ protonutils compattool migrate Proton-6.21-GE-2 Proton-7.0rc2-GE-1
+    Proton-6.21-GE-2 -> Proton-7.0rc2-GE-1
+
+      * Cyberpunk 2077
+      * DEATHLOOP
+      * Horizon Zero Dawn
+
+    Really update? [y/N]
+
+## Configuration
+
+### Default User
 
 `uid` can be a Steam user name or an SteamID3.
 
     $ protonutils config user <uid>
+
+### Flatpak Support / Change Steam Root Path
+
+    $ protonutils config steam_root ~/.var/app/com.valvesoftware.Steam/data/Steam
+
+### Reset Option
+
+    $ protonutils config steam_root ""
 
 
 [0]: https://github.com/ValveSoftware/Proton

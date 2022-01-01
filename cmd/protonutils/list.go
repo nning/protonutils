@@ -11,6 +11,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List games by runtime",
+	Long:  "List games by configured Proton/CompatTool version. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once.",
 	Run:   list,
 }
 
@@ -41,7 +42,7 @@ func countVisibleGames(games steam.Games) int {
 }
 
 func list(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, ignoreCache)
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatToolVersions()
@@ -49,7 +50,7 @@ func list(cmd *cobra.Command, args []string) {
 
 	if !jsonOutput {
 		for _, version := range s.CompatToolVersions.Sort() {
-			games := s.CompatToolVersions[version]
+			games := s.CompatToolVersions[version].Games
 			if !all && countVisibleGames(games) == 0 {
 				continue
 			}

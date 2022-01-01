@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/nning/protonutils/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,18 +17,16 @@ func init() {
 }
 
 func configGetOrSet(cmd *cobra.Command, args []string) {
-	cfg, err := config.New()
-	exitOnError(err)
-
 	if len(args) == 0 {
-		fmt.Println(cfg)
+		fmt.Println(&cfg)
 		return
 	}
 
 	key := args[0]
 
 	m := map[string]interface{}{
-		"user": cfg.User,
+		"user":       cfg.User,
+		"steam_root": cfg.SteamRoot,
 	}
 
 	if len(args) == 1 {
@@ -38,8 +35,10 @@ func configGetOrSet(cmd *cobra.Command, args []string) {
 		switch key {
 		case "user":
 			cfg.User = args[1]
+		case "steam_root":
+			cfg.SteamRoot = args[1]
 		}
-		err = cfg.Save()
+		err := cfg.Save()
 		exitOnError(err)
 	}
 }

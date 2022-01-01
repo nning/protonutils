@@ -10,13 +10,21 @@ import (
 
 // Config represents YAML config file structure
 type Config struct {
-	User string `yaml:"user"`
+	User      string `yaml:"user"`
+	SteamRoot string `yaml:"steam_root"`
+	dir       string
+	file      string
 }
 
 // New instantiates and loads config from file
 func New() (*Config, error) {
-	cfg := &Config{}
+	u, _ := user.Current()
+	dir := path.Join(u.HomeDir, ".config", "protonutils")
+	file := path.Join(dir, "protonutils.yml")
+
+	cfg := &Config{dir: dir, file: file}
 	err := cfg.Load()
+
 	return cfg, err
 }
 
@@ -28,12 +36,9 @@ func (cfg *Config) String() string {
 
 // Load loads cfg values from file
 func (cfg *Config) Load() error {
-	u, _ := user.Current()
-	p := path.Join(u.HomeDir, ".config", "protonutils", "protonutils.yml")
-
-	_, err := os.Stat(p)
+	_, err := os.Stat(cfg.file)
 	if err == nil {
-		content, err := os.ReadFile(p)
+		content, err := os.ReadFile(cfg.file)
 		if err != nil {
 			return err
 		}
@@ -41,18 +46,18 @@ func (cfg *Config) Load() error {
 		yaml.Unmarshal(content, cfg)
 	}
 
+	if cfg.SteamRoot == "" {
+		cfg.SteamRoot = "~/.steam/root"
+	}
+
 	return nil
 }
 
 // Save saves cfg values into file
 func (cfg *Config) Save() error {
-	u, _ := user.Current()
-	dirPath := path.Join(u.HomeDir, ".config", "protonutils")
-	filePath := path.Join(dirPath, "protonutils.yml")
-
-	_, err := os.Stat(dirPath)
+	_, err := os.Stat(cfg.dir)
 	if err != nil {
-		err := os.MkdirAll(dirPath, 0700)
+		err := os.MkdirAll(cfg.dir, 0700)
 		if err != nil {
 			return err
 		}
@@ -63,11 +68,10 @@ func (cfg *Config) Save() error {
 		return err
 	}
 
-	err = os.WriteFile(filePath, content, 0600)
+	err = os.WriteFile(cfg.file, content, 0600)
 	if err != nil {
 		return err
 	}
 
 	return nil
-
 }

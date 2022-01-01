@@ -11,6 +11,7 @@ import (
 var appidCmd = &cobra.Command{
 	Use:   "appid [flags] <game>",
 	Short: "Search for app ID of installed game",
+	Long:  "Search for app ID of installed game. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once. Game search string can be app ID, game name, or prefix of game name. It is matched case-insensitively. Multiple matches are possible.",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   appid,
 }
@@ -22,7 +23,7 @@ func init() {
 }
 
 func appid(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, ignoreCache)
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatToolVersions()
