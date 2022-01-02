@@ -117,17 +117,18 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 
 	oldVersion := s.GetGameVersion(info.ID)
 
+	ctm, err := vdf2.GetCompatToolMapping(s)
+	exitOnError(err)
+
+	compatTools, err := ctm.ReadCompatTools()
+	exitOnError(err)
+
 	// TODO Get version ID if newVersion is name, only save mapping for ID
 
 	if newVersion == "default" {
 		newVersion = ""
 	} else {
-		// TODO "proton_63" should be valid even though no game is using it
-		//      explicitly
-		isValidVersion, err := s.IsValidVersion(newVersion)
-		if err != nil || !isValidVersion {
-			exitOnError(fmt.Errorf("Invalid version: %v", newVersion))
-		}
+		validateVersion(ctm, &compatTools, newVersion)
 	}
 
 	if oldVersion.ID == newVersion || oldVersion.Name == newVersion {
@@ -154,9 +155,6 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
-
-	ctm, err := vdf2.GetCompatToolMapping(s)
-	exitOnError(err)
 
 	err = ctm.Update(info.ID, newVersion)
 	exitOnError(err)
