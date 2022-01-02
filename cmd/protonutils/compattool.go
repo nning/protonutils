@@ -28,7 +28,7 @@ var compatToolListCmd = &cobra.Command{
 var compatToolSetCmd = &cobra.Command{
 	Use:   "set [flags] <game> <version>",
 	Short: "Set compatibility tool version for game",
-	Long:  "Set compatibility tool version for game. Game search string can be app ID, game name, or prefix of game name. It is matched case-insensitively, first match is used. Version parameters have to be version IDs. See `compattool list` for list of possible options.",
+	Long:  "Set compatibility tool version for game. Game search string can be app ID, game name, or prefix of game name. It is matched case-insensitively, first match is used. Version parameters have to be version IDs. See `compattool list` for list of possible options. If \"default\" is used as version, explicit mapping is removed and game uses default compatibility tool.",
 	Args:  cobra.MinimumNArgs(2),
 	Run:   compatToolSet,
 }
@@ -119,11 +119,15 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 
 	// TODO Get version ID if newVersion is name, only save mapping for ID
 
-	// TODO "proton_63" should be valid even though no game is using it
-	//      explicitly
-	isValidVersion, err := s.IsValidVersion(newVersion)
-	if err != nil || !isValidVersion {
-		exitOnError(fmt.Errorf("Invalid version: %v", newVersion))
+	if newVersion == "default" {
+		newVersion = ""
+	} else {
+		// TODO "proton_63" should be valid even though no game is using it
+		//      explicitly
+		isValidVersion, err := s.IsValidVersion(newVersion)
+		if err != nil || !isValidVersion {
+			exitOnError(fmt.Errorf("Invalid version: %v", newVersion))
+		}
 	}
 
 	if oldVersion.ID == newVersion || oldVersion.Name == newVersion {
@@ -134,7 +138,11 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 	fmt.Println("App ID: ", info.ID)
 	fmt.Println("Name:   ", info.Name)
 	fmt.Println()
-	fmt.Println(oldVersion.Name, "->", newVersion)
+	if newVersion == "" {
+		fmt.Println(oldVersion.Name, "->", "default")
+	} else {
+		fmt.Println(oldVersion.Name, "->", newVersion)
+	}
 	fmt.Println()
 
 	if !yes {
