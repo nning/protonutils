@@ -2,9 +2,11 @@ package steam
 
 import (
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"sort"
+	"strings"
 )
 
 // Version represents a compatibility tool version
@@ -13,6 +15,7 @@ type Version struct {
 	Name      string
 	Games     Games
 	IsDefault bool
+	IsCustom  bool
 }
 
 // CompatToolVersions maps Proton versions to games
@@ -112,6 +115,25 @@ func (s *Steam) ReadCompatToolVersions() error {
 		}
 	}
 
+	files, err := ioutil.ReadDir(path.Join(s.Root, "compatibilitytools.d"))
+	if err != nil {
+		return nil
+	}
+
+	for _, file := range files {
+		id := file.Name()
+		if !strings.HasPrefix(id, ".") {
+			if s.CompatToolVersions[id] == nil {
+				s.CompatToolVersions[id] = &Version{
+					ID:       id,
+					Name:     id,
+					Games:    make(Games),
+					IsCustom: true,
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -143,14 +165,20 @@ func (s *Steam) IsValidVersion(version string) (bool, error) {
 		}
 	}
 
-	fInfo, err := os.Stat(path.Join(s.Root, "compatibilitytools.d", version))
+	return false, nil
+}
+
+// IsCustomVersion returns whether a version for a given versionID is manually
+// installed in compatibilitytools.d
+func (s *Steam) IsCustomVersion(versionID string) (bool, error) {
+	if versionID == "" {
+		return false, nil
+	}
+
+	fInfo, err := os.Stat(path.Join(s.Root, "compatibilitytools.d", versionID))
 	if err != nil {
 		return false, err
 	}
 
-	if fInfo.IsDir() {
-		return true, nil
-	}
-
-	return false, nil
+	return fInfo.IsDir(), nil
 }

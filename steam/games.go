@@ -26,11 +26,13 @@ func (s *Steam) addGame(versionID, versionName, gameID string, isDefault bool) (
 	}
 
 	if s.CompatToolVersions[versionName] == nil {
+		isCustom, _ := s.IsCustomVersion(versionID)
 		s.CompatToolVersions[versionName] = &Version{
 			ID:        versionID,
 			Name:      versionName,
 			Games:     make(Games),
 			IsDefault: isDefault,
+			IsCustom:  isCustom,
 		}
 	}
 

@@ -90,19 +90,24 @@ func compatToolList(cmd *cobra.Command, args []string) {
 		version := s.CompatToolVersions[versionName]
 		games := version.Games
 
+		if version.IsCustom {
+			fmt.Println(version.ID)
+			continue
+		}
+
 		for _, game := range games {
 			if game.IsInstalled {
 				id := ""
 				if versionName != version.ID && !version.IsDefault {
 					id = "[" + version.ID + "]"
+				} else if version.IsDefault {
+					id = "[default]"
 				}
 				fmt.Println(versionName, id)
 				break
 			}
 		}
 	}
-
-	// TODO Add compat tools from .compatibilitytools.d
 }
 
 func compatToolSet(cmd *cobra.Command, args []string) {
@@ -122,8 +127,6 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 
 	compatTools, err := ctm.ReadCompatTools()
 	exitOnError(err)
-
-	// TODO Get version ID if newVersion is name, only save mapping for ID
 
 	if newVersion == "default" {
 		newVersion = ""
