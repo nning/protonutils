@@ -32,7 +32,7 @@ func (c CompatTools) Add(id, name string) {
 	c[id] = &CompatTool{
 		ID:        id,
 		Name:      name,
-		IsDefault: false, // TODO
+		IsDefault: id == "",
 		Games:     make(steam.Games),
 	}
 }

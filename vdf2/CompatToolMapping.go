@@ -14,13 +14,13 @@ type CompatToolMappingVdf struct {
 }
 
 // Add adds a new compatibility tool version mapping for a given app id
-func (v *CompatToolMappingVdf) Add(id, version string) {
+func (v *CompatToolMappingVdf) Add(appID, versionID string) {
 	var n0 vdf.Node
-	n0.SetName(id)
+	n0.SetName(appID)
 
 	var n1 vdf.Node
 	n1.SetName("name")
-	n1.SetString(version)
+	n1.SetString(versionID)
 
 	var n2 vdf.Node
 	n2.SetName("config")
