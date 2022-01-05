@@ -153,7 +153,7 @@ func (s *Steam) GetGameInfo(idOrName string) (*GameInfo, error) {
 			a := strings.ToLower(name)
 			b := strings.ToLower(idOrName)
 
-			if a == b || strings.HasPrefix(a, b) && game.IsInstalled {
+			if a == b || strings.Contains(a, b) && game.IsInstalled {
 				info = &GameInfo{game.ID, name, ""}
 				break
 			}
