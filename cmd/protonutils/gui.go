@@ -1,62 +1,23 @@
 package main
 
 import (
-	"log"
+	_ "embed"
 
-	"github.com/asticode/go-astikit"
-	"github.com/asticode/go-astilectron"
+	"github.com/nning/protonutils/gui"
 	"github.com/spf13/cobra"
 )
 
 var guiCmd = &cobra.Command{
 	Use:   "gui",
 	Short: "Start GUI",
-	Run:   gui,
+	Run:   guiRun,
 }
 
 func init() {
 	rootCmd.AddCommand(guiCmd)
+	guiCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 }
 
-func gui(cmd *cobra.Command, args []string) {
-	// Set logger
-	l := log.New(log.Writer(), log.Prefix(), log.Flags())
-
-	// Create astilectron
-	a, err := astilectron.New(l, astilectron.Options{
-		AppName:           "protonutils",
-		BaseDirectoryPath: "example",
-	})
-	exitOnError(err)
-	defer a.Close()
-
-	// Handle signals
-	a.HandleSignals()
-
-	// Start
-	err = a.Start()
-	exitOnError(err)
-
-	d := func(src string) ([]byte, error) {
-		l.Println("TEST", src)
-		return []byte{}, nil
-	}
-
-	astilectron.NewDisembedderProvisioner(d, "example", "example", l)
-
-	// New window
-	var w *astilectron.Window
-	w, err = a.NewWindow("example/index.html", &astilectron.WindowOptions{
-		Center: astikit.BoolPtr(true),
-		Height: astikit.IntPtr(700),
-		Width:  astikit.IntPtr(700),
-	})
-	exitOnError(err)
-
-	// Create windows
-	err = w.Create()
-	exitOnError(err)
-
-	// Blocking pattern
-	a.Wait()
+func guiRun(cmd *cobra.Command, args []string) {
+	gui.Run(user, &cfg, ignoreCache)
 }

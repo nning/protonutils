@@ -27,12 +27,20 @@ There is a [package in the AUR][2].
 
 ## Manual Build
 
-Minimal Go version is 1.17.
+This step should only be necessary for development.
 
-This step is only necessary if aforementioned binary does not suit your needs for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
+### Requirements
 
-    go install github.com/nning/protonutils/cmd/protonutils@latest
-    protonutils
+* [Go](https://golang.org/) (>= 1.17)
+* Node.js, npm
+
+### Build
+
+    git clone https://github.com/nning/protonutils
+    cd protonutils
+    make
+
+The compiled binary will be inside the folder `cmd/protonutils`.
 
 ## Example Output
 

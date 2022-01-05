@@ -4,13 +4,16 @@ PREFIX = ~/.local/bin
 MAN_PREFIX = ~/.local/share/man
 ZSH_PREFIX = ~/.local/share/zsh/functions
 
-SOURCES = $(shell find . -name \*.go)
+SOURCES = $(shell find . -name \*.go -o -wholename \*build/\*.js -o -wholename \*build/\*.css | grep -v node_modules)
+GUI_SOURCES = $(shell find gui/src -name \*.js -o -name \*.svelte)
 
 UTILS_BIN_DIR = cmd/protonutils
 UTILS_BIN_FILE = protonutils
 UTILS_BIN = $(UTILS_BIN_DIR)/$(UTILS_BIN_FILE)
 COMPLETION_ZSH_SRC = completion.zsh
 MAN_SRC = man1
+GUI_BUNDLE_DIR = gui/public/build
+GUI_BUNDLE = $(GUI_BUNDLE_DIR)/bundle.js $(GUI_BUNDLE_DIR)/bundle.css
 
 VERSION = $(shell ./build/version.sh)
 BUILDTIME = $(shell date -u +"%Y%m%d%H%M%S")
@@ -21,14 +24,16 @@ GOFLAGS += -ldflags "$(GOLDFLAGS)"
 
 build: $(UTILS_BIN)
 
-$(UTILS_BIN): $(SOURCES)
-	cd $(UTILS_BIN_DIR); go build $(GOFLAGS)
+$(GUI_BUNDLE): $(GUI_SOURCES)
+	cd gui && npm install && npm run build
 
-$(UTILS_BIN_FILE): $(UTILS_BIN)
+$(UTILS_BIN): $(SOURCES) $(GUI_BUNDLE)
+	cd $(UTILS_BIN_DIR) && go build $(GOFLAGS)
 
 clean:
 	rm -f $(UTILS_BIN) $(COMPLETION_ZSH_SRC)
 	rm -rf $(MAN_SRC)
+	rm -rf $(GUI_BUNDLE_DIR)
 
 run: run_utils
 
