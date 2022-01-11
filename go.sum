@@ -43,6 +43,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/MrWaggel/gosteamconv v0.0.0-20190214041723-97e1fbb6de26 h1:ueOhRjLBgJSMLfP08MbIudnk5Pq86CbKmy6+PgzSgno=
 github.com/MrWaggel/gosteamconv v0.0.0-20190214041723-97e1fbb6de26/go.mod h1:2/l5MBbGIGPrCN+J8kM0ZDW/IRz1AmlarQai3iajPJc=
+github.com/andlabs/ui v0.0.0-20200610043537-70a69d6ae31e h1:wSQCJiig/QkoUnpvelSPbLiZNWvh2yMqQTQvIQqSUkU=
+github.com/andlabs/ui v0.0.0-20200610043537-70a69d6ae31e/go.mod h1:5G2EjwzgZUPnnReoKvPWVneT8APYbyKkihDVAHUi0II=
 github.com/andygrunwald/vdf v1.0.0 h1:2HuC85EVF1Sm1bwKH8tiyucny2qzf9GSjB3flsdqoM4=
 github.com/andygrunwald/vdf v1.0.0/go.mod h1:qi5jZfY3lrHXbibKeC2MCEge1tOsLODBgOHoS+RbRLk=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=

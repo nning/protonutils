@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/andlabs/ui v0.0.0-20200610043537-70a69d6ae31e // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
