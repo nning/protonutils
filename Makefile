@@ -17,9 +17,11 @@ GUI_BUNDLE = $(GUI_BUNDLE_DIR)/bundle.js $(GUI_BUNDLE_DIR)/bundle.css
 
 VERSION = $(shell ./build/version.sh)
 BUILDTIME = $(shell date -u +"%Y%m%d%H%M%S")
+WAILS_BUILD_MODE = debug
 
 GOLDFLAGS += -X main.Version=$(VERSION)
 GOLDFLAGS += -X main.Buildtime=$(BUILDTIME)
+GOLDFLAGS += -X github.com/wailsapp/wails.BuildMode=$(WAILS_BUILD_MODE)
 GOFLAGS += -ldflags "$(GOLDFLAGS)"
 
 build: $(UTILS_BIN)
@@ -51,6 +53,7 @@ lint:
 
 build_pie: GOLDFLAGS += -s -w -linkmode external -extldflags \"$(LDFLAGS)\"
 build_pie: GOFLAGS += -trimpath -buildmode=pie -mod=readonly -modcacherw
+build_pie: WAILS_BUILD_MODE = prod
 build_pie: build
 
 completion: build

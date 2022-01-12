@@ -9,10 +9,10 @@ import (
 
 // Version represents a compatibility tool version
 type Version struct {
-	ID        string
-	Name      string
-	Games     Games
-	IsDefault bool
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Games     Games  `json:"games"`
+	IsDefault bool   `json:"isDefault"`
 }
 
 // CompatToolVersions maps Proton versions to games

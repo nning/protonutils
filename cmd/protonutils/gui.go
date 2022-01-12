@@ -1,8 +1,6 @@
 package main
 
 import (
-	_ "embed"
-
 	"github.com/nning/protonutils/gui"
 	"github.com/spf13/cobra"
 )

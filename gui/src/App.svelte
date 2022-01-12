@@ -1,17 +1,18 @@
 <script>
-	import { onMount } from "svelte";
+  import { onMount } from 'svelte';
+  import Version from './Version.svelte'
 
-	let output = '';
+  let versions = {};
 
-	onMount(() => {
-		window.backend.list().then(result => {
-      // result = JSON.parse(result)
-			output = result;
-		});
-	});
+  onMount(() => {
+    window.backend.list().then(result => {
+      versions = Object.values(JSON.parse(result))
+    });
+  });
 </script>
 
 <div class="App">
-	<h1>Hello World!</h1>
-	<h2>{output}</h2>
+  {#each versions as version (version.id) }
+    <Version {version}/>
+  {/each}
 </div>

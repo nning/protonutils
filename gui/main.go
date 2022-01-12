@@ -1,7 +1,7 @@
 package gui
 
 import (
-	_ "embed"
+	"embed"
 	"encoding/json"
 
 	"github.com/nning/protonutils/config"
@@ -14,11 +14,8 @@ type result struct {
 	Number uint64 `json:"number"`
 }
 
-//go:embed public/build/bundle.js
-var js string
-
-//go:embed public/build/bundle.css
-var css string
+//go:embed public/build
+var files embed.FS
 
 type context struct {
 	user        string
@@ -57,12 +54,24 @@ func list() string {
 }
 
 func Run(user string, cfg *config.Config, ignoreCache bool) {
+	name := "public/build/bundle"
+
+	js, err := files.ReadFile(name + ".js")
+	if err != nil {
+		panic(err)
+	}
+
+	css, err := files.ReadFile(name + ".css")
+	if err != nil {
+		panic(err)
+	}
+
 	app := wails.CreateApp(&wails.AppConfig{
 		Width:  1024,
 		Height: 768,
 		Title:  "protonutils",
-		JS:     js,
-		CSS:    css,
+		JS:     string(js),
+		CSS:    string(css),
 		Colour: "#ffffff",
 	})
 
