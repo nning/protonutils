@@ -13,7 +13,7 @@
 </script>
 
 {#if hasInstalledGames()}
-  <h2>{version.name}, {games.length}</h2>
+  <h2>{version.name}</h2>
   <ul>
     {#each games as game}
       {#if game.isInstalled}

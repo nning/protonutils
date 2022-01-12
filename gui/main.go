@@ -9,9 +9,10 @@ import (
 	"github.com/wailsapp/wails"
 )
 
-type result struct {
-	Text   string `json:"text"`
-	Number uint64 `json:"number"`
+type versionResult struct {
+	Version   string `json:"version"`
+	Buildtime string `json:"buildtime"`
+	URL       string `json:"url"`
 }
 
 //go:embed public/build

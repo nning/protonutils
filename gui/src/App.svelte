@@ -1,18 +1,15 @@
 <script>
-  import { onMount } from 'svelte';
-  import Version from './Version.svelte'
+  import Tabs from './tabs/Tabs.svelte';
 
-  let versions = {};
-
-  onMount(() => {
-    window.backend.list().then(result => {
-      versions = Object.values(JSON.parse(result))
-    });
-  });
+  import ListTab from './tabs/list/ListTab.svelte';
+  import TestTab from './tabs/test/TestTab.svelte';
 </script>
 
 <div class="App">
-  {#each versions as version (version.id) }
-    <Version {version}/>
-  {/each}
+  <Tabs
+    tabs={[
+      {title: 'List', component: ListTab},
+      {title: 'Test', component: TestTab}
+    ]}
+    />
 </div>

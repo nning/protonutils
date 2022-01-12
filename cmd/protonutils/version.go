@@ -24,7 +24,11 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
-func version(cmd *cobra.Command, args []string) {
+func getVersion() (string, string, string) {
 	url := "https://github.com/nning/protonutils/tree/" + Version
-	fmt.Println(Version, Buildtime, url)
+	return Version, Buildtime, url
+}
+
+func version(cmd *cobra.Command, args []string) {
+	fmt.Println(getVersion())
 }
