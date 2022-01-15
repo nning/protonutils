@@ -21,6 +21,8 @@ type Version struct {
 // CompatToolVersions maps Proton versions to games
 type CompatToolVersions map[string]*Version
 
+var toolsDir string = "compatibilitytools.d"
+
 func (versions CompatToolVersions) includesGameID(id string) bool {
 	for _, version := range versions {
 		if version.Games.includesID(id) {
@@ -60,6 +62,8 @@ func (s *Steam) GetCompatToolName(shortName string) string {
 	if str != "" {
 		return str
 	}
+
+	// TODO Extract name from tool's own compatibilitytool.vdf
 
 	displayName, err := s.findCompatToolName(shortName)
 	if err != nil || displayName == "" {
@@ -175,7 +179,7 @@ func (s *Steam) IsCustomVersion(versionID string) (bool, error) {
 		return false, nil
 	}
 
-	fInfo, err := os.Stat(path.Join(s.Root, "compatibilitytools.d", versionID))
+	fInfo, err := os.Stat(path.Join(s.Root, toolsDir, versionID))
 	if err != nil {
 		return false, err
 	}

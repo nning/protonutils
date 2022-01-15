@@ -19,10 +19,6 @@ var rootCmd = &cobra.Command{
 
 var manDir string
 
-var ignoreCache bool
-var user string
-var yes bool
-
 var cfg config.Config
 
 func exitOnError(e error, a ...string) {

@@ -21,7 +21,8 @@ func Lookup(n *vdf.Node, x []string) (*vdf.Node, error) {
 	return y, nil
 }
 
-func parseTextConfig(p string) (*vdf.Node, error) {
+// ParseTextConfig reads a file and parses it as text VDF
+func ParseTextConfig(p string) (*vdf.Node, error) {
 	in, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, err

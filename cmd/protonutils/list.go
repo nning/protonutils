@@ -15,10 +15,6 @@ var listCmd = &cobra.Command{
 	Run:   list,
 }
 
-var all bool
-var jsonOutput bool
-var showAppID bool
-
 func init() {
 	rootCmd.AddCommand(listCmd)
 

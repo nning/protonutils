@@ -93,7 +93,7 @@ func (v *CompatToolMappingVdf) IsValid(version string) bool {
 func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
 	p := path.Join(s.Root, "config", "config.vdf")
 
-	n, err := parseTextConfig(p)
+	n, err := ParseTextConfig(p)
 	if err != nil {
 		return nil, err
 	}

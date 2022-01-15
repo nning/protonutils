@@ -48,7 +48,7 @@ func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*steam.Game, error) {
 func GetLocalConfig(s *steam.Steam) (*LocalConfigVdf, error) {
 	p := path.Join(s.Root, "userdata", s.UID, "config", "localconfig.vdf")
 
-	n, err := parseTextConfig(p)
+	n, err := ParseTextConfig(p)
 	if err != nil {
 		return nil, err
 	}

@@ -47,8 +47,6 @@ var compatToolCleanCmd = &cobra.Command{
 	Run:   compatToolClean,
 }
 
-var remove bool
-
 func init() {
 	rootCmd.AddCommand(compatToolCmd)
 
