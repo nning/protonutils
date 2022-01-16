@@ -1,7 +1,6 @@
 package vdf2
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/nning/protonutils/steam"
@@ -11,7 +10,7 @@ import (
 func Test_GetCompatToolMapping(t *testing.T) {
 	t.Parallel()
 
-	s, err := steam.New("", steamRoot, true)
+	s, err := steam.New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	cmt, err := GetCompatToolMapping(s)
@@ -26,7 +25,7 @@ func Test_GetCompatToolMapping(t *testing.T) {
 func Test_ReadCompatTools(t *testing.T) {
 	t.Parallel()
 
-	s, err := steam.New("", steamRoot, true)
+	s, err := steam.New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	cmt, err := GetCompatToolMapping(s)
@@ -52,7 +51,7 @@ func Test_ReadCompatTools(t *testing.T) {
 			assert.Equal(t, compatTool.ID, compatTool.Name)
 		}
 
-		fmt.Println(compatTool)
+		// fmt.Println(compatTool)
 
 		assert.NotEqual(t, 0, len(compatTool.Games))
 	}
@@ -65,7 +64,7 @@ func Test_ReadCompatTools(t *testing.T) {
 func Test_Add(t *testing.T) {
 	t.Parallel()
 
-	s, err := steam.New("", steamRoot, true)
+	s, err := steam.New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	cmt, err := GetCompatToolMapping(s)
@@ -87,7 +86,7 @@ func Test_Add(t *testing.T) {
 func Test_Update(t *testing.T) {
 	t.Parallel()
 
-	s, err := steam.New("", steamRoot, true)
+	s, err := steam.New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	cmt, err := GetCompatToolMapping(s)

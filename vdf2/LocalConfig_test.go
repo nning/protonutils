@@ -7,10 +7,8 @@ import (
 	"testing"
 )
 
-const steamRoot = "../test/root"
-
 func Test_GetViewedSteamPlay(t *testing.T) {
-	s, err := steam.New("", steamRoot, true)
+	s, err := steam.New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	vdf, err := GetLocalConfig(s)

@@ -7,6 +7,8 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
+const testSteamRoot = "../test/root"
+
 // Lookup looks up a "key path" in a parsed VDF tree
 func Lookup(n *vdf.Node, x []string) (*vdf.Node, error) {
 	y := n

@@ -15,6 +15,14 @@ var listCmd = &cobra.Command{
 	Run:   list,
 }
 
+var vdf2ListCmd = &cobra.Command{
+	Use:    "new",
+	Short:  "List games by runtime (new vdf2 version)",
+	Long:   "List games by configured Proton/CompatTool version. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once.",
+	Run:    vdf2List,
+	Hidden: true,
+}
+
 func init() {
 	rootCmd.AddCommand(listCmd)
 
@@ -23,6 +31,8 @@ func init() {
 	listCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output JSON (implies -a and -i)")
 	listCmd.Flags().BoolVarP(&showAppID, "show-id", "i", false, "Show app ID")
 	listCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+
+	listCmd.AddCommand(vdf2ListCmd)
 }
 
 func countVisibleGames(games steam.Games) int {
@@ -79,4 +89,7 @@ func list(cmd *cobra.Command, args []string) {
 
 	err = s.SaveCache()
 	exitOnError(err)
+}
+
+func vdf2List(cmd *cobra.Command, args []string) {
 }
