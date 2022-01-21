@@ -75,7 +75,7 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 			continue
 		}
 
-		compatTools.Add(version, v.Steam.GetCompatToolName(version))
+		compatTools.Add(version, v.GetCompatToolName(version))
 		compatTools.AddGame(version, game)
 	}
 
@@ -86,6 +86,23 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 func (v *CompatToolMappingVdf) IsValid(version string) bool {
 	fInfo, err := os.Stat(path.Join(v.Steam.Root, "compatibilitytools.d", version))
 	return err == nil && fInfo.IsDir()
+}
+
+// GetCompatToolName returns human-readable name for compatibility tool
+func (v *CompatToolMappingVdf) GetCompatToolName(version string) string {
+	isDefault := false
+
+	if version == "" {
+		version = v.Node.FirstByName("0").FirstByName("name").String()
+		isDefault = true
+	}
+
+	name := v.Steam.GetCompatToolName(version)
+	if isDefault {
+		name = name + " (Default)"
+	}
+
+	return name
 }
 
 // GetCompatToolMapping opens and parses config.vdf and returns a

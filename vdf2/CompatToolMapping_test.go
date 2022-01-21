@@ -41,7 +41,7 @@ func Test_ReadCompatTools(t *testing.T) {
 
 		if compatTool.IsDefault {
 			assert.Equal(t, "", compatTool.ID)
-			assert.Equal(t, "", compatTool.Name)
+			assert.Equal(t, "Proton 6.3-8 (Default)", compatTool.Name)
 		} else {
 			assert.NotEqual(t, "", compatTool.ID)
 			assert.NotEqual(t, "", compatTool.Name)

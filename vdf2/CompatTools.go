@@ -1,7 +1,7 @@
 package vdf2
 
 import (
-	"fmt"
+	"sort"
 
 	"github.com/nning/protonutils/steam"
 )
@@ -49,7 +49,7 @@ func (c CompatTools) AddGame(toolID string, game *steam.Game) bool {
 	return true
 }
 
-func (c CompatTools) Read(s *steam.Steam) (*CompatTools, error) {
+func (c CompatTools) Read(s *steam.Steam) (CompatTools, error) {
 	ctm, err := GetCompatToolMapping(s)
 	if err != nil {
 		return nil, err
@@ -93,9 +93,10 @@ func (c CompatTools) Read(s *steam.Steam) (*CompatTools, error) {
 	// 	c.Add(id, id)
 	// }
 
-	return &c, nil
+	return c, nil
 }
 
+// Merge adds all entries from other to c (without duplicates)
 func (c CompatTools) Merge(other *CompatTools) CompatTools {
 	for _, tool := range *other {
 		for _, game := range tool.Games {
@@ -107,9 +108,8 @@ func (c CompatTools) Merge(other *CompatTools) CompatTools {
 	return c
 }
 
+// GetDefault returns the first entry from c that is a default compatibility tool
 func (c CompatTools) GetDefault() *CompatTool {
-	fmt.Println(len(c)) // TODO c empty?!
-
 	for _, tool := range c {
 		if tool.IsDefault {
 			return tool
@@ -119,18 +119,47 @@ func (c CompatTools) GetDefault() *CompatTool {
 	return nil
 }
 
-func NewCompatTools(s *steam.Steam, data map[string][]string) (*CompatTools, error) {
+// Sort returns slice of alphabetically sorted CompatTools IDs
+func (c CompatTools) Sort() []string {
+	type kv struct {
+		key   string
+		value *steam.Version
+	}
+
+	var tmp []kv
+	for k, v := range c {
+		tmp = append(tmp, kv{k, v})
+	}
+
+	sort.Slice(tmp, func(i, j int) bool {
+		return tmp[i].value.Name < tmp[j].value.Name
+	})
+
+	var ids []string
+	for _, tool := range tmp {
+		ids = append(ids, tool.key)
+	}
+
+	return ids
+}
+
+// NewCompatTools returns new CompatTools struct (optionally initialized with
+// data, which is a map from compatibility tool version IDs to slices of game
+// IDs)
+func NewCompatTools(s *steam.Steam, data ...map[string][]string) (*CompatTools, error) {
 	compatTools := make(CompatTools)
 
-	for versionID, games := range data {
-		for _, gameID := range games {
-			game, _, err := s.GetGameData(gameID)
-			if err != nil {
-				return nil, err
-			}
+	if len(data) > 0 {
+		for versionID, games := range data[0] {
+			for _, gameID := range games {
+				game, _, err := s.GetGameData(gameID)
+				if err != nil {
+					return nil, err
+				}
 
-			compatTools.Add(versionID, s.GetCompatToolName(versionID))
-			compatTools.AddGame(versionID, game)
+				compatTools.Add(versionID, s.GetCompatToolName(versionID))
+				compatTools.AddGame(versionID, game)
+			}
 		}
 	}
 
