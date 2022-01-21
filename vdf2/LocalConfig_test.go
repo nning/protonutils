@@ -16,5 +16,5 @@ func Test_GetViewedSteamPlay(t *testing.T) {
 
 	games, err := vdf.GetViewedSteamPlay()
 	assert.Empty(t, err)
-	assert.Equal(t, 31, len(games))
+	assert.Equal(t, 36, len(games))
 }

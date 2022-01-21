@@ -80,11 +80,11 @@ func Test_CompatTools_Read(t *testing.T) {
 	compatTools.Read(s)
 
 	assert.Equal(t, 7, len(compatTools))
-	assert.Equal(t, 32, len(compatTools[""].Games))
-	assert.Equal(t, 2, len(compatTools["proton_63"].Games))
-	assert.Equal(t, 3, len(compatTools["proton_experimental"].Games))
-	assert.Equal(t, 6, len(compatTools["Proton-6.21-GE-2"].Games))
-	assert.Equal(t, 1, len(compatTools["Proton-7.0rc2-GE-1"].Games))
+	assert.Equal(t, 37, len(compatTools[""].Games))
+	assert.Equal(t, 4, len(compatTools["proton_63"].Games))
+	assert.Equal(t, 2, len(compatTools["proton_experimental"].Games))
+	assert.Equal(t, 4, len(compatTools["Proton-6.21-GE-2"].Games))
+	assert.Equal(t, 2, len(compatTools["Proton-7.0rc6-GE-1"].Games))
 	assert.Equal(t, 1, len(compatTools["Proton-6.16-GE-1"].Games))
 	assert.Equal(t, 1, len(compatTools["Proton-6.20-GE-1"].Games))
 }
