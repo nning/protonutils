@@ -4,22 +4,23 @@ import (
 	"github.com/BenLubar/vdf"
 )
 
-type DeckCompatibilityCategory int
-
-const (
-	Unknown DeckCompatibilityCategory = iota
-	Unsupported
-	Playable
-	Verified
-)
-
 type DeckCompatibility struct {
 	Category DeckCompatibilityCategory
+	Tests    []string
+}
+
+func (c DeckCompatibility) String() string {
+	return "DeckCompatibility{" + c.Category.String() + "}"
 }
 
 func GetDeckCompatibility(n *vdf.Node) *DeckCompatibility {
 	category := DeckCompatibilityCategory(n.FirstByName("category").Int())
-	c := &DeckCompatibility{Category: category}
+	tests := make([]string, 0)
+
+	c := &DeckCompatibility{
+		Category: category,
+		Tests:    tests,
+	}
 
 	return c
 }

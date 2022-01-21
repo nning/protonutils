@@ -1,8 +1,6 @@
 package vdf2
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/nning/protonutils/steam"
@@ -34,6 +32,20 @@ func Test_GetNextEntryStart(t *testing.T) {
 	assert.Empty(t, err)
 	assert.NotEmpty(t, n)
 
+	type v struct {
+		Category DeckCompatibilityCategory
+	}
+
+	tests := map[string]*v{
+		"1091500": {DeckCompatibilityUnknown},     // Cyberpunk 2077
+		"1113000": {DeckCompatibilityUnsupported}, // Persona 4 Golden
+		"1426210": {DeckCompatibilityPlayable},    // It Takes Two
+		"292030":  {DeckCompatibilityPlayable},    // The Witcher 3
+		"205100":  {DeckCompatibilityVerified},    // Dishonored
+		"620":     {DeckCompatibilityVerified},    // Portal 2
+		"1190460": {DeckCompatibilityVerified},    // Death Stranding
+	}
+
 	i = 0
 	for {
 		k := ai.GetNextEntryStart(i)
@@ -47,16 +59,19 @@ func Test_GetNextEntryStart(t *testing.T) {
 
 		appID := n.FirstByName("appid").String()
 
-		if appID == "205100" { // Dishonored
-			x, err := n.MarshalText()
-			assert.Empty(t, err)
-			os.WriteFile("debug.vdf", x, 0600)
+		if tests[appID] != nil {
+			// x, err := n.MarshalText()
+			// assert.Empty(t, err)
+			// os.WriteFile("debug-"+appID+".vdf", x, 0600)
 
-			compatibility, _ := n.FirstByName("common").FirstByName("steam_deck_compatibility").MarshalText()
-			fmt.Println("compatibility", string(compatibility))
+			cn := n.FirstByName("common").FirstByName("steam_deck_compatibility")
+			// compatibility, _ := cn.MarshalText()
+			// fmt.Println("compatibility", string(compatibility))
 
-			c := GetDeckCompatibility(n.FirstByName("common").FirstByName("steam_deck_compatibility"))
-			fmt.Println(c)
+			c := GetDeckCompatibility(cn)
+			// fmt.Println(c)
+
+			assert.Equal(t, tests[appID].Category, c.Category)
 		}
 
 		i = k + 2

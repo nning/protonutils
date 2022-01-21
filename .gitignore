@@ -4,4 +4,4 @@
 /test/root
 /test/root.tar.xz
 /.coverage
-/vdf2/debug.vdf
+/vdf2/debug*.vdf
