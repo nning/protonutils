@@ -14,7 +14,7 @@ func Test_CompatTools_Add(t *testing.T) {
 
 	s, _ := steam.New("", testSteamRoot, false)
 
-	game, _, err := s.GetGameData(id)
+	game, _, err := GetGameData(s, id)
 	assert.Empty(t, err)
 
 	compatTools.Add(version, s.GetCompatToolName(version))

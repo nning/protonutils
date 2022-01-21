@@ -52,8 +52,11 @@ func Test_GetNextEntryStart(t *testing.T) {
 			assert.Empty(t, err)
 			os.WriteFile("debug.vdf", x, 0600)
 
-			compatbility, _ := n.FirstByName("common").FirstByName("steam_deck_compatibility").MarshalText()
-			fmt.Println("compatbility", string(compatbility))
+			compatibility, _ := n.FirstByName("common").FirstByName("steam_deck_compatibility").MarshalText()
+			fmt.Println("compatibility", string(compatibility))
+
+			c := GetDeckCompatibility(n.FirstByName("common").FirstByName("steam_deck_compatibility"))
+			fmt.Println(c)
 		}
 
 		i = k + 2

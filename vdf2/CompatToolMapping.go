@@ -66,7 +66,7 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 		id := x.Name()
 		version := x.FirstByName("name").String()
 
-		game, isValid, err := v.Steam.GetGameData(id)
+		game, isValid, err := GetGameData(v.Steam, id)
 		if err != nil {
 			return nil, err
 		}

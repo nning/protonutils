@@ -6,13 +6,19 @@ import (
 	"github.com/nning/protonutils/steam"
 )
 
+// CompatTool holds info about a compatibility tool (like human-readable name
+// and a list of the games that are using it)
+type CompatTool struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Games     Games  `json:"games"`
+	IsDefault bool   `json:"isDefault"`
+	IsCustom  bool   `json:"isCustom"`
+}
+
 // CompatTools maps compatibility tool version IDs to CompatTool objects
 // containing info like name and games.
 type CompatTools map[string]*CompatTool
-
-// CompatTool holds info about a compatibility tool (like human-readable name
-// and a list of the games that are using it)
-type CompatTool = steam.Version
 
 // IsValid checks whether a version ID (v) exists in the CompatTools config
 func (c CompatTools) IsValid(v string) bool {
@@ -35,12 +41,12 @@ func (c CompatTools) Add(id, name string) {
 		ID:        id,
 		Name:      name,
 		IsDefault: id == "",
-		Games:     make(steam.Games),
+		Games:     make(Games),
 	}
 }
 
 // AddGame adds a Game entry to an existing CompatTool entry
-func (c CompatTools) AddGame(toolID string, game *steam.Game) bool {
+func (c CompatTools) AddGame(toolID string, game *Game) bool {
 	if c[toolID] == nil {
 		return false
 	}
@@ -123,7 +129,7 @@ func (c CompatTools) GetDefault() *CompatTool {
 func (c CompatTools) Sort() []string {
 	type kv struct {
 		key   string
-		value *steam.Version
+		value *CompatTool
 	}
 
 	var tmp []kv
@@ -152,7 +158,7 @@ func NewCompatTools(s *steam.Steam, data ...map[string][]string) (*CompatTools, 
 	if len(data) > 0 {
 		for versionID, games := range data[0] {
 			for _, gameID := range games {
-				game, _, err := s.GetGameData(gameID)
+				game, _, err := GetGameData(s, gameID)
 				if err != nil {
 					return nil, err
 				}
