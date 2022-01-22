@@ -45,6 +45,17 @@ func (games Games) CountInstalled() int {
 	return i
 }
 
+// Includes returns whether appID is included in g
+func (games Games) Includes(appID string) bool {
+	for _, data := range games {
+		if data.ID == appID {
+			return true
+		}
+	}
+
+	return false
+}
+
 // GetGameData returns intialized Game struct by app ID
 func GetGameData(s *steam.Steam, gameID string) (*Game, bool, error) {
 	// TODO Implement GetGameData with vdf2

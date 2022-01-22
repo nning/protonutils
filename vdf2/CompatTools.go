@@ -81,6 +81,10 @@ func (c CompatTools) Read(s *steam.Steam) (CompatTools, error) {
 	def := c.GetDefault()
 	if def != nil {
 		for _, game := range games {
+			if c.Includes(game.ID) {
+				continue
+			}
+
 			c.AddGame(def.ID, game)
 		}
 	}
@@ -147,6 +151,17 @@ func (c CompatTools) Sort() []string {
 	}
 
 	return ids
+}
+
+// Includes returns whether a game is included in c
+func (c CompatTools) Includes(appID string) bool {
+	for _, tool := range c {
+		if tool.Games.Includes(appID) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // NewCompatTools returns new CompatTools struct (optionally initialized with
