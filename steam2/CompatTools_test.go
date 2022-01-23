@@ -1,9 +1,8 @@
-package vdf2
+package steam2
 
 import (
 	"testing"
 
-	"github.com/nning/protonutils/steam"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,18 +11,22 @@ func Test_CompatTools_Add(t *testing.T) {
 	version := "proton_63"
 	id := "620"
 
-	s, _ := steam.New("", testSteamRoot, false)
-
-	game, _, err := GetGameData(s, id)
+	s, err := New("", testSteamRoot, false)
 	assert.Empty(t, err)
 
-	compatTools.Add(version, s.GetCompatToolName(version))
+	game, _, err := s.GetGameData(id)
+	assert.Empty(t, err)
+
+	// TODO
+	// compatTools.Add(version, s.GetCompatToolName(version))
+	compatTools.Add(version, version)
 	compatTools.AddGame(version, game)
 
 	v := compatTools[version]
 	assert.NotEmpty(t, v)
 	assert.Equal(t, version, v.ID)
-	assert.Equal(t, "Proton 6.3-8", v.Name)
+	// assert.Equal(t, "Proton 6.3-8", v.Name)
+	assert.Equal(t, "proton_63", v.Name)
 	assert.Equal(t, 1, len(v.Games))
 
 	g := v.Games["Portal 2"]
@@ -50,10 +53,11 @@ func Test_CompatTools_Merge(t *testing.T) {
 		},
 	}
 
-	s, _ := steam.New("", testSteamRoot, false)
+	s, err := New("", testSteamRoot, false)
+	assert.Empty(t, err)
 
-	compatTools1, _ := NewCompatTools(s, data1)
-	compatTools2, _ := NewCompatTools(s, data2)
+	compatTools1, _ := s.NewCompatTools(data1)
+	compatTools2, _ := s.NewCompatTools(data2)
 
 	compatTools1.Merge(compatTools2)
 	x := *compatTools1
@@ -74,16 +78,19 @@ func Test_CompatTools_Merge(t *testing.T) {
 }
 
 func Test_CompatTools_Read(t *testing.T) {
-	compatTools := make(CompatTools)
-	s, _ := steam.New("", testSteamRoot, false)
+	s, err := New("", testSteamRoot, false)
+	assert.Empty(t, err)
 
-	compatTools.Read(s)
+	err = s.ReadCompatTools()
+	assert.Empty(t, err)
+
+	compatTools := s.CompatTools
 
 	assert.Equal(t, 7, len(compatTools))
 	assert.Equal(t, 25, len(compatTools[""].Games))
 	assert.Equal(t, 4, len(compatTools["proton_63"].Games))
 	assert.Equal(t, 2, len(compatTools["proton_experimental"].Games))
-	assert.Equal(t, 4, len(compatTools["Proton-6.21-GE-2"].Games))
+	assert.Equal(t, 3, len(compatTools["Proton-6.21-GE-2"].Games))
 	assert.Equal(t, 2, len(compatTools["Proton-7.0rc6-GE-1"].Games))
 	assert.Equal(t, 1, len(compatTools["Proton-6.16-GE-1"].Games))
 	assert.Equal(t, 1, len(compatTools["Proton-6.20-GE-1"].Games))

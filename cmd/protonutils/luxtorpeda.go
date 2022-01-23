@@ -11,7 +11,7 @@ import (
 	"regexp"
 
 	"github.com/nning/protonutils/steam"
-	"github.com/nning/protonutils/vdf2"
+	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
 )
 
@@ -112,7 +112,7 @@ func luxtorpedaDownload(cmd *cobra.Command, args []string) {
 	exitOnError(err)
 
 	vdfPath := path.Join(dirpath, "compatibilitytool.vdf")
-	root, err := vdf2.ParseTextConfig(vdfPath)
+	root, err := steam2.ParseTextConfig(vdfPath)
 	exitOnError(err)
 
 	n := root.FirstChild().FirstChild()

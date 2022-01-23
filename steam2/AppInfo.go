@@ -1,4 +1,4 @@
-package vdf2
+package steam2
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"path"
 
 	"github.com/BenLubar/vdf"
-	"github.com/nning/protonutils/steam"
 )
 
 // AppInfoVdfApps represents apps found in appinfo VDF
@@ -17,7 +16,6 @@ type AppInfoVdf struct {
 	Bytes []byte
 	Apps  AppInfoVdfApps
 	Path  string
-	Steam *steam.Steam
 }
 
 // GetNextEntryStart returns the next offset to a appinfo binary VDF entry
@@ -42,6 +40,30 @@ func (ai *AppInfoVdf) GetNextEntryStart(offset int) int {
 	return -1
 }
 
+func (ai *AppInfoVdf) GetName(id string) (string, error) {
+	i := 0
+	for {
+		k := ai.GetNextEntryStart(i)
+		if k < 0 {
+			break
+		}
+
+		n, err := ParseAppInfoEntry(ai.Bytes[k:])
+		if err != nil {
+			return "", err
+
+		}
+
+		if id == n.FirstByName("appid").String() {
+			return n.FirstByName("common").FirstByName("name").String(), nil
+		}
+
+		i = k + 2
+	}
+
+	return "", nil
+}
+
 // ParseAppInfoEntry unmarshals `in` as binary VDF
 func ParseAppInfoEntry(in []byte) (*vdf.Node, error) {
 	var n vdf.Node
@@ -50,17 +72,18 @@ func ParseAppInfoEntry(in []byte) (*vdf.Node, error) {
 }
 
 // GetAppInfo loads appinfo VDF
-func GetAppInfo(s *steam.Steam) (*AppInfoVdf, error) {
+func (s *Steam) InitAppInfo() error {
 	p := path.Join(s.Root, "appcache", "appinfo.vdf")
 	in, err := ioutil.ReadFile(p)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &AppInfoVdf{
+	s.AppInfo = &AppInfoVdf{
 		Bytes: in,
 		Apps:  make(AppInfoVdfApps),
 		Path:  p,
-		Steam: s,
-	}, nil
+	}
+
+	return nil
 }

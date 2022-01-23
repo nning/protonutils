@@ -1,11 +1,10 @@
-package vdf2
+package steam2
 
 import (
 	"os"
 	"path"
 
 	"github.com/BenLubar/vdf"
-	"github.com/nning/protonutils/steam"
 )
 
 // CompatToolMappingVdf represents parsed VDF config for CompatToolMapping
@@ -38,10 +37,10 @@ func (v *CompatToolMappingVdf) Add(appID, versionID string) {
 }
 
 // Update changes or adds a compatibility tool version mapping for a given app
-// id
+// ID
 func (v *CompatToolMappingVdf) Update(id, version string) error {
 	x, err := Lookup(v.Node, []string{id, "name"})
-	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 
 	if isKeyNotFoundError {
 		v.Add(id, version)
@@ -66,7 +65,7 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 		id := x.Name()
 		version := x.FirstByName("name").String()
 
-		game, isValid, err := GetGameData(v.Steam, id)
+		game, isValid, err := v.Steam.GetGameData(id)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +96,9 @@ func (v *CompatToolMappingVdf) GetCompatToolName(version string) string {
 		isDefault = true
 	}
 
-	name := v.Steam.GetCompatToolName(version)
+	// TODO implement with vdf2
+	// name := v.Steam.GetCompatToolName(version)
+	name := version
 	if isDefault {
 		name = name + " (Default)"
 	}
@@ -107,22 +108,27 @@ func (v *CompatToolMappingVdf) GetCompatToolName(version string) string {
 
 // GetCompatToolMapping opens and parses config.vdf and returns a
 // CompatToolMappingVdf containing the configurations
-func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
+func (s *Steam) InitCompatToolMapping() error {
 	p := path.Join(s.Root, "config", "config.vdf")
 
 	n, err := ParseTextConfig(p)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	key := []string{"Software", "Valve", "Steam", "CompatToolMapping"}
 	x, err := Lookup(n, key)
 
-	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 	if err != nil && isKeyNotFoundError {
 		key[2] = "steam"
 		x, err = Lookup(n, key)
+		if err != nil {
+			return err
+		}
 	}
 
-	return &CompatToolMappingVdf{Vdf{n, x, p, s}}, err
+	s.CompatToolMapping = &CompatToolMappingVdf{Vdf{n, x, p, s}}
+
+	return nil
 }

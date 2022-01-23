@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/nning/protonutils/steam"
-	"github.com/nning/protonutils/vdf2"
+	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
 )
 
@@ -26,18 +25,15 @@ func init() {
 }
 
 func list(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	tools, err := vdf2.NewCompatTools(s)
-	exitOnError(err)
-
-	_, err = tools.Read(s)
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
 	if !jsonOutput {
-		for _, toolID := range tools.Sort() {
-			tool := (*tools)[toolID]
+		for _, toolID := range s.CompatTools.Sort() {
+			tool := s.CompatTools[toolID]
 			games := tool.Games
 			if !all && games.CountInstalled() == 0 {
 				continue
@@ -64,7 +60,7 @@ func list(cmd *cobra.Command, args []string) {
 			fmt.Println()
 		}
 	} else {
-		j, err := json.MarshalIndent(tools, "", "  ")
+		j, err := json.MarshalIndent(s.CompatTools, "", "  ")
 		exitOnError(err)
 		fmt.Println(string(j))
 	}

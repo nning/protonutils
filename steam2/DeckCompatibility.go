@@ -1,4 +1,4 @@
-package vdf2
+package steam2
 
 import (
 	"github.com/BenLubar/vdf"

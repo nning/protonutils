@@ -1,9 +1,7 @@
-package vdf2
+package steam2
 
 import (
 	"sort"
-
-	"github.com/nning/protonutils/steam"
 )
 
 // CompatTool holds info about a compatibility tool (like human-readable name
@@ -55,37 +53,25 @@ func (c CompatTools) AddGame(toolID string, game *Game) bool {
 	return true
 }
 
-func (c CompatTools) Read(s *steam.Steam) (CompatTools, error) {
-	ctm, err := GetCompatToolMapping(s)
+func (s *Steam) ReadCompatTools() error {
+	tools, err := s.CompatToolMapping.ReadCompatTools()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	tools, err := ctm.ReadCompatTools()
+	games, err := s.LocalConfig.GetViewedSteamPlay()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	c.Merge(&tools)
-
-	lc, err := GetLocalConfig(s)
-	if err != nil {
-		return nil, err
-	}
-
-	games, err := lc.GetViewedSteamPlay()
-	if err != nil {
-		return nil, err
-	}
-
-	def := c.GetDefault()
+	def := tools.GetDefault()
 	if def != nil {
 		for _, game := range games {
-			if c.Includes(game.ID) {
+			if tools.Includes(game.ID) {
 				continue
 			}
 
-			c.AddGame(def.ID, game)
+			tools.AddGame(def.ID, game)
 		}
 	}
 
@@ -103,7 +89,8 @@ func (c CompatTools) Read(s *steam.Steam) (CompatTools, error) {
 	// 	c.Add(id, id)
 	// }
 
-	return c, nil
+	s.CompatTools = tools
+	return nil
 }
 
 // Merge adds all entries from other to c (without duplicates)
@@ -167,18 +154,20 @@ func (c CompatTools) Includes(appID string) bool {
 // NewCompatTools returns new CompatTools struct (optionally initialized with
 // data, which is a map from compatibility tool version IDs to slices of game
 // IDs)
-func NewCompatTools(s *steam.Steam, data ...map[string][]string) (*CompatTools, error) {
+func (s *Steam) NewCompatTools(data ...map[string][]string) (*CompatTools, error) {
 	compatTools := make(CompatTools)
 
 	if len(data) > 0 {
 		for versionID, games := range data[0] {
 			for _, gameID := range games {
-				game, _, err := GetGameData(s, gameID)
+				game, _, err := s.GetGameData(gameID)
 				if err != nil {
 					return nil, err
 				}
 
-				compatTools.Add(versionID, s.GetCompatToolName(versionID))
+				// TODO Implement GetCompatToolName
+				// compatTools.Add(versionID, s.GetCompatToolName(versionID))
+				compatTools.Add(versionID, versionID)
 				compatTools.AddGame(versionID, game)
 			}
 		}

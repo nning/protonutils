@@ -1,34 +1,55 @@
-package vdf2
+package steam2
 
 import (
 	"testing"
 
-	"github.com/nning/protonutils/steam"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetNextEntryStart(t *testing.T) {
-	s, err := steam.New("", testSteamRoot, true)
+func Test_GetName(t *testing.T) {
+	s, err := New("", testSteamRoot, true)
 	assert.Empty(t, err)
+	assert.NotEmpty(t, s.AppInfo)
 
-	ai, err := GetAppInfo(s)
+	games := map[string]string{
+		"292030":  "The Witcher 3: Wild Hunt",
+		"377160":  "Fallout 4",
+		"403640":  "Dishonored 2",
+		"614570":  "Dishonored®: Death of the Outsider™ ",
+		"826630":  "Iron Harvest",
+		"1091500": "Cyberpunk 2077",
+		"1151640": "Horizon Zero Dawn",
+		"1174180": "Red Dead Redemption 2",
+		"1328670": "Mass Effect™ Legendary Edition",
+		"813780":  "Age of Empires II: Definitive Edition",
+	}
+
+	for id, name := range games {
+		n, err := s.AppInfo.GetName(id)
+		assert.Empty(t, err)
+		assert.Equal(t, name, n)
+	}
+}
+
+func Test_GetNextEntryStart(t *testing.T) {
+	s, err := New("", testSteamRoot, false)
 	assert.Empty(t, err)
-	assert.NotEmpty(t, ai)
+	assert.NotEmpty(t, s.AppInfo)
 
 	pos1 := 56
 	pos2 := 143
 
-	i := ai.GetNextEntryStart(0)
+	i := s.AppInfo.GetNextEntryStart(0)
 	assert.Equal(t, pos1, i)
 
-	n, err := ParseAppInfoEntry(ai.Bytes[i:])
+	n, err := ParseAppInfoEntry(s.AppInfo.Bytes[i:])
 	assert.Empty(t, err)
 	assert.NotEmpty(t, n)
 
-	i = ai.GetNextEntryStart(pos1 + 2)
+	i = s.AppInfo.GetNextEntryStart(pos1 + 2)
 	assert.Equal(t, pos2, i)
 
-	n, err = ParseAppInfoEntry(ai.Bytes[i:])
+	n, err = ParseAppInfoEntry(s.AppInfo.Bytes[i:])
 	assert.Empty(t, err)
 	assert.NotEmpty(t, n)
 
@@ -48,12 +69,12 @@ func Test_GetNextEntryStart(t *testing.T) {
 
 	i = 0
 	for {
-		k := ai.GetNextEntryStart(i)
+		k := s.AppInfo.GetNextEntryStart(i)
 		if k < 0 {
 			break
 		}
 
-		n, err = ParseAppInfoEntry(ai.Bytes[k:])
+		n, err = ParseAppInfoEntry(s.AppInfo.Bytes[k:])
 		assert.Empty(t, err)
 		assert.NotEmpty(t, n)
 

@@ -1,9 +1,7 @@
-package vdf2
+package steam2
 
 import (
 	"sort"
-
-	"github.com/nning/protonutils/steam"
 )
 
 // Game represents Steam game or shortcut
@@ -56,18 +54,49 @@ func (games Games) Includes(appID string) bool {
 	return false
 }
 
-// GetGameData returns intialized Game struct by app ID
-func GetGameData(s *steam.Steam, gameID string) (*Game, bool, error) {
-	// TODO Implement GetGameData with vdf2
-	g, isValid, err := s.GetGameData(gameID)
-	if err != nil {
-		return nil, isValid, err
+// GetGameData returns initialized Game struct by app ID
+func (s *Steam) GetGameData(id string) (*Game, bool, error) {
+	isShortcut := IsShortcut(id)
+	isInstalled := s.LibraryConfig.IsInstalled(id)
+
+	name, valid := s.AppidCache.Get(id)
+	if name != "" && valid {
+		data := &Game{
+			ID:          id,
+			Name:        name,
+			IsInstalled: isInstalled,
+			IsShortcut:  isShortcut,
+		}
+
+		return data, true, nil
 	}
 
+	var err error
+
+	if isShortcut {
+		// TODO Get name from shortcuts
+		name = ""
+	} else {
+		name, err = s.AppInfo.GetName(id)
+		if err != nil {
+			return nil, false, err
+		}
+
+		if name == "" {
+			name, err = s.GetNameFromAPI(id)
+			if err != nil {
+				return nil, false, err
+			}
+		}
+	}
+
+	valid = name != ""
+	s.AppidCache.Add(id, name, valid)
+
 	return &Game{
-		ID:          g.ID,
-		Name:        g.Name,
-		IsInstalled: g.IsInstalled,
-		IsShortcut:  g.IsShortcut,
-	}, isValid, nil
+		ID:          id,
+		Name:        name,
+		IsInstalled: isInstalled,
+		IsShortcut:  isShortcut,
+	}, valid, nil
 }

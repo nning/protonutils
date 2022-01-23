@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/steam2"
 	"github.com/nning/protonutils/utils"
-	"github.com/nning/protonutils/vdf2"
 	"github.com/spf13/cobra"
 )
 
@@ -69,7 +69,7 @@ func init() {
 	compatToolCleanCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
 }
 
-func validateVersion(vdf *vdf2.CompatToolMappingVdf, tools *vdf2.CompatTools, v string) {
+func validateVersion(vdf *steam2.CompatToolMappingVdf, tools *steam2.CompatTools, v string) {
 	if strings.HasPrefix(v, "proton_") || tools.IsValid(v) || vdf.IsValid(v) {
 		return
 	}
@@ -120,9 +120,10 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 
 	oldVersion := s.GetGameVersion(info.ID)
 
-	ctm, err := vdf2.GetCompatToolMapping(s)
+	s2, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
+	ctm := s2.CompatToolMapping
 	compatTools, err := ctm.ReadCompatTools()
 	exitOnError(err)
 
@@ -177,9 +178,10 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	s, err := steam.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
 
-	ctm, err := vdf2.GetCompatToolMapping(s)
+	s2, err := steam2.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
 
+	ctm := s2.CompatToolMapping
 	compatTools, err := ctm.ReadCompatTools()
 	exitOnError(err)
 
