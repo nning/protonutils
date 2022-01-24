@@ -48,6 +48,8 @@ func (ai *AppInfoVdf) GetName(id string) (string, error) {
 			break
 		}
 
+		// TODO Do not parse every entry
+		// TODO Return name and additional information like deck compatibility
 		n, err := ParseAppInfoEntry(ai.Bytes[k:])
 		if err != nil {
 			return "", err
