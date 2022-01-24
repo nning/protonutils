@@ -11,7 +11,7 @@ func Test_CompatTools_Add(t *testing.T) {
 	version := "proton_63"
 	id := "620"
 
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	game, _, err := s.GetGameData(id)
@@ -53,7 +53,7 @@ func Test_CompatTools_Merge(t *testing.T) {
 		},
 	}
 
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	compatTools1, _ := s.NewCompatTools(data1)
@@ -78,7 +78,7 @@ func Test_CompatTools_Merge(t *testing.T) {
 }
 
 func Test_CompatTools_Read(t *testing.T) {
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testSteamRoot, true)
 	assert.Empty(t, err)
 
 	err = s.ReadCompatTools()

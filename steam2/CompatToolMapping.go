@@ -74,7 +74,9 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 			continue
 		}
 
-		compatTools.Add(version, v.GetCompatToolName(version))
+		// TODO
+		// compatTools.Add(version, v.GetCompatToolName(version))
+		compatTools.Add(version, version)
 		compatTools.AddGame(version, game)
 	}
 
