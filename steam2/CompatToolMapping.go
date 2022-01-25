@@ -108,9 +108,7 @@ func (v *CompatToolMappingVdf) GetCompatToolName(version string) string {
 	return name
 }
 
-// GetCompatToolMapping opens and parses config.vdf and returns a
-// CompatToolMappingVdf containing the configurations
-func (s *Steam) InitCompatToolMapping() error {
+func (s *Steam) initCompatToolMapping() error {
 	p := path.Join(s.Root, "config", "config.vdf")
 
 	n, err := ParseTextConfig(p)

@@ -1,16 +1,12 @@
 package steam2
 
 import (
-	"io/ioutil"
-
 	"fmt"
 	"io/fs"
 	"os"
 	osUser "os/user"
 	"path"
 	"strings"
-
-	"github.com/BenLubar/vdf"
 
 	"github.com/nning/protonutils/cache"
 )
@@ -22,10 +18,11 @@ type Steam struct {
 	AppidCache       *cache.Cache
 	VersionNameCache *cache.Cache
 
-	AppInfo           *AppInfoVdf
+	AppInfo           *BinaryVdf
 	CompatToolMapping *CompatToolMappingVdf
 	LibraryConfig     *LibraryConfigVdf
 	LocalConfig       *LocalConfigVdf
+	Shortcuts         *BinaryVdf
 
 	CompatTools CompatTools
 
@@ -80,27 +77,41 @@ func New(user string, root string, ignoreCache bool) (*Steam, error) {
 		return nil, err
 	}
 
-	err = s.InitAppInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.InitCompatToolMapping()
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.InitLibraryConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.InitLocalConfig()
+	err = s.initConfigs()
 	if err != nil {
 		return nil, err
 	}
 
 	return s, nil
+}
+
+func (s *Steam) initConfigs() error {
+	err := s.initAppInfo()
+	if err != nil {
+		return err
+	}
+
+	err = s.initCompatToolMapping()
+	if err != nil {
+		return err
+	}
+
+	err = s.initLibraryConfig()
+	if err != nil {
+		return err
+	}
+
+	err = s.initLocalConfig()
+	if err != nil {
+		return err
+	}
+
+	err = s.initShortcuts()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SaveCache writes caches to disk
@@ -116,31 +127,4 @@ func (s *Steam) SaveCache() error {
 	}
 
 	return nil
-}
-
-// Lookup looks up a "key path" in a parsed VDF tree
-func Lookup(n *vdf.Node, x []string) (*vdf.Node, error) {
-	y := n
-
-	for _, key := range x {
-		y = y.FirstByName(key)
-		if y == nil {
-			return nil, &KeyNotFoundError{Name: key}
-		}
-	}
-
-	return y, nil
-}
-
-// ParseTextConfig reads a file and parses it as text VDF
-func ParseTextConfig(p string) (*vdf.Node, error) {
-	in, err := ioutil.ReadFile(p)
-	if err != nil {
-		return nil, err
-	}
-
-	var n vdf.Node
-	err = n.UnmarshalText(in)
-
-	return &n, nil
 }

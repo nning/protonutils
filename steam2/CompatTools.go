@@ -53,6 +53,8 @@ func (c CompatTools) AddGame(toolID string, game *Game) bool {
 	return true
 }
 
+// ReadCompatTools reads compatibility tool mappings from config, and sets
+// s.CompatTools accordingly.
 func (s *Steam) ReadCompatTools() error {
 	tools, err := s.CompatToolMapping.ReadCompatTools()
 	if err != nil {

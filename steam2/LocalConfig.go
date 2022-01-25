@@ -43,8 +43,7 @@ func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*Game, error) {
 	return games, nil
 }
 
-// GetLocalConfig reads and parses localconfig.vdf and returns a LocalConfigVdf
-func (s *Steam) InitLocalConfig() error {
+func (s *Steam) initLocalConfig() error {
 	p := path.Join(s.Root, "userdata", s.UID, "config", "localconfig.vdf")
 
 	n, err := ParseTextConfig(p)

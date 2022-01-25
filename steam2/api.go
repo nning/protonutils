@@ -12,6 +12,7 @@ type jsonAppData struct {
 	} `json:"data"`
 }
 
+// GetNameFromAPI returns name of game by app id using the Steam API
 func (s *Steam) GetNameFromAPI(id string) (string, error) {
 	res, err := http.Get("https://store.steampowered.com/api/appdetails/?appids=" + id)
 	if err != nil {

@@ -10,7 +10,7 @@ type Game struct {
 	Name              string            `json:"-"`
 	IsInstalled       bool              `json:"isInstalled"`
 	IsShortcut        bool              `json:"isShortcut"`
-	DeckCompatibility DeckCompatibility `json:"-"`
+	DeckCompatibility DeckCompatibility `json:"deckCompatibility"`
 }
 
 // Games maps game name to Game (app ID, install status)
@@ -43,10 +43,10 @@ func (games Games) CountInstalled() int {
 	return i
 }
 
-// Includes returns whether appID is included in g
-func (games Games) Includes(appID string) bool {
+// Includes returns whether app id is included in g
+func (games Games) Includes(id string) bool {
 	for _, data := range games {
-		if data.ID == appID {
+		if data.ID == id {
 			return true
 		}
 	}
@@ -55,48 +55,103 @@ func (games Games) Includes(appID string) bool {
 }
 
 // GetGameData returns initialized Game struct by app ID
+// TODO Rename/rewrite GetGameCached? How to handle non-cached data?
 func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 	isShortcut := IsShortcut(id)
-	isInstalled := s.LibraryConfig.IsInstalled(id)
+	isInstalled := s.LibraryConfig.IsInstalled(id) || isShortcut
+
+	game := &Game{
+		ID:          id,
+		IsInstalled: isInstalled,
+		IsShortcut:  isShortcut,
+	}
 
 	name, valid := s.AppidCache.Get(id)
 	if name != "" && valid {
-		data := &Game{
-			ID:          id,
-			Name:        name,
-			IsInstalled: isInstalled,
-			IsShortcut:  isShortcut,
-		}
-
-		return data, true, nil
+		game.Name = name
+		return game, true, nil
 	}
 
 	var err error
 
 	if isShortcut {
-		// TODO Get name from shortcuts
-		name = ""
+		game.Name, err = s.GetShortcutName(id)
+		if err != nil {
+			return nil, false, err
+		}
 	} else {
-		name, err = s.AppInfo.GetName(id)
+		game1, err := s.GetGame(id)
 		if err != nil {
 			return nil, false, err
 		}
 
-		if name == "" {
-			name, err = s.GetNameFromAPI(id)
+		if game1 != nil {
+			game = game1
+		} else if id != "0" {
+			game.Name, err = s.GetNameFromAPI(id)
 			if err != nil {
 				return nil, false, err
 			}
 		}
 	}
 
-	valid = name != ""
-	s.AppidCache.Add(id, name, valid)
+	valid = game.Name != ""
+	s.AppidCache.Add(id, game.Name, valid)
 
-	return &Game{
-		ID:          id,
-		Name:        name,
-		IsInstalled: isInstalled,
-		IsShortcut:  isShortcut,
-	}, valid, nil
+	return game, valid, nil
+}
+
+// GetGame returns Game struct by app id
+// If nameOnly is true, Game struct will only contain name
+func (s *Steam) GetGame(id string, nameOnly ...bool) (*Game, error) {
+	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
+	if i < 0 || err != nil {
+		return nil, err
+	}
+
+	n, err := ParseBinaryVdf(s.AppInfo.Bytes[i:])
+	if err != nil {
+		return nil, err
+	}
+
+	name := n.FirstByName("common").FirstByName("name").String()
+	game := &Game{
+		ID:   id,
+		Name: name,
+	}
+
+	if len(nameOnly) == 0 || (len(nameOnly) > 0 && nameOnly[0] == false) {
+		game.IsInstalled = s.LibraryConfig.IsInstalled(id)
+		game.IsShortcut = IsShortcut(id)
+
+		cn := n.FirstByName("common").FirstByName("steam_deck_compatibility")
+		game.DeckCompatibility = *GetDeckCompatibility(cn)
+	}
+
+	return game, nil
+}
+
+// GetName returns name of game by app id
+func (s *Steam) GetName(id string) (string, error) {
+	game, err := s.GetGame(id, true)
+	if game == nil || err != nil {
+		return "", err
+	}
+
+	return game.Name, err
+}
+
+// GetShortcutName returns name of shortcut by app id
+func (s *Steam) GetShortcutName(id string) (string, error) {
+	i, err := s.Shortcuts.GetNextEntryStartByID(0, InnerOffsetShortcuts, id)
+	if i < 0 || err != nil {
+		return "", nil
+	}
+
+	n, err := ParseBinaryVdf(s.Shortcuts.Bytes[i:])
+	if err != nil {
+		return "", err
+	}
+
+	return n.NextByName("AppName").String(), nil
 }

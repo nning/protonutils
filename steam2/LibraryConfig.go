@@ -4,12 +4,13 @@ import (
 	"path"
 )
 
-// LocalConfigVdf represents parsed VDF config for library config from
+// LibraryConfigVdf represents parsed VDF config for library config from
 // libraryfolders.vdf
 type LibraryConfigVdf struct {
 	Vdf
 }
 
+// GetLibraryPathByID returns library path for app id
 func (vdf LibraryConfigVdf) GetLibraryPathByID(id string) string {
 	x := vdf.Root.FirstSubTree()
 	for {
@@ -34,13 +35,12 @@ func (vdf LibraryConfigVdf) GetLibraryPathByID(id string) string {
 	return ""
 }
 
+// IsInstalled returns whether app id is installed
 func (vdf LibraryConfigVdf) IsInstalled(id string) bool {
 	return vdf.GetLibraryPathByID(id) != ""
 }
 
-// GetLibraryConfig reads and parses libraryfolders.vdf and returns a
-// LibraryConfigVdf
-func (s *Steam) InitLibraryConfig() error {
+func (s *Steam) initLibraryConfig() error {
 	p := path.Join(s.Root, "steamapps", "libraryfolders.vdf")
 
 	n, err := ParseTextConfig(p)

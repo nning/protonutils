@@ -68,16 +68,3 @@ func (games Games) Sort() []string {
 	sort.Strings(keys)
 	return keys
 }
-
-// CountInstalled returns count of installed games
-func (games Games) CountInstalled() int {
-	i := 0
-
-	for _, game := range games {
-		if game.IsInstalled {
-			i++
-		}
-	}
-
-	return i
-}
