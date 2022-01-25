@@ -128,3 +128,7 @@ func (s *Steam) SaveCache() error {
 
 	return nil
 }
+
+func (s *Steam) GetCompatibilityToolsDir() string {
+	return path.Join(s.Root, "compatibilitytools.d")
+}

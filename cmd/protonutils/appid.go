@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
 )
 
@@ -23,10 +23,10 @@ func init() {
 }
 
 func appid(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	err = s.ReadCompatToolVersions()
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
 	data := s.AppidCache.Dump()
