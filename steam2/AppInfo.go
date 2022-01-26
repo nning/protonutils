@@ -30,27 +30,28 @@ func (s *Steam) GetCompatToolName(id string) (string, error) {
 	// Search for app ID 891390 ("SteamPlay 2.0 Manifests")
 	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, "891390")
 	if i < 0 || err != nil {
-		goto cache_and_return
+		goto cache_and_return_error
 	}
 
 	n, err = ParseBinaryVdf(s.AppInfo.Bytes[i:])
 	if err != nil {
-		goto cache_and_return
+		goto cache_and_return_error
 	}
 
 	n = n.FirstByName("extended").FirstByName("compat_tools")
 	n = n.FirstByName(id).FirstByName("display_name")
 
 	name = n.String()
-
-cache_and_return:
-	if err != nil || name == "" {
-		s.VersionNameCache.Add(id, id, false)
-		return id, err
+	if name == "" {
+		goto cache_and_return_error
 	}
 
 	s.VersionNameCache.Add(id, name, true)
 	return name, nil
+
+cache_and_return_error:
+	s.VersionNameCache.Add(id, id, false)
+	return id, err
 }
 
 func (s *Steam) initAppInfo() error {
