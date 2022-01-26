@@ -32,6 +32,10 @@ func (c CompatTools) IsValid(v string) bool {
 // Add adds an entry to the CompatTools config (by tool id and (display) name)
 func (c CompatTools) Add(id, name string) {
 	if c[id] != nil {
+		if c[id].Name != name && name != "" {
+			c[id].Name = name
+		}
+
 		return
 	}
 
@@ -167,9 +171,9 @@ func (s *Steam) NewCompatTools(data ...map[string][]string) (*CompatTools, error
 					return nil, err
 				}
 
-				// TODO Implement GetCompatToolName
-				// compatTools.Add(versionID, s.GetCompatToolName(versionID))
-				compatTools.Add(versionID, versionID)
+				versionName, _ := s.GetCompatToolName(versionID)
+
+				compatTools.Add(versionID, versionName)
 				compatTools.AddGame(versionID, game)
 			}
 		}

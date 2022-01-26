@@ -17,16 +17,17 @@ func Test_CompatTools_Add(t *testing.T) {
 	game, _, err := s.GetGameData(id)
 	assert.Empty(t, err)
 
-	// TODO
-	// compatTools.Add(version, s.GetCompatToolName(version))
-	compatTools.Add(version, version)
+	versionName, err := s.GetCompatToolName(version)
+	assert.Empty(t, err)
+	assert.Equal(t, "Proton 6.3-8", versionName)
+
+	compatTools.Add(version, versionName)
 	compatTools.AddGame(version, game)
 
 	v := compatTools[version]
 	assert.NotEmpty(t, v)
 	assert.Equal(t, version, v.ID)
-	// assert.Equal(t, "Proton 6.3-8", v.Name)
-	assert.Equal(t, "proton_63", v.Name)
+	assert.Equal(t, "Proton 6.3-8", v.Name)
 	assert.Equal(t, 1, len(v.Games))
 
 	g := v.Games["Portal 2"]

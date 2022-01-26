@@ -102,8 +102,6 @@ func (v *CompatToolMappingVdf) GetCompatToolName(version string) string {
 		isDefault = true
 	}
 
-	// TODO implement with vdf2
-	// name := v.Steam.GetCompatToolName(version)
 	name := version
 	if isDefault {
 		name = name + " (Default)"
