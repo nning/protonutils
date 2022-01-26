@@ -42,9 +42,9 @@ func Test_ReadCompatTools(t *testing.T) {
 			assert.NotEqual(t, "", compatTool.Name)
 		}
 
-		if compatTool.IsCustom {
-			assert.Equal(t, compatTool.ID, compatTool.Name)
-		}
+		// if compatTool.IsCustom {
+		// 	assert.Equal(t, compatTool.ID, compatTool.Name)
+		// }
 
 		assert.NotEqual(t, 0, len(compatTool.Games))
 	}

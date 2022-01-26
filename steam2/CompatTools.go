@@ -11,7 +11,7 @@ type CompatTool struct {
 	Name      string `json:"name"`
 	Games     Games  `json:"games"`
 	IsDefault bool   `json:"isDefault"`
-	IsCustom  bool   `json:"isCustom"`
+	// IsCustom  bool   `json:"isCustom"`
 }
 
 // CompatTools maps compatibility tool version IDs to CompatTool objects

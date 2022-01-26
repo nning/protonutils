@@ -6,8 +6,8 @@ import (
 
 // DeckCompatibility holds deck compatibility info for a game
 type DeckCompatibility struct {
-	Category DeckCompatibilityCategory
-	Tests    []string
+	Category DeckCompatibilityCategory `json:"category"`
+	Tests    []string                  `json:"tests"`
 }
 
 // String returns string that represents deck compatibility status
