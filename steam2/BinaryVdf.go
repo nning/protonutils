@@ -33,16 +33,11 @@ func getAppIDNeedle(id string) ([]byte, error) {
 	return needle[:l], nil
 }
 
-// GetNextEntryStartByID returns the next offset to a appinfo binary VDF entry
-// by app id (starting at a given offset)
-func (bVdf *BinaryVdf) GetNextEntryStartByID(offset, innerOffset int, id string) (int, error) {
-	if id == "" || id == "0" {
-		return -1, nil
-	}
-
-	needle, err := getAppIDNeedle(id)
-	if err != nil {
-		return -1, err
+// GetNextEntryStart returns the next offset to a binary VDF entry beginning
+// where needle was found (starting at given offset)
+func (bVdf *BinaryVdf) GetNextEntryStart(offset, innerOffset int, needle []byte) int {
+	if len(needle) == 0 {
+		return -1
 	}
 
 	in := bVdf.Bytes
@@ -57,10 +52,25 @@ func (bVdf *BinaryVdf) GetNextEntryStartByID(offset, innerOffset int, id string)
 			continue
 		}
 
-		return i - innerOffset, nil
+		return i - innerOffset
 	}
 
-	return -1, nil
+	return -1
+}
+
+// GetNextEntryStartByID returns the next offset to a appinfo binary VDF entry
+// by app id (starting at a given offset)
+func (bVdf *BinaryVdf) GetNextEntryStartByID(offset, innerOffset int, id string) (int, error) {
+	if id == "" || id == "0" {
+		return -1, nil
+	}
+
+	needle, err := getAppIDNeedle(id)
+	if err != nil {
+		return -1, err
+	}
+
+	return bVdf.GetNextEntryStart(offset, innerOffset, needle), nil
 }
 
 // ParseBinaryVdf unmarshals `in` as binary VDF

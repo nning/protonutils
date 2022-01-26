@@ -70,14 +70,18 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 			return nil, err
 		}
 
-		if !isValid {
+		if !isValid && id != "0" {
 			continue
 		}
 
-		// TODO
-		// compatTools.Add(version, v.GetCompatToolName(version))
-		compatTools.Add(version, version)
-		compatTools.AddGame(version, game)
+		versionName, _ := v.Steam.GetCompatToolName(version)
+
+		if id == "0" {
+			compatTools.Add("", versionName+" (Default)")
+		} else {
+			compatTools.Add(version, versionName)
+			compatTools.AddGame(version, game)
+		}
 	}
 
 	return compatTools, nil
