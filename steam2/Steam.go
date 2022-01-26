@@ -22,6 +22,7 @@ type Steam struct {
 	CompatToolMapping *CompatToolMappingVdf
 	LibraryConfig     *LibraryConfigVdf
 	LocalConfig       *LocalConfigVdf
+	LoginUsers        *LoginUsersVdf
 	Shortcuts         *BinaryVdf
 
 	CompatTools CompatTools
@@ -70,6 +71,11 @@ func New(user string, root string, ignoreCache bool) (*Steam, error) {
 	}
 
 	s.CompatTools = make(CompatTools)
+
+	err = s.initLoginUsers()
+	if err != nil {
+		return nil, err
+	}
 
 	uid, _ := s.userToID32(user)
 	s.UID, err = s.getUID(uid)
@@ -129,6 +135,7 @@ func (s *Steam) SaveCache() error {
 	return nil
 }
 
+// GetCompatibilityToolsDir returns compatibilitytools.d location
 func (s *Steam) GetCompatibilityToolsDir() string {
 	return path.Join(s.Root, "compatibilitytools.d")
 }

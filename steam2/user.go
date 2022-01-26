@@ -14,22 +14,19 @@ import (
 )
 
 func (s *Steam) getID64(u string) (string, error) {
-	// // TODO Implement getLoginUsers()
-	// cfg, err := s.getLoginUsers()
-	// if err != nil {
-	// 	return "", err
-	// }
-
-	// for id, c := range cfg {
-	// 	if c.(mapLevel)["AccountName"] == u {
-	// 		return id, nil
-	// 	}
-	// }
+	uid := s.LoginUsers.GetID64(u)
+	if uid != "" {
+		return uid, nil
+	}
 
 	return "", errors.New("User not found: " + u)
 }
 
 func (s *Steam) userToID32(u string) (string, error) {
+	if u == "" {
+		return "", nil
+	}
+
 	idStr64, err := s.getID64(u)
 	if err != nil {
 		x, e := strconv.ParseInt(u, 10, 32)
