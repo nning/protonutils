@@ -2,6 +2,7 @@ package steam2
 
 import (
 	"io/ioutil"
+	"os"
 	"path"
 )
 
@@ -11,7 +12,7 @@ const InnerOffsetShortcuts = 1
 func (s *Steam) initShortcuts() error {
 	p := path.Join(s.Root, "userdata", s.UID, "config", "shortcuts.vdf")
 	in, err := ioutil.ReadFile(p)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
