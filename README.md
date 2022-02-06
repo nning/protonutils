@@ -27,7 +27,7 @@ There is a [package in the AUR][2].
 
 ## Manual Build
 
-Minimal Go version is 1.17.
+Minimal Go version is 1.18.
 
 This step is only necessary if aforementioned binary does not suit your needs for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
 
