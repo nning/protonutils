@@ -10,8 +10,7 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/nning/protonutils/steam"
-	"github.com/nning/protonutils/vdf2"
+	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
 )
 
@@ -61,10 +60,10 @@ func luxtorpedaDownload(cmd *cobra.Command, args []string) {
 	dirpath := "luxtorpeda-" + tag[1:]
 	filepath := dirpath + ".tar.xz"
 
-	s, err := steam.New(user, cfg.SteamRoot, false)
+	s, err := steam2.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
 
-	dir := getCompatDir(s)
+	dir := s.GetCompatibilityToolsDir()
 	_, err = os.Stat(dir)
 	if err != nil {
 		err = os.Mkdir(dir, 0700)
@@ -112,7 +111,7 @@ func luxtorpedaDownload(cmd *cobra.Command, args []string) {
 	exitOnError(err)
 
 	vdfPath := path.Join(dirpath, "compatibilitytool.vdf")
-	root, err := vdf2.ParseTextConfig(vdfPath)
+	root, err := steam2.ParseTextConfig(vdfPath)
 	exitOnError(err)
 
 	n := root.FirstChild().FirstChild()
