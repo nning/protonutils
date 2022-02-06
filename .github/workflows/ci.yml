@@ -19,11 +19,11 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           stable: false
-          go-version: '1.18.0-beta1'
+          go-version: '1.18.0-beta2'
 
       - name: Lint
         run: |
-          sudo apt-get install golint
+          go install golang.org/x/lint/golint@latest
           make lint
 
       - name: Prepare Steam Root for Tests
