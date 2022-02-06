@@ -7,7 +7,7 @@ import (
 // Game represents Steam game or shortcut
 type Game struct {
 	ID          string `json:"appID"`
-	Name        string `json:"name"`
+	Name        string `json:"-"`
 	IsInstalled bool   `json:"isInstalled"`
 	IsShortcut  bool   `json:"isShortcut"`
 }
@@ -26,11 +26,13 @@ func (s *Steam) addGame(versionID, versionName, gameID string, isDefault bool) (
 	}
 
 	if s.CompatToolVersions[versionName] == nil {
+		isCustom, _ := s.IsCustomVersion(versionID)
 		s.CompatToolVersions[versionName] = &Version{
 			ID:        versionID,
 			Name:      versionName,
 			Games:     make(Games),
 			IsDefault: isDefault,
+			IsCustom:  isCustom,
 		}
 	}
 

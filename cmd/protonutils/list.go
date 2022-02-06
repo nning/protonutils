@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
 )
 
@@ -15,13 +15,8 @@ var listCmd = &cobra.Command{
 	Run:   list,
 }
 
-var all bool
-var jsonOutput bool
-var showAppID bool
-
 func init() {
 	rootCmd.AddCommand(listCmd)
-
 	listCmd.Flags().BoolVarP(&all, "all", "a", false, "List both installed and non-installed games")
 	listCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 	listCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output JSON (implies -a and -i)")
@@ -29,33 +24,22 @@ func init() {
 	listCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 }
 
-func countVisibleGames(games steam.Games) int {
-	i := 0
-
-	for _, game := range games {
-		if game.IsInstalled {
-			i++
-		}
-	}
-
-	return i
-}
-
 func list(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	err = s.ReadCompatToolVersions()
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
 	if !jsonOutput {
-		for _, version := range s.CompatToolVersions.Sort() {
-			games := s.CompatToolVersions[version].Games
-			if !all && countVisibleGames(games) == 0 {
+		for _, toolID := range s.CompatTools.Sort() {
+			tool := s.CompatTools[toolID]
+			games := tool.Games
+			if !all && games.CountInstalled() == 0 {
 				continue
 			}
 
-			fmt.Println(version)
+			fmt.Println(tool.Name)
 
 			for _, game := range games.Sort() {
 				if all || games[game].IsInstalled {
@@ -76,7 +60,7 @@ func list(cmd *cobra.Command, args []string) {
 			fmt.Println()
 		}
 	} else {
-		j, err := json.MarshalIndent(s.CompatToolVersions, "", "  ")
+		j, err := json.MarshalIndent(s.CompatTools, "", "  ")
 		exitOnError(err)
 		fmt.Println(string(j))
 	}

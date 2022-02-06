@@ -30,8 +30,6 @@ var compatdataOpenCmd = &cobra.Command{
 	Run:   compatdataOpen,
 }
 
-var verbose bool
-
 func init() {
 	rootCmd.AddCommand(compatdataCmd)
 

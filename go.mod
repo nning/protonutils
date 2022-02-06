@@ -1,6 +1,6 @@
 module github.com/nning/protonutils
 
-go 1.17
+go 1.18
 
 require (
 	github.com/BenLubar/vdf v0.0.0-20170225232939-7fdcbaf3e86f

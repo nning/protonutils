@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/steam2"
 	"github.com/nning/protonutils/utils"
-	"github.com/nning/protonutils/vdf2"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ var compatToolListCmd = &cobra.Command{
 var compatToolSetCmd = &cobra.Command{
 	Use:   "set [flags] <game> <version>",
 	Short: "Set compatibility tool version for game",
-	Long:  "Set compatibility tool version for game. Game search string can be app ID, game name, or prefix of game name. It is matched case-insensitively, first match is used. Version parameters have to be version IDs. See `compattool list` for list of possible options.",
+	Long:  "Set compatibility tool version for game. Game search string can be app ID, game name, or prefix of game name. It is matched case-insensitively, first match is used. Version parameters have to be version IDs. See `compattool list` for list of possible options. If \"default\" is used as version, explicit mapping is removed and game uses default compatibility tool.",
 	Args:  cobra.MinimumNArgs(2),
 	Run:   compatToolSet,
 }
@@ -46,8 +46,6 @@ var compatToolCleanCmd = &cobra.Command{
 	Short: "Delete unused compatibility tools",
 	Run:   compatToolClean,
 }
-
-var remove bool
 
 func init() {
 	rootCmd.AddCommand(compatToolCmd)
@@ -71,7 +69,7 @@ func init() {
 	compatToolCleanCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
 }
 
-func validateVersion(vdf *vdf2.CompatToolMappingVdf, tools *vdf2.CompatTools, v string) {
+func validateVersion(vdf *steam2.CompatToolMappingVdf, tools *steam2.CompatTools, v string) {
 	if strings.HasPrefix(v, "proton_") || tools.IsValid(v) || vdf.IsValid(v) {
 		return
 	}
@@ -90,19 +88,24 @@ func compatToolList(cmd *cobra.Command, args []string) {
 		version := s.CompatToolVersions[versionName]
 		games := version.Games
 
+		if version.IsCustom {
+			fmt.Println(version.ID)
+			continue
+		}
+
 		for _, game := range games {
 			if game.IsInstalled {
 				id := ""
 				if versionName != version.ID && !version.IsDefault {
 					id = "[" + version.ID + "]"
+				} else if version.IsDefault {
+					id = "[default]"
 				}
 				fmt.Println(versionName, id)
 				break
 			}
 		}
 	}
-
-	// TODO Add compat tools from .compatibilitytools.d
 }
 
 func compatToolSet(cmd *cobra.Command, args []string) {
@@ -117,13 +120,17 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 
 	oldVersion := s.GetGameVersion(info.ID)
 
-	// TODO Get version ID if newVersion is name, only save mapping for ID
+	s2, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
+	exitOnError(err)
 
-	// TODO "proton_63" should be valid even though no game is using it
-	//      explicitly
-	isValidVersion, err := s.IsValidVersion(newVersion)
-	if err != nil || !isValidVersion {
-		exitOnError(fmt.Errorf("Invalid version: %v", newVersion))
+	ctm := s2.CompatToolMapping
+	compatTools, err := ctm.ReadCompatTools()
+	exitOnError(err)
+
+	if newVersion == "default" {
+		newVersion = ""
+	} else {
+		validateVersion(ctm, &compatTools, newVersion)
 	}
 
 	if oldVersion.ID == newVersion || oldVersion.Name == newVersion {
@@ -134,7 +141,11 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 	fmt.Println("App ID: ", info.ID)
 	fmt.Println("Name:   ", info.Name)
 	fmt.Println()
-	fmt.Println(oldVersion.Name, "->", newVersion)
+	if newVersion == "" {
+		fmt.Println(oldVersion.Name, "->", "default")
+	} else {
+		fmt.Println(oldVersion.Name, "->", newVersion)
+	}
 	fmt.Println()
 
 	if !yes {
@@ -146,9 +157,6 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
-
-	ctm, err := vdf2.GetCompatToolMapping(s)
-	exitOnError(err)
 
 	err = ctm.Update(info.ID, newVersion)
 	exitOnError(err)
@@ -170,9 +178,10 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	s, err := steam.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
 
-	ctm, err := vdf2.GetCompatToolMapping(s)
+	s2, err := steam2.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
 
+	ctm := s2.CompatToolMapping
 	compatTools, err := ctm.ReadCompatTools()
 	exitOnError(err)
 
@@ -227,7 +236,7 @@ func compatToolClean(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatToolVersions()
 	exitOnError(err)
 
-	toDelete := utils.StringSlice{}
+	toDelete := utils.Slice[string]{}
 
 	for versionName, version := range s.CompatToolVersions {
 		hasInstalledGame := false

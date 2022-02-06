@@ -1,10 +1,9 @@
-package vdf2
+package steam2
 
 import (
 	"path"
 
 	"github.com/BenLubar/vdf"
-	"github.com/nning/protonutils/steam"
 )
 
 // LocalConfigVdf represents parsed VDF config for app config from
@@ -15,8 +14,8 @@ type LocalConfigVdf struct {
 
 // GetViewedSteamPlay returns a slice of games for which the user confirmed the
 // Steam Play disclaimer
-func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*steam.Game, error) {
-	games := make([]*steam.Game, 0)
+func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*Game, error) {
+	games := make([]*Game, 0)
 	var x *vdf.Node
 
 	x = v.Node.FirstSubTree()
@@ -44,20 +43,21 @@ func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*steam.Game, error) {
 	return games, nil
 }
 
-// GetLocalConfig reads and parses localconfig.vdf and returns a LocalConfigVdf
-func GetLocalConfig(s *steam.Steam) (*LocalConfigVdf, error) {
+func (s *Steam) initLocalConfig() error {
 	p := path.Join(s.Root, "userdata", s.UID, "config", "localconfig.vdf")
 
-	n, err := parseTextConfig(p)
+	n, err := ParseTextConfig(p)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	key := []string{"Software", "Valve", "Steam", "apps"}
 	x, err := Lookup(n, key)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &LocalConfigVdf{Vdf{n, x, p, s}}, nil
+	s.LocalConfig = &LocalConfigVdf{Vdf{n, x, p, s}}
+
+	return nil
 }

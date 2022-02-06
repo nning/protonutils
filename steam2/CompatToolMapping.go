@@ -1,11 +1,10 @@
-package vdf2
+package steam2
 
 import (
 	"os"
 	"path"
 
 	"github.com/BenLubar/vdf"
-	"github.com/nning/protonutils/steam"
 )
 
 // CompatToolMappingVdf represents parsed VDF config for CompatToolMapping
@@ -14,13 +13,13 @@ type CompatToolMappingVdf struct {
 }
 
 // Add adds a new compatibility tool version mapping for a given app id
-func (v *CompatToolMappingVdf) Add(id, version string) {
+func (v *CompatToolMappingVdf) Add(appID, versionID string) {
 	var n0 vdf.Node
-	n0.SetName(id)
+	n0.SetName(appID)
 
 	var n1 vdf.Node
 	n1.SetName("name")
-	n1.SetString(version)
+	n1.SetString(versionID)
 
 	var n2 vdf.Node
 	n2.SetName("config")
@@ -38,10 +37,10 @@ func (v *CompatToolMappingVdf) Add(id, version string) {
 }
 
 // Update changes or adds a compatibility tool version mapping for a given app
-// id
+// ID
 func (v *CompatToolMappingVdf) Update(id, version string) error {
 	x, err := Lookup(v.Node, []string{id, "name"})
-	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 
 	if isKeyNotFoundError {
 		v.Add(id, version)
@@ -71,12 +70,18 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 			return nil, err
 		}
 
-		if !isValid {
+		if !isValid && id != "0" {
 			continue
 		}
 
-		compatTools.Add(version, v.Steam.GetCompatToolName(version))
-		compatTools.AddGame(version, game)
+		versionName, _ := v.Steam.GetCompatToolName(version)
+
+		if id == "0" {
+			compatTools.Add("", versionName+" (Default)")
+		} else {
+			compatTools.Add(version, versionName)
+			compatTools.AddGame(version, game)
+		}
 	}
 
 	return compatTools, nil
@@ -88,24 +93,44 @@ func (v *CompatToolMappingVdf) IsValid(version string) bool {
 	return err == nil && fInfo.IsDir()
 }
 
-// GetCompatToolMapping opens and parses config.vdf and returns a
-// CompatToolMappingVdf containing the configurations
-func GetCompatToolMapping(s *steam.Steam) (*CompatToolMappingVdf, error) {
+// GetCompatToolName returns human-readable name for compatibility tool
+func (v *CompatToolMappingVdf) GetCompatToolName(version string) string {
+	isDefault := false
+
+	if version == "" {
+		version = v.Node.FirstByName("0").FirstByName("name").String()
+		isDefault = true
+	}
+
+	name := version
+	if isDefault {
+		name = name + " (Default)"
+	}
+
+	return name
+}
+
+func (s *Steam) initCompatToolMapping() error {
 	p := path.Join(s.Root, "config", "config.vdf")
 
-	n, err := parseTextConfig(p)
+	n, err := ParseTextConfig(p)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	key := []string{"Software", "Valve", "Steam", "CompatToolMapping"}
 	x, err := Lookup(n, key)
 
-	_, isKeyNotFoundError := err.(*steam.KeyNotFoundError)
+	_, isKeyNotFoundError := err.(*KeyNotFoundError)
 	if err != nil && isKeyNotFoundError {
 		key[2] = "steam"
 		x, err = Lookup(n, key)
+		if err != nil {
+			return err
+		}
 	}
 
-	return &CompatToolMappingVdf{Vdf{n, x, p, s}}, err
+	s.CompatToolMapping = &CompatToolMappingVdf{Vdf{n, x, p, s}}
+
+	return nil
 }

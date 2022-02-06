@@ -3,8 +3,8 @@
 protonutils is a CLI tool that provides different utilities to make using the [Proton][0] compatibility tool more easily. It has the following features:
 
 * List games by configured Proton version
-* Download latest [Proton-GE][1] release
-* Download older Proton-GE releases
+* Download latest and older [Proton-GE][1] releases
+* Download latest and older [Luxtorpeda][3] releases
 * Clean-up unused compatibility tools automatically
 * Search for app ID by name
 * Print or open compatdata and install directories by game name  
@@ -27,7 +27,7 @@ There is a [package in the AUR][2].
 
 ## Manual Build
 
-This step should only be necessary for development.
+This step should only be necessary for development. Minimal Go version is 1.18.
 
 ### Requirements
 
@@ -144,3 +144,4 @@ on Arch Linux if you installed from the AUR).
 [0]: https://github.com/ValveSoftware/Proton
 [1]: https://github.com/GloriousEggroll/proton-ge-custom
 [2]: https://aur.archlinux.org/packages/protonutils/
+[3]: https://github.com/luxtorpeda-dev/luxtorpeda
