@@ -79,6 +79,10 @@ func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 		if err != nil {
 			return nil, false, err
 		}
+
+		if game.Name == "" {
+			game.IsInstalled = false
+		}
 	} else {
 		game1, err := s.GetGame(id)
 		if err != nil {

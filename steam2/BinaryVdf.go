@@ -43,7 +43,7 @@ func (bVdf *BinaryVdf) GetNextEntryStart(offset, innerOffset int, needle []byte)
 	in := bVdf.Bytes
 	l := len(needle)
 
-	for i := offset; i < len(in); i++ {
+	for i := offset; i+l < len(in); i++ {
 		if in[i] != needle[0] {
 			continue
 		}

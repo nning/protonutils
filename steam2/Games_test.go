@@ -59,6 +59,10 @@ func Test_GetShortcutName(t *testing.T) {
 	n, err := s.GetShortcutName("3228583970")
 	assert.Empty(t, err)
 	assert.Equal(t, "Kena - Bridge of Spirits", n)
+
+	n, err = s.GetShortcutName("2977655160")
+	assert.Empty(t, err)
+	assert.Equal(t, "", n)
 }
 
 func Test_GetGameData(t *testing.T) {
@@ -81,10 +85,25 @@ func Test_GetGameData(t *testing.T) {
 	}
 
 	for id, name := range games {
-		n, isValid, err := s.GetGameData(id)
+		g, isValid, err := s.GetGameData(id)
 		assert.Empty(t, err)
 		assert.True(t, isValid)
-		assert.NotEmpty(t, n)
-		assert.Equal(t, name, n.Name)
+		assert.NotEmpty(t, g)
+		assert.Equal(t, name, g.Name)
 	}
+}
+
+func Test_GetGameData_MissingShortcut(t *testing.T) {
+	s, err := New("", testSteamRoot, true)
+	assert.Empty(t, err)
+	assert.NotEmpty(t, s.AppInfo)
+
+	g, isValid, err := s.GetGameData("2977655160")
+	assert.Empty(t, err)
+	assert.False(t, isValid)
+
+	assert.NotEmpty(t, g)
+	assert.Equal(t, "", g.Name)
+	assert.False(t, g.IsInstalled)
+	assert.True(t, g.IsShortcut)
 }
