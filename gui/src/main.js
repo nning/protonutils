@@ -6,7 +6,7 @@ let app;
 
 Wails.Init(() => {
   app = new App({
-    target: document.body
+    target: document.getElementById('app')
   });
 
   window.addEventListener('gamepadconnected', function(e) {

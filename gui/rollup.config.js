@@ -6,12 +6,13 @@ import {terser} from 'rollup-plugin-terser';
 import image from '@rollup/plugin-image';
 import babel from 'rollup-plugin-babel';
 import polyfill from 'rollup-plugin-polyfill';
+import preprocess from 'svelte-preprocess';
 
 const production = !process.env.ROLLUP_WATCH;
 
 function serve() {
 	let server;
-	
+
 	function toExit() {
 		if (server) server.kill(0);
 	}
@@ -43,6 +44,7 @@ export default {
 		svelte({
 			// enable run-time checks when not in production
 			dev: !production,
+      preprocess: preprocess(),
 			// we'll extract any component CSS out into
 			// a separate file - better for performance
 			css: css => {

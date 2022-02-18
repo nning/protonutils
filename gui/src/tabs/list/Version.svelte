@@ -1,23 +1,33 @@
 <script>
   export let version = {};
 
-  $: games = version?.games && Object.values(version?.games)
-
-  function hasInstalledGames() {
-    try {
-      return !!games.find(game => game.isInstalled);
-    } catch(e) {
-      return false;
-    }
-  }
+  $: games = version?.games || {};
+  $: count = Object.values(games).filter(game => game.isInstalled).length;
 </script>
 
-{#if hasInstalledGames()}
-  <h2>{version.name}</h2>
+<style lang="scss">
+  @import '../../main.scss';
+
+  h2 {
+    // font-weight: 500;
+    font-size: 18px;
+
+    .count {
+      color: $foreground-dark;
+    }
+  }
+</style>
+
+{#if count > 0}
+  <h2>
+    {version.name}
+    <span class="count">{count}</span>
+  </h2>
+
   <ul>
-    {#each games as game}
-      {#if game.isInstalled}
-        <li>{game.name}</li>
+    {#each Object.entries(games) as game}
+      {#if game[1].isInstalled}
+        <li>{game[0]}</li>
       {/if}
     {/each}
   </ul>

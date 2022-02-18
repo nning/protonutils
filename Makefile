@@ -42,6 +42,9 @@ run: run_utils
 run_utils: $(UTILS_BIN)
 	./$(UTILS_BIN) $(args)
 
+run_gui_bridge: clean build_bridge
+	./$(UTILS_BIN) gui
+
 test:
 	go test -cover -coverprofile .coverage ./...
 
@@ -51,10 +54,13 @@ coverage: test
 lint:
 	golint ./...
 
-build_pie: GOLDFLAGS += -s -w -linkmode external -extldflags \"$(LDFLAGS)\"
-build_pie: GOFLAGS += -trimpath -buildmode=pie -mod=readonly -modcacherw
-build_pie: WAILS_BUILD_MODE = prod
-build_pie: build
+build_bridge: WAILS_BUILD_MODE = bridge
+build_bridge: build
+
+build_prod: GOLDFLAGS += -s -w -linkmode external -extldflags \"$(LDFLAGS)\"
+build_prod: GOFLAGS += -trimpath -buildmode=pie -mod=readonly -modcacherw
+build_prod: WAILS_BUILD_MODE = prod
+build_prod: build
 
 completion: build
 	$(UTILS_BIN) completion zsh > $(COMPLETION_ZSH_SRC)
@@ -62,11 +68,11 @@ completion: build
 man: build
 	$(UTILS_BIN) -m $(MAN_SRC)
 
-release: build_pie
+release: build_prod
 	upx -qq --best $(UTILS_BIN)
 	ls -lh $(UTILS_BIN)
 
-install: build_pie completion man
+install: build_prod completion man
 	mkdir -p $(PREFIX) $(ZSH_PREFIX) $(MAN_PREFIX)
 	cp $(UTILS_BIN) $(PREFIX)
 	cp $(COMPLETION_ZSH_SRC) $(ZSH_PREFIX)/_protonutils
