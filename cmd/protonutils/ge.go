@@ -47,15 +47,19 @@ func init() {
 func egrollDownload(cmd *cobra.Command, args []string) {
 	tag := args[0]
 
-	valid, err := regexp.MatchString("^[0-9]*\\.[0-9]*(rc[0-9])?-GE-[0-9]*", tag)
+	validOld, err := regexp.MatchString("^[0-9]*\\.[0-9]*(rc[0-9])?-GE-[0-9]*", tag)
+	validNew, err := regexp.MatchString("^GE-Proton[0-9]*-[0-9]*", tag)
 	exitOnError(err)
 
-	if !valid {
+	if !validOld && !validNew {
 		fmt.Fprintln(os.Stderr, "No valid GE version tag")
 		os.Exit(1)
 	}
 
-	dirpath := "Proton-" + tag
+	dirpath := tag
+	if validOld {
+		dirpath = "Proton-" + tag
+	}
 	filepath := dirpath + ".tar.gz"
 
 	s, err := steam.New(user, cfg.SteamRoot, false)
