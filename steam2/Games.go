@@ -2,6 +2,7 @@ package steam2
 
 import (
 	"sort"
+	"strings"
 )
 
 // Game represents Steam game or shortcut
@@ -158,4 +159,23 @@ func (s *Steam) GetShortcutName(id string) (string, error) {
 	}
 
 	return n.NextByName("AppName").String(), nil
+}
+
+// GetAppIDAndNames returns app IDs and proper names for name search (from
+// AppidCache cache)
+func (s *Steam) GetAppIDAndNames(idOrName string) [][]string {
+	data := s.AppidCache.Dump()
+
+	results := make([][]string, 0)
+
+	for id, value := range data {
+		a := strings.ToLower(value.Name)
+		b := strings.ToLower(idOrName)
+
+		if a == b || strings.HasPrefix(a, b) || id == idOrName {
+			results = append(results, []string{id, value.Name})
+		}
+	}
+
+	return results
 }

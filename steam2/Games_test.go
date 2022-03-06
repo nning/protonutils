@@ -107,3 +107,54 @@ func Test_GetGameData_MissingShortcut(t *testing.T) {
 	assert.False(t, g.IsInstalled)
 	assert.True(t, g.IsShortcut)
 }
+
+func Test_GetAppIDAndName(t *testing.T) {
+	s, err := New("", testSteamRoot, false)
+	assert.Empty(t, err)
+	assert.NotEmpty(t, s)
+
+	s.ReadCompatTools()
+
+	// Exact name match but lowercase
+	results := s.GetAppIDAndNames("disco elysium")
+	assert.Equal(t, 1, len(results))
+	assert.Equal(t, "632470", results[0][0])
+	assert.Equal(t, "Disco Elysium", results[0][1])
+
+	// ID match
+	results = s.GetAppIDAndNames("632470")
+	assert.Equal(t, 1, len(results))
+	assert.Equal(t, "632470", results[0][0])
+	assert.Equal(t, "Disco Elysium", results[0][1])
+
+	// Prefix and lowercase match
+	results = s.GetAppIDAndNames("cyberpunk")
+	assert.Equal(t, 1, len(results))
+	assert.Equal(t, "1091500", results[0][0])
+	assert.Equal(t, "Cyberpunk 2077", results[0][1])
+
+	// Several matches
+	results = s.GetAppIDAndNames("fallout")
+	assert.Equal(t, 4, len(results))
+
+	expected := [][]string{
+		{"22370", "Fallout 3 - Game of the Year Edition"},
+		{"22380", "Fallout: New Vegas"},
+		{"377160", "Fallout 4"},
+		{"1151340", "Fallout 76"},
+	}
+
+	for _, res := range results {
+		var x []string
+
+		for _, ex := range expected {
+			if res[0] == ex[0] {
+				x = res
+			}
+		}
+
+		assert.Equal(t, 2, len(x))
+		assert.Equal(t, x[0], res[0])
+		assert.Equal(t, x[1], res[1])
+	}
+}

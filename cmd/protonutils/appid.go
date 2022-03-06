@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
@@ -29,14 +29,12 @@ func appid(cmd *cobra.Command, args []string) {
 	err = s.ReadCompatTools()
 	exitOnError(err)
 
-	data := s.AppidCache.Dump()
+	results := s.GetAppIDAndNames(args[0])
+	if len(results) == 0 {
+		exitOnError(errors.New("App ID could not be found"))
+	}
 
-	for id, value := range data {
-		a := strings.ToLower(value.Name)
-		b := strings.ToLower(args[0])
-
-		if a == b || strings.HasPrefix(a, b) {
-			fmt.Println(id, " ", value.Name)
-		}
+	for _, result := range results {
+		fmt.Println(result[0], " ", result[1])
 	}
 }
