@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/nning/protonutils/steam2"
+	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +47,7 @@ func init() {
 }
 
 func getCompatdataPath(idOrName string) (string, string, error) {
-	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	id, name, err := s.GetAppIDAndName(idOrName)

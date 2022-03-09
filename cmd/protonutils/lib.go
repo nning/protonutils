@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/nning/protonutils/steam2"
+	"github.com/nning/protonutils/steam"
 )
 
 // Feed represents Atom root node
@@ -75,6 +75,6 @@ func getURL(url string) (io.Reader, uint64, error) {
 	return res.Body, uint64(size), nil
 }
 
-func getCompatDir(s *steam2.Steam) string {
+func getCompatDir(s *steam.Steam) string {
 	return path.Join(s.Root, "compatibilitytools.d")
 }

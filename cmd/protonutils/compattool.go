@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/nning/protonutils/steam2"
+	"github.com/nning/protonutils/steam"
 	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
 )
@@ -69,7 +69,7 @@ func init() {
 	compatToolCleanCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
 }
 
-func validateVersion(vdf *steam2.CompatToolMappingVdf, tools *steam2.CompatTools, v string) {
+func validateVersion(vdf *steam.CompatToolMappingVdf, tools *steam.CompatTools, v string) {
 	if strings.HasPrefix(v, "proton_") || tools.IsValid(v) || vdf.IsValid(v) {
 		return
 	}
@@ -78,7 +78,7 @@ func validateVersion(vdf *steam2.CompatToolMappingVdf, tools *steam2.CompatTools
 }
 
 func compatToolList(cmd *cobra.Command, args []string) {
-	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatTools()
@@ -110,7 +110,7 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 	idOrName := args[0]
 	newVersion := args[1]
 
-	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatTools()
@@ -176,7 +176,7 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	fromVersion := args[0]
 	toVersion := args[1]
 
-	s, err := steam2.New(user, cfg.SteamRoot, false)
+	s, err := steam.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
 
 	ctm := s.CompatToolMapping
@@ -228,7 +228,7 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 }
 
 func compatToolClean(cmd *cobra.Command, args []string) {
-	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatTools()

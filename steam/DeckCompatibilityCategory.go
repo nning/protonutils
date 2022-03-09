@@ -1,4 +1,4 @@
-package steam2
+package steam
 
 // DeckCompatibilityCategory represents deck compatibility category
 type DeckCompatibilityCategory int

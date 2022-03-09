@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/nning/protonutils/steam2"
+	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ func init() {
 }
 
 func list(cmd *cobra.Command, args []string) {
-	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
 	err = s.ReadCompatTools()

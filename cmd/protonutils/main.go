@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/nning/protonutils/config"
-	"github.com/nning/protonutils/steam2"
+	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 
@@ -24,7 +24,7 @@ var cfg config.Config
 
 func exitOnAmbiguousNameError(cmd *cobra.Command, args []string, err error) {
 	if err != nil {
-		if _, isAmbiguous := err.(*steam2.AmbiguousNameError); isAmbiguous {
+		if _, isAmbiguous := err.(*steam.AmbiguousNameError); isAmbiguous {
 			appid(cmd, args)
 			fmt.Println()
 		}

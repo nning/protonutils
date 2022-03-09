@@ -1,4 +1,4 @@
-package steam2
+package steam
 
 import (
 	"os"
