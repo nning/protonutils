@@ -11,7 +11,7 @@ type CompatTool struct {
 	Name      string `json:"name"`
 	Games     Games  `json:"games"`
 	IsDefault bool   `json:"isDefault"`
-	// IsCustom  bool   `json:"isCustom"`
+	IsCustom  bool   `json:"isCustom"`
 }
 
 // CompatTools maps compatibility tool version IDs to CompatTool objects
@@ -43,6 +43,7 @@ func (c CompatTools) Add(id, name string) {
 		ID:        id,
 		Name:      name,
 		IsDefault: id == "",
+		IsCustom:  id != "" && id == name,
 		Games:     make(Games),
 	}
 }

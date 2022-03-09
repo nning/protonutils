@@ -78,30 +78,28 @@ func validateVersion(vdf *steam2.CompatToolMappingVdf, tools *steam2.CompatTools
 }
 
 func compatToolList(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	err = s.ReadCompatToolVersions()
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
-	for _, versionName := range s.CompatToolVersions.Sort() {
-		version := s.CompatToolVersions[versionName]
-		games := version.Games
+	for _, toolID := range s.CompatTools.Sort() {
+		tool := s.CompatTools[toolID]
+		games := tool.Games
 
-		if version.IsCustom {
-			fmt.Println(version.ID)
+		if tool.IsCustom {
+			fmt.Println(tool.ID)
 			continue
 		}
 
 		for _, game := range games {
 			if game.IsInstalled {
 				id := ""
-				if versionName != version.ID && !version.IsDefault {
-					id = "[" + version.ID + "]"
-				} else if version.IsDefault {
-					id = "[default]"
+				if !tool.IsCustom && !tool.IsDefault {
+					id = "[" + tool.ID + "]"
 				}
-				fmt.Println(versionName, id)
+				fmt.Println(tool.Name, id)
 				break
 			}
 		}

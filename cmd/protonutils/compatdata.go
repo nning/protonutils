@@ -5,16 +5,11 @@ import (
 	"fmt"
 	"os/exec"
 	"path"
+	"strings"
 
 	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
 )
-
-type AmbiguousNameError struct{}
-
-func (err *AmbiguousNameError) Error() string {
-	return "Ambiguous name, try using app ID"
-}
 
 var compatdataCmd = &cobra.Command{
 	Use:   "compatdata",
@@ -55,17 +50,10 @@ func getCompatdataPath(idOrName string) (string, string, error) {
 	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	idAndNames := s.GetAppIDAndNames(idOrName)
-
-	l := len(idAndNames)
-	if l == 0 {
-		return "", "", errors.New("App ID or name not found")
-	} else if l > 1 {
-		return "", "", &AmbiguousNameError{}
+	id, name, err := s.GetAppIDAndName(idOrName)
+	if err != nil {
+		return "", "", err
 	}
-
-	id := idAndNames[0][0]
-	name := idAndNames[0][1]
 
 	p := s.LibraryConfig.GetLibraryPathByID(id)
 	if p == "" {
@@ -75,20 +63,9 @@ func getCompatdataPath(idOrName string) (string, string, error) {
 	return path.Join(p, "steamapps", "compatdata", id), name, nil
 }
 
-func checkError(cmd *cobra.Command, args []string, err error) {
-	if err != nil {
-		if _, isAmbiguous := err.(*AmbiguousNameError); isAmbiguous {
-			appid(cmd, args)
-			fmt.Println()
-		}
-
-		exitOnError(err)
-	}
-}
-
 func compatdataPath(cmd *cobra.Command, args []string) {
-	p, n, err := getCompatdataPath(args[0])
-	checkError(cmd, args, err)
+	p, n, err := getCompatdataPath(strings.Join(args, " "))
+	exitOnAmbiguousNameError(cmd, args, err)
 
 	if verbose {
 		fmt.Println(n)
@@ -98,8 +75,8 @@ func compatdataPath(cmd *cobra.Command, args []string) {
 }
 
 func compatdataOpen(cmd *cobra.Command, args []string) {
-	p, n, err := getCompatdataPath(args[0])
-	checkError(cmd, args, err)
+	p, n, err := getCompatdataPath(strings.Join(args, " "))
+	exitOnAmbiguousNameError(cmd, args, err)
 
 	if verbose {
 		fmt.Println(n)

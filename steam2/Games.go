@@ -1,6 +1,7 @@
 package steam2
 
 import (
+	"errors"
 	"sort"
 	"strings"
 )
@@ -16,6 +17,15 @@ type Game struct {
 
 // Games maps game name to Game (app ID, install status)
 type Games map[string]*Game
+
+// AmbiguousNameError is returned if game search by app ID or name leads to
+// several results
+type AmbiguousNameError struct{}
+
+// Error returns description string
+func (err *AmbiguousNameError) Error() string {
+	return "Ambiguous name, try using app ID"
+}
 
 // Sort returns slice of alphabetically sorted Game names
 func (games Games) Sort() []string {
@@ -178,4 +188,17 @@ func (s *Steam) GetAppIDAndNames(idOrName string) [][]string {
 	}
 
 	return results
+}
+
+func (s *Steam) GetAppIDAndName(idOrName string) (string, string, error) {
+	idAndNames := s.GetAppIDAndNames(idOrName)
+
+	l := len(idAndNames)
+	if l == 0 {
+		return "", "", errors.New("App ID or name not found")
+	} else if l > 1 {
+		return "", "", &AmbiguousNameError{}
+	}
+
+	return idAndNames[0][0], idAndNames[0][1], nil
 }

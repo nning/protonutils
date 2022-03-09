@@ -35,6 +35,6 @@ func appid(cmd *cobra.Command, args []string) {
 	}
 
 	for _, result := range results {
-		fmt.Println(result[0], " ", result[1])
+		fmt.Printf("%10v  %v\n", result[0], result[1])
 	}
 }

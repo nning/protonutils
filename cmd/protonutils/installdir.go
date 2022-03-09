@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"path"
+	"strings"
 
-	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/steam2"
 	"github.com/spf13/cobra"
 )
 
@@ -44,21 +46,29 @@ func init() {
 	installdirOpenCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show app name")
 }
 
-func getInstalldirPath(idOrName string) (string, string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+func getInstalldirPath(idOrName string) (string, string, error) {
+	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	info, err := s.GetGameInfo(idOrName)
+	id, name, err := s.GetAppIDAndName(idOrName)
+	if err != nil {
+		return "", "", err
+	}
+
+	p := s.LibraryConfig.GetLibraryPathByID(id)
+	if p == "" {
+		exitOnError(errors.New("Game not installed"))
+	}
+
+	dir, err := s.GetInstalldir(id)
 	exitOnError(err)
 
-	installdir, err := s.FindInstallDirInAppInfo(info.ID)
-	exitOnError(err)
-
-	return path.Join(info.LibraryPath, "steamapps", "common", installdir), info.Name
+	return path.Join(p, "steamapps", "common", dir), name, nil
 }
 
 func installdirPath(cmd *cobra.Command, args []string) {
-	p, n := getInstalldirPath(args[0])
+	p, n, err := getInstalldirPath(strings.Join(args, " "))
+	exitOnAmbiguousNameError(cmd, args, err)
 
 	if verbose {
 		fmt.Println(n)
@@ -68,12 +78,13 @@ func installdirPath(cmd *cobra.Command, args []string) {
 }
 
 func installdirOpen(cmd *cobra.Command, args []string) {
-	p, n := getInstalldirPath(args[0])
+	p, n, err := getInstalldirPath(strings.Join(args, " "))
+	exitOnAmbiguousNameError(cmd, args, err)
 
 	if verbose {
 		fmt.Println(n)
 	}
 
-	_, err := exec.Command("xdg-open", p).Output()
+	_, err = exec.Command("xdg-open", p).Output()
 	exitOnError(err)
 }

@@ -1,6 +1,7 @@
 package steam2
 
 import (
+	"errors"
 	"io/ioutil"
 	"path"
 
@@ -52,6 +53,34 @@ func (s *Steam) GetCompatToolName(id string) (string, error) {
 cache_and_return_error:
 	s.VersionNameCache.Add(id, id, false)
 	return id, err
+}
+
+// GetInstalldir returns installation directory of game by app ID
+func (s *Steam) GetInstalldir(id string) (string, error) {
+	if id == "" {
+		return "", nil
+	}
+
+	var n *vdf.Node
+
+	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
+	if i < 0 || err != nil {
+		return "", err
+	}
+
+	n, err = ParseBinaryVdf(s.AppInfo.Bytes[i:])
+	if err != nil {
+		return "", err
+	}
+
+	n = n.FirstByName("config").FirstByName("installdir")
+
+	dir := n.String()
+	if dir == "" {
+		return "", errors.New("installdir not found")
+	}
+
+	return dir, nil
 }
 
 func (s *Steam) initAppInfo() error {
