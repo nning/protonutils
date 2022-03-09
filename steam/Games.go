@@ -2,7 +2,6 @@ package steam
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -207,7 +206,6 @@ func (s *Steam) GetAppIDAndName(idOrName string) (string, string, error) {
 // GetGameVersion returns Version struct for a given game ID
 func (s *Steam) GetGameVersion(id string) *CompatTool {
 	for _, tool := range s.CompatTools {
-		fmt.Println(tool.ID)
 		for _, game := range tool.Games {
 			if id == game.ID {
 				return tool

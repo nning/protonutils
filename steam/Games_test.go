@@ -109,23 +109,23 @@ func Test_GetGameData_MissingShortcut(t *testing.T) {
 }
 
 func Test_GetAppIDAndName(t *testing.T) {
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testSteamRoot, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s)
 
 	s.ReadCompatTools()
 
 	// Exact name match but lowercase
-	results := s.GetAppIDAndNames("disco elysium")
+	results := s.GetAppIDAndNames("horizon zero dawn")
 	assert.Equal(t, 1, len(results))
-	assert.Equal(t, "632470", results[0][0])
-	assert.Equal(t, "Disco Elysium", results[0][1])
+	assert.Equal(t, "1151640", results[0][0])
+	assert.Equal(t, "Horizon Zero Dawn", results[0][1])
 
 	// ID match
-	results = s.GetAppIDAndNames("632470")
+	results = s.GetAppIDAndNames("1151640")
 	assert.Equal(t, 1, len(results))
-	assert.Equal(t, "632470", results[0][0])
-	assert.Equal(t, "Disco Elysium", results[0][1])
+	assert.Equal(t, "1151640", results[0][0])
+	assert.Equal(t, "Horizon Zero Dawn", results[0][1])
 
 	// Prefix and lowercase match
 	results = s.GetAppIDAndNames("cyberpunk")
@@ -135,11 +135,9 @@ func Test_GetAppIDAndName(t *testing.T) {
 
 	// Several matches
 	results = s.GetAppIDAndNames("fallout")
-	assert.Equal(t, 4, len(results))
+	assert.Equal(t, 2, len(results))
 
 	expected := [][]string{
-		{"22370", "Fallout 3 - Game of the Year Edition"},
-		{"22380", "Fallout: New Vegas"},
 		{"377160", "Fallout 4"},
 		{"1151340", "Fallout 76"},
 	}
@@ -160,7 +158,7 @@ func Test_GetAppIDAndName(t *testing.T) {
 }
 
 func Test_GetGameVersion(t *testing.T) {
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testSteamRoot, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s)
 
