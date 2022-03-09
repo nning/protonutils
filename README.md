@@ -137,9 +137,3 @@ on Arch Linux if you installed from the AUR).
 [1]: https://github.com/GloriousEggroll/proton-ge-custom
 [2]: https://aur.archlinux.org/packages/protonutils/
 [3]: https://github.com/luxtorpeda-dev/luxtorpeda
-
-## TODOs
-
-* Migrate from `steam` to `steam2`
-  * compattool set|migrate|clean
-  * lib

@@ -158,3 +158,28 @@ func Test_GetAppIDAndName(t *testing.T) {
 		assert.Equal(t, x[1], res[1])
 	}
 }
+
+func Test_GetGameVersion(t *testing.T) {
+	s, err := New("", testSteamRoot, false)
+	assert.Empty(t, err)
+	assert.NotEmpty(t, s)
+
+	err = s.ReadCompatTools()
+	assert.Empty(t, err)
+
+	tool := s.GetGameVersion("1252330")
+	assert.NotEmpty(t, tool)
+	assert.Equal(t, "Proton-7.0rc6-GE-1", tool.ID)
+	assert.Equal(t, "Proton-7.0rc6-GE-1", tool.Name)
+
+	tool = s.GetGameVersion("1222140")
+	assert.NotEmpty(t, tool)
+	assert.Equal(t, "", tool.ID)
+	assert.Equal(t, "Proton 6.3-8 (Default)", tool.Name)
+
+	tool = s.GetGameVersion("11111111")
+	assert.Empty(t, tool)
+
+	tool = s.GetGameVersion("")
+	assert.Empty(t, tool)
+}

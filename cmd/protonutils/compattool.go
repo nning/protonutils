@@ -1,13 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/nning/protonutils/steam"
 	"github.com/nning/protonutils/steam2"
 	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
@@ -110,18 +110,21 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 	idOrName := args[0]
 	newVersion := args[1]
 
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	info, err := s.GetGameInfo(idOrName)
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
-	oldVersion := s.GetGameVersion(info.ID)
-
-	s2, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
+	id, name, err := s.GetAppIDAndName(idOrName)
 	exitOnError(err)
 
-	ctm := s2.CompatToolMapping
+	oldVersion := s.GetGameVersion(id)
+	if oldVersion == nil {
+		exitOnError(errors.New("Game not found"))
+	}
+
+	ctm := s.CompatToolMapping
 	compatTools, err := ctm.ReadCompatTools()
 	exitOnError(err)
 
@@ -132,12 +135,12 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 	}
 
 	if oldVersion.ID == newVersion || oldVersion.Name == newVersion {
-		fmt.Printf("%v is already using %v\n", info.Name, newVersion)
+		fmt.Printf("%v is already using %v\n", name, newVersion)
 		return
 	}
 
-	fmt.Println("App ID: ", info.ID)
-	fmt.Println("Name:   ", info.Name)
+	fmt.Println("App ID: ", id)
+	fmt.Println("Name:   ", name)
 	fmt.Println()
 	if newVersion == "" {
 		fmt.Println(oldVersion.Name, "->", "default")
@@ -156,14 +159,14 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	err = ctm.Update(info.ID, newVersion)
+	err = ctm.Update(id, newVersion)
 	exitOnError(err)
 
 	err = ctm.Save()
 	exitOnError(err)
 
 	// Update Steam cache
-	err = s.ReadCompatToolVersions()
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
 	fmt.Println("Done")
@@ -173,13 +176,10 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	fromVersion := args[0]
 	toVersion := args[1]
 
-	s, err := steam.New(user, cfg.SteamRoot, false)
+	s, err := steam2.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
 
-	s2, err := steam2.New(user, cfg.SteamRoot, false)
-	exitOnError(err)
-
-	ctm := s2.CompatToolMapping
+	ctm := s.CompatToolMapping
 	compatTools, err := ctm.ReadCompatTools()
 	exitOnError(err)
 
@@ -216,7 +216,7 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	exitOnError(err)
 
 	// Update Steam cache
-	err = s.ReadCompatToolVersions()
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
 	if remove {
@@ -228,18 +228,18 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 }
 
 func compatToolClean(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	s, err := steam2.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
-	err = s.ReadCompatToolVersions()
+	err = s.ReadCompatTools()
 	exitOnError(err)
 
 	toDelete := utils.Slice[string]{}
 
-	for versionName, version := range s.CompatToolVersions {
+	for id, tool := range s.CompatTools {
 		hasInstalledGame := false
 
-		for _, game := range version.Games {
+		for _, game := range tool.Games {
 			if game.IsInstalled {
 				hasInstalledGame = true
 				break
@@ -247,7 +247,7 @@ func compatToolClean(cmd *cobra.Command, args []string) {
 		}
 
 		if !hasInstalledGame {
-			toDelete = append(toDelete, versionName)
+			toDelete = append(toDelete, id)
 		}
 	}
 
@@ -274,7 +274,7 @@ func compatToolClean(cmd *cobra.Command, args []string) {
 
 	for _, file := range files {
 		n := file.Name()
-		if file.IsDir() && !strings.HasPrefix(n, ".") && s.CompatToolVersions[n] == nil {
+		if file.IsDir() && !strings.HasPrefix(n, ".") && s.CompatTools[n] == nil {
 			toDelete = append(toDelete, n)
 		}
 	}
