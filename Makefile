@@ -12,8 +12,10 @@ UTILS_BIN_FILE = protonutils
 UTILS_BIN = $(UTILS_BIN_DIR)/$(UTILS_BIN_FILE)
 COMPLETION_ZSH_SRC = completion.zsh
 MAN_SRC = man1
-FLATPAK_BUILD_DIR = build/flatpak
+FLATPAK_BUILD_DIR = flatpak/build
+FLATPAK_REPO_DIR = flatpak/repo
 FLATPAK_APP_ID = io.nning.protonutils
+FLATPAK_GPG_ID = ae5fc712
 
 VERSION = $(shell ./build/version.sh)
 BUILDTIME = $(shell date -u +"%Y%m%d%H%M%S")
@@ -75,7 +77,7 @@ install: build_pie completion man
 	cp -r $(MAN_SRC) $(MAN_PREFIX)/
 
 flatpak: build_flatpak
-	flatpak-builder --force-clean $(FLATPAK_BUILD_DIR) $(FLATPAK_APP_ID).yml
+	flatpak-builder --force-clean --gpg-sign=$(FLATPAK_GPG_ID) --repo=$(FLATPAK_REPO_DIR) $(FLATPAK_BUILD_DIR) $(FLATPAK_APP_ID).yml
 
 flatpak_install: build_flatpak
 	flatpak-builder --user --install --force-clean $(FLATPAK_BUILD_DIR) $(FLATPAK_APP_ID).yml

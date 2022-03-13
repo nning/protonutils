@@ -4,5 +4,5 @@
 /test/root
 /test/root.tar.xz
 /.coverage
-/build/flatpak
+/flatpak
 /.flatpak-builder
