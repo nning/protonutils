@@ -124,7 +124,7 @@ on Arch Linux if you installed from the AUR).
 
     $ protonutils config user <uid>
 
-### Flatpak Support / Change Steam Root Path
+### Support for Steam from Flatpak / Change Steam Root Path
 
     $ protonutils config steam_root ~/.var/app/com.valvesoftware.Steam/data/Steam
 

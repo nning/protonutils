@@ -81,3 +81,6 @@ flatpak: build_flatpak
 
 flatpak_install: build_flatpak
 	flatpak-builder --user --install --force-clean $(FLATPAK_BUILD_DIR) $(FLATPAK_APP_ID).yml
+
+flatpak_repo_sync:
+	rsync -a flatpak/repo/ url:nning.io/public/protonutils
