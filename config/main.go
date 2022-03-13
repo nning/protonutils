@@ -47,7 +47,7 @@ func (cfg *Config) Load() error {
 	}
 
 	if cfg.SteamRoot == "" {
-		cfg.SteamRoot = "~/.steam/root"
+		cfg.SteamRoot = "~/.local/share/Steam"
 	}
 
 	return nil

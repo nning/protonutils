@@ -1,0 +1,15 @@
+app-id: io.nning.protonutils
+runtime: org.freedesktop.Platform
+runtime-version: '21.08'
+sdk: org.freedesktop.Sdk
+command: protonutils
+modules:
+  - name: protonutils
+    buildsystem: simple
+    build-commands:
+      - install -D protonutils /app/bin/protonutils
+    sources:
+      - type: file
+        path: cmd/protonutils/protonutils
+finish-args:
+  - --filesystem=~/.local/share/Steam
