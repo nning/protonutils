@@ -2,9 +2,9 @@ package config
 
 import (
 	"os"
-	"os/user"
 	"path"
 
+	"github.com/nning/protonutils/utils"
 	"gopkg.in/yaml.v3"
 )
 
@@ -18,8 +18,7 @@ type Config struct {
 
 // New instantiates and loads config from file
 func New() (*Config, error) {
-	u, _ := user.Current()
-	dir := path.Join(u.HomeDir, ".config", "protonutils")
+	dir := utils.GetConfigDir()
 	file := path.Join(dir, "protonutils.yml")
 
 	cfg := &Config{dir: dir, file: file}

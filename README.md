@@ -120,7 +120,7 @@ on Arch Linux if you installed from the AUR).
 
 ### Default User
 
-`uid` can be a Steam user name or an SteamID3.
+`uid` can be a Steam user name or a SteamID3.
 
     $ protonutils config user <uid>
 

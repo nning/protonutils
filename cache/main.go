@@ -3,9 +3,10 @@ package cache
 import (
 	"encoding/json"
 	"os"
-	"os/user"
 	"path"
 	"time"
+
+	"github.com/nning/protonutils/utils"
 )
 
 // Cache represents simple in-memory key/value store that can be persisted
@@ -28,20 +29,14 @@ type Value struct {
 //   * maxAge controls amount of seconds after which cache returns no entry even
 //     though an old one exists (-1 disables aging, 0 disables caching)
 func New(name string, maxAge int64) (*Cache, error) {
-	user, err := user.Current()
-	if err != nil {
-		return nil, err
-	}
+	dir := utils.GetCacheDir()
 
-	home := user.HomeDir
-	dirPath := path.Join(home, ".cache", "protonutils")
-
-	err = os.MkdirAll(dirPath, 0700)
+	err := os.MkdirAll(dir, 0700)
 	if err != err {
 		return nil, err
 	}
 
-	filePath := path.Join(dirPath, name+".json")
+	filePath := path.Join(dir, name+".json")
 
 	cache := &Cache{
 		path:   filePath,

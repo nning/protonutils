@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -26,5 +27,11 @@ func init() {
 
 func version(cmd *cobra.Command, args []string) {
 	url := "https://github.com/nning/protonutils/tree/" + Version
-	fmt.Println(Version, Buildtime, url)
+	f := "%-12v  %v\n"
+
+	fmt.Println(Version)
+	fmt.Printf("\n"+f, "Build time:", Buildtime)
+	fmt.Printf(f, "Code URL:", url)
+	fmt.Printf(f, "Config dir:", utils.GetConfigDir())
+	fmt.Printf(f, "Cache dir:", utils.GetCacheDir())
 }
