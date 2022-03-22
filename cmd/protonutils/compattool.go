@@ -88,7 +88,7 @@ func compatToolList(cmd *cobra.Command, args []string) {
 		tool := s.CompatTools[toolID]
 		games := tool.Games
 
-		if tool.IsCustom {
+		if tool.IsCustom && tool.IsInstalled(s) {
 			fmt.Println(tool.ID)
 			continue
 		}

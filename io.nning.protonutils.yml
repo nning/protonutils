@@ -13,3 +13,4 @@ modules:
         path: cmd/protonutils/protonutils
 finish-args:
   - --filesystem=~/.local/share/Steam
+  - --share=network

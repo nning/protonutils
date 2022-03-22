@@ -1,6 +1,8 @@
 package steam
 
 import (
+	"os"
+	"path"
 	"sort"
 )
 
@@ -17,6 +19,26 @@ type CompatTool struct {
 // CompatTools maps compatibility tool version IDs to CompatTool objects
 // containing info like name and games.
 type CompatTools map[string]*CompatTool
+
+// IsInstalled returns if a tool is installed
+func (t CompatTool) IsInstalled(s *Steam) bool {
+	// TODO Implement for non custom tools
+	if !t.IsCustom {
+		return false
+	}
+
+	file, err := os.Open(path.Join(s.GetCompatibilityToolsDir(), t.ID))
+	if err != nil {
+		return false
+	}
+
+	fInfo, err := file.Stat()
+	if err != nil || !fInfo.IsDir() {
+		return false
+	}
+
+	return true
+}
 
 // IsValid checks whether a version ID (v) exists in the CompatTools config
 func (c CompatTools) IsValid(v string) bool {

@@ -89,7 +89,7 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 
 // IsValid checks whether a version exists in the compatibility tools directory
 func (v *CompatToolMappingVdf) IsValid(version string) bool {
-	fInfo, err := os.Stat(path.Join(v.Steam.Root, "compatibilitytools.d", version))
+	fInfo, err := os.Stat(path.Join(v.Steam.GetCompatibilityToolsDir(), version))
 	return err == nil && fInfo.IsDir()
 }
 
