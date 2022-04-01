@@ -17,10 +17,12 @@ func getXDGDir(name string) string {
 	return dir
 }
 
+// GetConfigDir returns XDG config dir
 func GetConfigDir() string {
 	return getXDGDir("config")
 }
 
+// GetCacheDir returns XDG cache dir
 func GetCacheDir() string {
 	return getXDGDir("cache")
 }

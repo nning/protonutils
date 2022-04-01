@@ -171,8 +171,8 @@ func (s *Steam) GetShortcutName(id string) (string, error) {
 	return n.NextByName("AppName").String(), nil
 }
 
-// GetAppIDAndNames returns app IDs and proper names for name search (from
-// AppidCache cache)
+// GetAppIDAndNames returns app IDs and proper names for app ID or name search
+// (from AppidCache cache)
 func (s *Steam) GetAppIDAndNames(idOrName string) [][]string {
 	data := s.AppidCache.Dump()
 
@@ -190,6 +190,8 @@ func (s *Steam) GetAppIDAndNames(idOrName string) [][]string {
 	return results
 }
 
+// GetAppIDAndName returns first found app ID and proper name for app ID or name
+// search (from AppidCache cache)
 func (s *Steam) GetAppIDAndName(idOrName string) (string, string, error) {
 	idAndNames := s.GetAppIDAndNames(idOrName)
 
