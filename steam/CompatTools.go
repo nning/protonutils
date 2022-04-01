@@ -1,9 +1,11 @@
 package steam
 
 import (
+	"io/ioutil"
 	"os"
 	"path"
 	"sort"
+	"strings"
 )
 
 // CompatTool holds info about a compatibility tool (like human-readable name
@@ -104,19 +106,18 @@ func (s *Steam) ReadCompatTools() error {
 		}
 	}
 
-	// fmt.Println(path.Join(s.Root, "compatibilitytools.d"))
-	// files, err := ioutil.ReadDir(path.Join(s.Root, "compatibilitytools.d"))
-	// if err != nil {
-	// 	return nil, err
-	// }
+	files, err := ioutil.ReadDir(s.GetCompatibilityToolsDir())
+	if err != nil {
+		return err
+	}
 
-	// for _, file := range files {
-	// 	id := file.Name()
-	// 	if strings.HasPrefix(id, ".") {
-	// 		continue
-	// 	}
-	// 	c.Add(id, id)
-	// }
+	for _, file := range files {
+		id := file.Name()
+		if strings.HasPrefix(id, ".") {
+			continue
+		}
+		tools.Add(id, id)
+	}
 
 	s.CompatTools = tools
 	return nil
