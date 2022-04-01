@@ -35,16 +35,15 @@ func Test_ReadCompatTools(t *testing.T) {
 
 		if compatTool.IsDefault {
 			assert.Equal(t, "", compatTool.ID)
-			// TODO
-			// assert.Equal(t, "Proton 6.3-8 (Default)", compatTool.Name)
+			assert.Equal(t, "Proton 6.3-8 (Default)", compatTool.Name)
 		} else {
 			assert.NotEqual(t, "", compatTool.ID)
 			assert.NotEqual(t, "", compatTool.Name)
 		}
 
-		// if compatTool.IsCustom {
-		// 	assert.Equal(t, compatTool.ID, compatTool.Name)
-		// }
+		if compatTool.IsCustom {
+			assert.Equal(t, compatTool.ID, compatTool.Name)
+		}
 
 		assert.NotEqual(t, 0, len(compatTool.Games))
 	}
