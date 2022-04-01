@@ -10,6 +10,22 @@ type LibraryConfigVdf struct {
 	Vdf
 }
 
+func (vdf LibraryConfigVdf) GetLibraryPaths() []string {
+	var paths []string
+
+	x := vdf.Root.FirstSubTree()
+	for {
+		paths = append(paths, x.FirstByName("path").String())
+
+		x = x.NextSubTree()
+		if x == nil {
+			break
+		}
+	}
+
+	return paths
+}
+
 // GetLibraryPathByID returns library path for app id
 func (vdf LibraryConfigVdf) GetLibraryPathByID(id string) string {
 	x := vdf.Root.FirstSubTree()

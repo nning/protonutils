@@ -1,13 +1,14 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"os"
 	"os/exec"
-	"path"
 	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +33,14 @@ var compatdataOpenCmd = &cobra.Command{
 	Run:   compatdataOpen,
 }
 
+var compatdataPurgeCmd = &cobra.Command{
+	Use:   "purge",
+	Short: "Purge unused compatdata directories",
+	Long:  "Purge leftover compatdata directories of previously installed and now uninstalled games",
+	Args:  cobra.MinimumNArgs(0),
+	Run:   compatdataPurge,
+}
+
 func init() {
 	rootCmd.AddCommand(compatdataCmd)
 
@@ -44,27 +53,18 @@ func init() {
 	compatdataOpenCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 	compatdataOpenCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 	compatdataOpenCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show app name")
-}
 
-func getCompatdataPath(idOrName string) (string, string, error) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
-	id, name, err := s.GetAppIDAndName(idOrName)
-	if err != nil {
-		return "", "", err
-	}
-
-	p := s.LibraryConfig.GetLibraryPathByID(id)
-	if p == "" {
-		exitOnError(errors.New("Game not installed"))
-	}
-
-	return path.Join(p, "steamapps", "compatdata", id), name, nil
+	compatdataCmd.AddCommand(compatdataPurgeCmd)
+	compatdataPurgeCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+	compatdataPurgeCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+	compatdataPurgeCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
 }
 
 func compatdataPath(cmd *cobra.Command, args []string) {
-	p, n, err := getCompatdataPath(strings.Join(args, " "))
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	exitOnError(err)
+
+	p, n, err := s.GetCompatdataPath(strings.Join(args, " "))
 	exitOnAmbiguousNameError(cmd, args, err)
 
 	if verbose {
@@ -75,7 +75,10 @@ func compatdataPath(cmd *cobra.Command, args []string) {
 }
 
 func compatdataOpen(cmd *cobra.Command, args []string) {
-	p, n, err := getCompatdataPath(strings.Join(args, " "))
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	exitOnError(err)
+
+	p, n, err := s.GetCompatdataPath(strings.Join(args, " "))
 	exitOnAmbiguousNameError(cmd, args, err)
 
 	if verbose {
@@ -84,4 +87,71 @@ func compatdataOpen(cmd *cobra.Command, args []string) {
 
 	_, err = exec.Command("xdg-open", p).Output()
 	exitOnError(err)
+}
+
+func compatdataPurge(cmd *cobra.Command, args []string) {
+	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
+	exitOnError(err)
+
+	err = s.ReadCompatTools()
+	exitOnError(err)
+
+	fmt.Println("Calculating unused compatdata directory sizes...")
+
+	type entry struct{
+		name string
+		path string
+		size uint64
+	}
+	var games []entry
+	var total uint64
+
+	for _, tool := range s.CompatTools {
+		for _, game := range tool.Games {
+			if game.IsInstalled {
+				continue
+			}
+
+			p := s.SearchCompatdataPath(game.ID)
+			if p == "" {
+				continue
+			}
+
+			size, err := utils.DirSize(p)
+			exitOnError(err)
+
+			games = append(games, entry{game.Name, p, size})
+		}
+	}
+
+	if len(games) > 0 {
+		fmt.Println()
+	} else {
+		fmt.Println("No unused compatdata directories found!")
+		os.Exit(0)
+	}
+
+	for _, entry := range games {
+		total += entry.size
+		fmt.Printf("%10v  %v\n", humanize.Bytes(entry.size), entry.name)
+	}
+
+	fmt.Printf("\nTotal size: %v\n", humanize.Bytes(total))
+	fmt.Println("WARNING: Backup save game data for games without Steam Cloud support!")
+
+	if !yes {
+		isOK, err := utils.AskYesOrNo("Do you want to delete compatdata directories?")
+		exitOnError(err)
+
+		if !isOK {
+			fmt.Println("Aborted")
+			return
+		}
+	}
+
+	for _, entry := range games {
+		os.RemoveAll(entry.path)
+	}
+
+	fmt.Println("Done")
 }
