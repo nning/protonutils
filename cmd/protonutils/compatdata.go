@@ -33,12 +33,12 @@ var compatdataOpenCmd = &cobra.Command{
 	Run:   compatdataOpen,
 }
 
-var compatdataPurgeCmd = &cobra.Command{
-	Use:   "purge",
-	Short: "Purge unused compatdata directories",
-	Long:  "Purge leftover compatdata directories of previously installed and now uninstalled games",
+var compatdataCleanCmd = &cobra.Command{
+	Use:   "clean",
+	Short: "Clean unused compatdata directories",
+	Long:  "Clean leftover compatdata directories of previously installed and now uninstalled games",
 	Args:  cobra.MinimumNArgs(0),
-	Run:   compatdataPurge,
+	Run:   compatdataClean,
 }
 
 func init() {
@@ -54,10 +54,10 @@ func init() {
 	compatdataOpenCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 	compatdataOpenCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show app name")
 
-	compatdataCmd.AddCommand(compatdataPurgeCmd)
-	compatdataPurgeCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
-	compatdataPurgeCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
-	compatdataPurgeCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
+	compatdataCmd.AddCommand(compatdataCleanCmd)
+	compatdataCleanCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
+	compatdataCleanCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
+	compatdataCleanCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Do not ask")
 }
 
 func compatdataPath(cmd *cobra.Command, args []string) {
@@ -89,7 +89,7 @@ func compatdataOpen(cmd *cobra.Command, args []string) {
 	exitOnError(err)
 }
 
-func compatdataPurge(cmd *cobra.Command, args []string) {
+func compatdataClean(cmd *cobra.Command, args []string) {
 	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
@@ -98,7 +98,7 @@ func compatdataPurge(cmd *cobra.Command, args []string) {
 
 	fmt.Println("Calculating unused compatdata directory sizes...")
 
-	type entry struct{
+	type entry struct {
 		name string
 		path string
 		size uint64
