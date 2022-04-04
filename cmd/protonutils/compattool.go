@@ -187,13 +187,15 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	validateVersion(ctm, &compatTools, toVersion)
 
 	version := compatTools[fromVersion]
-	if version == nil {
+	if version == nil || version.Games.CountInstalled() == 0 {
 		exitOnError(fmt.Errorf("No installed games for %v", fromVersion))
 	}
 
 	fmt.Printf("%v -> %v\n\n", fromVersion, toVersion)
 	for _, game := range version.Games {
-		fmt.Println("  * " + game.Name)
+		if game.IsInstalled {
+			fmt.Println("  * " + game.Name)
+		}
 	}
 	fmt.Println()
 
@@ -208,6 +210,10 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 	}
 
 	for _, game := range compatTools[fromVersion].Games {
+		if !game.IsInstalled {
+			continue
+		}
+
 		err = ctm.Update(game.ID, toVersion)
 		exitOnError(err)
 	}
