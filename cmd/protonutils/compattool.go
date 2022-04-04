@@ -139,6 +139,9 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// TODO Warn about Steam overwriting the changes again
+
+	fmt.Printf("WARNING: Make sure Steam is closed, otherwise changes will be overwritten on exit!\n\n")
 	fmt.Println("App ID: ", id)
 	fmt.Println("Name:   ", name)
 	fmt.Println()
@@ -191,7 +194,15 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 		exitOnError(fmt.Errorf("No installed games for %v", fromVersion))
 	}
 
-	fmt.Printf("%v -> %v\n\n", fromVersion, toVersion)
+	fmt.Printf("WARNING: Make sure Steam is closed, otherwise changes will be overwritten on exit!\n\n")
+
+	if toVersion == "" {
+		fmt.Printf("%v -> %v\n\n", fromVersion, "default")
+	} else {
+		fmt.Printf("%v -> %v\n\n", fromVersion, toVersion)
+	}
+
+	// TODO Warn about Steam overwriting the changes again
 	for _, game := range version.Games {
 		if game.IsInstalled {
 			fmt.Println("  * " + game.Name)
