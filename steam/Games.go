@@ -78,7 +78,7 @@ func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 	}
 
 	name, valid := s.AppidCache.Get(id)
-	if name != "" && valid {
+	if name != "" && valid && !isShortcut {
 		game.Name = name
 		return game, true, nil
 	}
