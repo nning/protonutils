@@ -117,6 +117,17 @@ on Arch Linux if you installed from the AUR).
 
     Really update? [y/N]
 
+### Clean Unused `compatdata` Directories
+
+    $ protonutils compatdata clean
+    Calculating unused compatdata directory sizes...
+
+          19 B  Fallout 4
+
+    Total size: 19 B
+    WARNING: Backup save game data for games without Steam Cloud support!
+    Do you want to delete compatdata directories? [y/N]
+
 ## Configuration
 
 ### Default User
