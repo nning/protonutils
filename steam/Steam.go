@@ -139,3 +139,29 @@ func (s *Steam) SaveCache() error {
 func (s *Steam) GetCompatibilityToolsDir() string {
 	return path.Join(s.Root, "compatibilitytools.d")
 }
+
+// IsRunning returns whether a process is running that contains "steam" in its
+// binary path. Always returns false if ran in Flatpak sandbox.
+func (s *Steam) IsRunning() (bool, error) {
+	entries, err := os.ReadDir("/proc")
+	if err != nil {
+		return false, err
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		link, err := os.Readlink("/proc/" + entry.Name() + "/exe")
+		if err != nil {
+			continue
+		}
+
+		if strings.Contains(link, "steam") {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}

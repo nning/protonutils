@@ -77,6 +77,10 @@ func validateVersion(vdf *steam.CompatToolMappingVdf, tools *steam.CompatTools, 
 	exitOnError(fmt.Errorf("Invalid version: %v", v))
 }
 
+func warnSteamRunning() {
+	fmt.Printf("WARNING: Steam client seems to be running, changes will be overwritten on exit!\n\n")
+}
+
 func compatToolList(cmd *cobra.Command, args []string) {
 	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
@@ -112,6 +116,11 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 
 	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
+
+	isRunning, _ := s.IsRunning()
+	if isRunning {
+		warnSteamRunning()
+	}
 
 	err = s.ReadCompatTools()
 	exitOnError(err)
@@ -181,6 +190,11 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 
 	s, err := steam.New(user, cfg.SteamRoot, false)
 	exitOnError(err)
+
+	isRunning, _ := s.IsRunning()
+	if isRunning {
+		warnSteamRunning()
+	}
 
 	ctm := s.CompatToolMapping
 	compatTools, err := ctm.ReadCompatTools()
