@@ -1,6 +1,7 @@
 package steam
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -108,7 +109,11 @@ func (s *Steam) ReadCompatTools() error {
 
 	files, err := ioutil.ReadDir(s.GetCompatibilityToolsDir())
 	if err != nil {
-		return err
+		// If this directory does not exist, that's actually fine.
+		// It can be treated as an empty folder in that scenario.
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
 	}
 
 	for _, file := range files {
