@@ -21,10 +21,13 @@ func init() {
 	listCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 	listCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output JSON (implies -a and -i)")
 	listCmd.Flags().BoolVarP(&showAppID, "show-id", "i", false, "Show app ID")
+	listCmd.Flags().BoolVarP(&showDeckCompatibility, "show-deck-compatibility", "d", false, "Show Steam Deck compatibility rating")
 	listCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 }
 
 func list(cmd *cobra.Command, args []string) {
+	ignoreCache = ignoreCache || showDeckCompatibility
+
 	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
 	exitOnError(err)
 
@@ -46,6 +49,9 @@ func list(cmd *cobra.Command, args []string) {
 					fmt.Print("\t" + game)
 					if showAppID {
 						fmt.Print(" (" + games[game].ID + ")")
+					}
+					if showDeckCompatibility {
+						fmt.Print(" (" + games[game].DeckCompatibility.String() + ")")
 					}
 					if !games[game].IsInstalled {
 						fmt.Print(" [NOT INSTALLED]")

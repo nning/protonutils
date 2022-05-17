@@ -8,6 +8,7 @@ var jsonOutput bool
 var keep bool
 var remove bool
 var showAppID bool
+var showDeckCompatibility bool
 var user string
 var verbose bool
 var yes bool
