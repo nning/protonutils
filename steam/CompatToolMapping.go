@@ -60,9 +60,7 @@ func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
 	log.Debug("CompatToolMappingVdf.ReadCompatTools()")
 
 	compatTools := make(CompatTools)
-	var x *vdf.Node
-
-	x = v.Node.FirstSubTree()
+	x := v.Node.FirstSubTree()
 
 	for ; x != nil; x = x.NextChild() {
 		id := x.Name()

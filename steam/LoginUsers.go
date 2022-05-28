@@ -2,6 +2,8 @@ package steam
 
 import (
 	"path"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // LoginUsersVdf represents parsed VDF config for app config from
@@ -12,16 +14,13 @@ type LoginUsersVdf struct {
 
 // GetID64 return steamID64 for given username
 func (lu *LoginUsersVdf) GetID64(username string) string {
+	log.Debug("LoginUsersVdf.GetID64(", username, ")")
+
 	x := lu.Root.FirstSubTree()
 
-	for {
+	for ; x != nil; x = x.NextChild() {
 		if x.FirstByName("AccountName").String() == username {
 			return x.Name()
-		}
-
-		x := x.NextSubTree()
-		if x == nil {
-			break
 		}
 	}
 
