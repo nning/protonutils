@@ -4,6 +4,8 @@ import (
 	"errors"
 	"sort"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Game represents Steam game or shortcut
@@ -80,6 +82,7 @@ func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 	name, valid := s.AppidCache.Get(id)
 	if name != "" && valid && !isShortcut {
 		game.Name = name
+		log.Debug("Steam.GetGameData(", id, "): ", name, " (Cache Hit)")
 		return game, true, nil
 	}
 
@@ -108,6 +111,8 @@ func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 				return nil, false, err
 			}
 		}
+
+		log.Debug("Steam.GetGameData(", id, "): ", game.Name, " (Cache Miss)")
 	}
 
 	valid = game.Name != ""
@@ -119,6 +124,8 @@ func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 // GetGame returns Game struct by app id
 // If nameOnly is true, Game struct will only contain name
 func (s *Steam) GetGame(id string, nameOnly ...bool) (*Game, error) {
+	log.Debug("Steam.GetGame(", id, ")")
+
 	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
 	if i < 0 || err != nil {
 		return nil, err
@@ -168,7 +175,10 @@ func (s *Steam) GetShortcutName(id string) (string, error) {
 		return "", err
 	}
 
-	return n.NextByName("AppName").String(), nil
+	name := n.NextByName("AppName").String()
+	log.Debug("Steam.GetShortcutName(", id, "): ", name)
+
+	return name, nil
 }
 
 // GetAppIDAndNames returns app IDs and proper names for app ID or name search

@@ -4,6 +4,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/dustin/go-humanize"
+	log "github.com/sirupsen/logrus"
 )
 
 // InnerOffsetShortcuts sets byte count before appid match in shortcuts
@@ -14,6 +17,10 @@ func (s *Steam) initShortcuts() error {
 	in, err := ioutil.ReadFile(p)
 	if err != nil && !os.IsNotExist(err) {
 		return err
+	}
+
+	if log.GetLevel() == log.DebugLevel {
+		log.Debug("Steam.initShortcuts(", p, "): ", humanize.Bytes(uint64(len(in))))
 	}
 
 	s.Shortcuts = &BinaryVdf{

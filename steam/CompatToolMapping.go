@@ -5,6 +5,7 @@ import (
 	"path"
 
 	"github.com/BenLubar/vdf"
+	log "github.com/sirupsen/logrus"
 )
 
 // CompatToolMappingVdf represents parsed VDF config for CompatToolMapping
@@ -56,6 +57,8 @@ func (v *CompatToolMappingVdf) Update(id, version string) error {
 // ReadCompatTools reads compatibility tool mappings from VDF config and returns
 // a CompatTools map with existing entries
 func (v *CompatToolMappingVdf) ReadCompatTools() (CompatTools, error) {
+	log.Debug("CompatToolMappingVdf.ReadCompatTools()")
+
 	compatTools := make(CompatTools)
 	var x *vdf.Node
 
@@ -112,6 +115,7 @@ func (v *CompatToolMappingVdf) GetCompatToolName(version string) string {
 
 func (s *Steam) initCompatToolMapping() error {
 	p := path.Join(s.Root, "config", "config.vdf")
+	log.Debug("steam.initCompatToolMapping(", p, ")")
 
 	n, err := ParseTextConfig(p)
 	if err != nil {

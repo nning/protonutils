@@ -2,6 +2,8 @@ package steam
 
 import (
 	"path"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // LibraryConfigVdf represents parsed VDF config for library config from
@@ -10,6 +12,7 @@ type LibraryConfigVdf struct {
 	Vdf
 }
 
+// GetLibraryPaths returns array of Steam library paths
 func (vdf LibraryConfigVdf) GetLibraryPaths() []string {
 	var paths []string
 
@@ -58,6 +61,7 @@ func (vdf LibraryConfigVdf) IsInstalled(id string) bool {
 
 func (s *Steam) initLibraryConfig() error {
 	p := path.Join(s.Root, "steamapps", "libraryfolders.vdf")
+	log.Debug("steam.initLibraryConfig(", p, ")")
 
 	n, err := ParseTextConfig(p)
 	if err != nil {
