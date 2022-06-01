@@ -3,9 +3,12 @@ package steam
 import (
 	"bytes"
 	"encoding/binary"
+	"hash/crc32"
 	"strconv"
 
 	"github.com/BenLubar/vdf"
+	"github.com/dustin/go-humanize"
+	log "github.com/sirupsen/logrus"
 )
 
 // BinaryVdf wraps info for binary VDF
@@ -13,6 +16,12 @@ type BinaryVdf struct {
 	Bytes []byte
 	Path  string
 }
+
+// BinaryVdfTable is only used in debug mode to collect the count of duplicate
+// parsing of binary VDF "snippets"
+type BinaryVdfTable map[uint32]uint
+
+var binaryVdfTable BinaryVdfTable
 
 func getAppIDNeedle(id string) ([]byte, error) {
 	l := 10
@@ -39,6 +48,8 @@ func (bVdf *BinaryVdf) GetNextEntryStart(offset, innerOffset int, needle []byte)
 	if len(needle) == 0 {
 		return -1
 	}
+
+	log.Debug("BinaryVdf.GetNextEntryStart(", offset, innerOffset, needle, ")")
 
 	in := bVdf.Bytes
 	l := len(needle)
@@ -75,6 +86,16 @@ func (bVdf *BinaryVdf) GetNextEntryStartByID(offset, innerOffset int, id string)
 
 // ParseBinaryVdf unmarshals `in` as binary VDF
 func ParseBinaryVdf(in []byte) (*vdf.Node, error) {
+	if log.GetLevel() == log.DebugLevel {
+		if binaryVdfTable == nil {
+			binaryVdfTable = make(BinaryVdfTable)
+		}
+
+		crc := crc32.ChecksumIEEE(in)
+		binaryVdfTable[crc]++
+		log.Debug("steam.ParseBinaryVdf(", crc, "): ", humanize.Bytes(uint64(len(in))), ", ", binaryVdfTable[crc])
+	}
+
 	var n vdf.Node
 	err := n.UnmarshalBinary(in)
 	return &n, err

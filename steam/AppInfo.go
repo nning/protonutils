@@ -6,6 +6,8 @@ import (
 	"path"
 
 	"github.com/BenLubar/vdf"
+	"github.com/dustin/go-humanize"
+	log "github.com/sirupsen/logrus"
 )
 
 // InnerOffsetAppInfo sets byte count before appid match in appinfo
@@ -88,6 +90,10 @@ func (s *Steam) initAppInfo() error {
 	in, err := ioutil.ReadFile(p)
 	if err != nil {
 		return err
+	}
+
+	if log.GetLevel() == log.DebugLevel {
+		log.Debug("Steam.initAppInfo(", p, "): ", humanize.Bytes(uint64(len(in))))
 	}
 
 	s.AppInfo = &BinaryVdf{

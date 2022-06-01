@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/nning/protonutils/cache"
+	log "github.com/sirupsen/logrus"
 )
 
 const testSteamRoot = "../test/root"
@@ -82,6 +83,8 @@ func New(user string, root string, ignoreCache bool) (*Steam, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Debug("steam.New(", user, "[", s.UID, "], ", root, ", ", ignoreCache, ")")
 
 	err = s.initConfigs()
 	if err != nil {

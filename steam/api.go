@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type jsonAppData struct {
@@ -14,6 +16,8 @@ type jsonAppData struct {
 
 // GetNameFromAPI returns name of game by app id using the Steam API
 func (s *Steam) GetNameFromAPI(id string) (string, error) {
+	log.Debug("Steam.GetNameFromAPI(", id, ")")
+
 	res, err := http.Get("https://store.steampowered.com/api/appdetails/?appids=" + id)
 	if err != nil {
 		return "", err

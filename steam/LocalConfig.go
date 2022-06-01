@@ -4,6 +4,7 @@ import (
 	"path"
 
 	"github.com/BenLubar/vdf"
+	log "github.com/sirupsen/logrus"
 )
 
 // LocalConfigVdf represents parsed VDF config for app config from
@@ -15,6 +16,8 @@ type LocalConfigVdf struct {
 // GetViewedSteamPlay returns a slice of games for which the user confirmed the
 // Steam Play disclaimer
 func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*Game, error) {
+	log.Debug("LocalConfigVdf.GetViewedSteamPlay()")
+
 	games := make([]*Game, 0)
 	var x *vdf.Node
 
@@ -45,6 +48,7 @@ func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*Game, error) {
 
 func (s *Steam) initLocalConfig() error {
 	p := path.Join(s.Root, "userdata", s.UID, "config", "localconfig.vdf")
+	log.Debug("steam.initLocalConfig(", p, ")")
 
 	n, err := ParseTextConfig(p)
 	if err != nil {

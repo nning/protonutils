@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 
 	"github.com/BenLubar/vdf"
+	"github.com/dustin/go-humanize"
+	log "github.com/sirupsen/logrus"
 )
 
 // KeyNotFoundError is returned if key in VDF is not found
@@ -57,6 +59,10 @@ func ParseTextConfig(p string) (*vdf.Node, error) {
 	in, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, err
+	}
+
+	if log.GetLevel() == log.DebugLevel {
+		log.Debug("steam.ParseTextConfig(", p, "): ", humanize.Bytes(uint64(len(in))))
 	}
 
 	var n vdf.Node
