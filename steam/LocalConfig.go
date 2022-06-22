@@ -25,11 +25,11 @@ func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*Game, error) {
 
 	for ; x != nil; x = x.NextChild() {
 		id := x.Name()
-		viewedSteamPlay := x.FirstByName("ViewedSteamPlay").String()
 
-		if viewedSteamPlay != "1" {
-			continue
-		}
+		// viewedSteamPlay := x.FirstByName("ViewedSteamPlay").String()
+		// if viewedSteamPlay != "1" {
+		// 	continue
+		// }
 
 		game, isValid, err := v.Steam.GetGameData(id)
 		if err != nil {

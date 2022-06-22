@@ -132,9 +132,9 @@ func (s *Steam) GetGame(id string, nameOnly ...bool) (*Game, error) {
 	}
 
 	n, err := ParseBinaryVdf(s.AppInfo.Bytes[i:])
-	if err != nil && err.Error() != "vdf: unknown pack type 114" {
-		return nil, err
-	}
+	// if err != nil && err.Error() != "vdf: unknown pack type 114" && err.Error() != "vdf: unknown pack type 220" && err.Error() != "vdf: unknown pack type 111" {
+	// 	return nil, err
+	// }
 
 	name := n.FirstByName("common").FirstByName("name").String()
 	game := &Game{
