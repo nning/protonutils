@@ -7,7 +7,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
 
@@ -47,9 +46,6 @@ func init() {
 }
 
 func getInstalldirPath(idOrName string) (string, string, error) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
 	id, name, err := s.GetAppIDAndName(idOrName)
 	if err != nil {
 		return "", "", err

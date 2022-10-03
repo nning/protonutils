@@ -9,10 +9,15 @@ import (
 	"strings"
 
 	"github.com/nning/protonutils/cache"
+	"github.com/nning/protonutils/config"
 	log "github.com/sirupsen/logrus"
 )
 
 const testSteamRoot = "../test/root"
+
+var testConfig = &config.Config{
+	SteamRoot: testSteamRoot,
+}
 
 // Steam struct wraps caches and exposes functions for Steam data retrieval
 type Steam struct {
@@ -28,12 +33,15 @@ type Steam struct {
 
 	CompatTools CompatTools
 
-	UID  string
-	Root string
+	UID                    string
+	Root                   string
+	DisableViewedSteamPlay bool
 }
 
 // New instantiates Steam struct
-func New(user string, root string, ignoreCache bool) (*Steam, error) {
+func New(user string, cfg *config.Config, ignoreCache bool) (*Steam, error) {
+	root := cfg.SteamRoot
+
 	t := -1
 	if ignoreCache {
 		t = 0
@@ -66,9 +74,10 @@ func New(user string, root string, ignoreCache bool) (*Steam, error) {
 	}
 
 	s := &Steam{
-		AppidCache:       appidCache,
-		VersionNameCache: protonNameCache,
-		Root:             root,
+		AppidCache:             appidCache,
+		VersionNameCache:       protonNameCache,
+		Root:                   root,
+		DisableViewedSteamPlay: cfg.SteamOS,
 	}
 
 	s.CompatTools = make(CompatTools)

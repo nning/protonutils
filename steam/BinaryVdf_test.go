@@ -7,7 +7,7 @@ import (
 )
 
 func Test_GetNextEntryStartByID(t *testing.T) {
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 
@@ -32,7 +32,7 @@ func Test_GetNextEntryStartByID(t *testing.T) {
 }
 
 func Test_ParseAppInfoEntry(t *testing.T) {
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 
@@ -51,7 +51,7 @@ func Test_ParseAppInfoEntry(t *testing.T) {
 }
 
 func Test_GetDeckCompatibility(t *testing.T) {
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 

@@ -82,10 +82,7 @@ func warnSteamRunning() {
 }
 
 func compatToolList(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
-	err = s.ReadCompatTools()
+	err := s.ReadCompatTools()
 	exitOnError(err)
 
 	for _, toolID := range s.CompatTools.Sort() {
@@ -114,15 +111,12 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 	idOrName := args[0]
 	newVersion := args[1]
 
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
 	isRunning, _ := s.IsRunning()
 	if isRunning {
 		warnSteamRunning()
 	}
 
-	err = s.ReadCompatTools()
+	err := s.ReadCompatTools()
 	exitOnError(err)
 
 	id, name, err := s.GetAppIDAndName(idOrName)
@@ -187,9 +181,6 @@ func compatToolSet(cmd *cobra.Command, args []string) {
 func compatToolMigrate(cmd *cobra.Command, args []string) {
 	fromVersion := args[0]
 	toVersion := args[1]
-
-	s, err := steam.New(user, cfg.SteamRoot, false)
-	exitOnError(err)
 
 	isRunning, _ := s.IsRunning()
 	if isRunning {
@@ -259,10 +250,7 @@ func compatToolMigrate(cmd *cobra.Command, args []string) {
 }
 
 func compatToolClean(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
-	err = s.ReadCompatTools()
+	err := s.ReadCompatTools()
 	exitOnError(err)
 
 	toDelete := utils.Slice[string]{}

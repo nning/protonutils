@@ -60,9 +60,6 @@ func luxtorpedaDownload(cmd *cobra.Command, args []string) {
 	dirpath := "luxtorpeda-" + tag[1:]
 	filepath := dirpath + ".tar.xz"
 
-	s, err := steam.New(user, cfg.SteamRoot, false)
-	exitOnError(err)
-
 	dir := s.GetCompatibilityToolsDir()
 	_, err = os.Stat(dir)
 	if err != nil {

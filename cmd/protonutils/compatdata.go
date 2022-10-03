@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/nning/protonutils/steam"
 	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
 )
@@ -61,9 +60,6 @@ func init() {
 }
 
 func compatdataPath(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
 	p, n, err := s.GetCompatdataPath(strings.Join(args, " "))
 	exitOnAmbiguousNameError(cmd, args, err)
 
@@ -75,9 +71,6 @@ func compatdataPath(cmd *cobra.Command, args []string) {
 }
 
 func compatdataOpen(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
 	p, n, err := s.GetCompatdataPath(strings.Join(args, " "))
 	exitOnAmbiguousNameError(cmd, args, err)
 
@@ -90,10 +83,7 @@ func compatdataOpen(cmd *cobra.Command, args []string) {
 }
 
 func compatdataClean(cmd *cobra.Command, args []string) {
-	s, err := steam.New(user, cfg.SteamRoot, ignoreCache)
-	exitOnError(err)
-
-	err = s.ReadCompatTools()
+	err := s.ReadCompatTools()
 	exitOnError(err)
 
 	fmt.Println("Calculating unused compatdata directory sizes...")

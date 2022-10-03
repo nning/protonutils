@@ -13,10 +13,10 @@ type LocalConfigVdf struct {
 	Vdf
 }
 
-// GetViewedSteamPlay returns a slice of games for which the user confirmed the
+// GetGames returns a slice of games for which the user confirmed the
 // Steam Play disclaimer
-func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*Game, error) {
-	log.Debug("LocalConfigVdf.GetViewedSteamPlay()")
+func (v *LocalConfigVdf) GetGames(disableViewedSteamPlay bool) ([]*Game, error) {
+	log.Debug("LocalConfigVdf.GetGames()")
 
 	games := make([]*Game, 0)
 	var x *vdf.Node
@@ -26,10 +26,12 @@ func (v *LocalConfigVdf) GetViewedSteamPlay() ([]*Game, error) {
 	for ; x != nil; x = x.NextChild() {
 		id := x.Name()
 
-		// viewedSteamPlay := x.FirstByName("ViewedSteamPlay").String()
-		// if viewedSteamPlay != "1" {
-		// 	continue
-		// }
+		if !disableViewedSteamPlay {
+			viewedSteamPlay := x.FirstByName("ViewedSteamPlay").String()
+			if viewedSteamPlay != "1" {
+				continue
+			}
+		}
 
 		game, isValid, err := v.Steam.GetGameData(id)
 		if err != nil {

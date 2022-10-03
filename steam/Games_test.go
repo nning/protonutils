@@ -7,7 +7,7 @@ import (
 )
 
 func Test_GetName(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 
@@ -32,7 +32,7 @@ func Test_GetName(t *testing.T) {
 }
 
 func Test_GetGame(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 
@@ -52,7 +52,7 @@ func Test_GetGame(t *testing.T) {
 }
 
 func Test_GetShortcutName(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.Shortcuts)
 
@@ -66,7 +66,7 @@ func Test_GetShortcutName(t *testing.T) {
 }
 
 func Test_GetGameData(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 
@@ -94,7 +94,7 @@ func Test_GetGameData(t *testing.T) {
 }
 
 func Test_GetGameData_MissingShortcut(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 
@@ -109,7 +109,7 @@ func Test_GetGameData_MissingShortcut(t *testing.T) {
 }
 
 func Test_GetAppIDAndName(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s)
 
@@ -158,7 +158,7 @@ func Test_GetAppIDAndName(t *testing.T) {
 }
 
 func Test_GetGameVersion(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s)
 
@@ -180,4 +180,21 @@ func Test_GetGameVersion(t *testing.T) {
 
 	tool = s.GetGameVersion("")
 	assert.Empty(t, tool)
+}
+
+func Test_SortByDeckCompatibilityCategory(t *testing.T) {
+	games := Games{
+		"1": {ID: "1", DeckCompatibility: DeckCompatibility{Category: DeckCompatibilityUnknown}},
+		"2": {ID: "2", DeckCompatibility: DeckCompatibility{Category: DeckCompatibilityPlayable}},
+		"3": {ID: "3", DeckCompatibility: DeckCompatibility{Category: DeckCompatibilityUnsupported}},
+		"4": {ID: "4", DeckCompatibility: DeckCompatibility{Category: DeckCompatibilityVerified}},
+	}
+
+	sortedGames := games.SortByDeckCompatibilityCategory()
+
+	assert.Equal(t, 4, len(sortedGames))
+	assert.Equal(t, "1", sortedGames[0].ID)
+	assert.Equal(t, "3", sortedGames[1].ID)
+	assert.Equal(t, "2", sortedGames[2].ID)
+	assert.Equal(t, "4", sortedGames[3].ID)
 }

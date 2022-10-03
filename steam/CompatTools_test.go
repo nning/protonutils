@@ -3,6 +3,7 @@ package steam
 import (
 	"testing"
 
+	"github.com/nning/protonutils/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,7 +12,7 @@ func Test_CompatTools_Add(t *testing.T) {
 	version := "proton_63"
 	id := "620"
 
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 
 	game, _, err := s.GetGameData(id)
@@ -54,7 +55,7 @@ func Test_CompatTools_Merge(t *testing.T) {
 		},
 	}
 
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 
 	compatTools1, _ := s.NewCompatTools(data1)
@@ -79,7 +80,7 @@ func Test_CompatTools_Merge(t *testing.T) {
 }
 
 func Test_CompatTools_Read(t *testing.T) {
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 
 	err = s.ReadCompatTools()
@@ -89,6 +90,30 @@ func Test_CompatTools_Read(t *testing.T) {
 
 	assert.Equal(t, 7, len(compatTools))
 	assert.Equal(t, 25, len(compatTools[""].Games))
+	assert.Equal(t, 4, len(compatTools["proton_63"].Games))
+	assert.Equal(t, 2, len(compatTools["proton_experimental"].Games))
+	assert.Equal(t, 4, len(compatTools["Proton-6.21-GE-2"].Games))
+	assert.Equal(t, 2, len(compatTools["Proton-7.0rc6-GE-1"].Games))
+	assert.Equal(t, 1, len(compatTools["Proton-6.16-GE-1"].Games))
+	assert.Equal(t, 1, len(compatTools["Proton-6.20-GE-1"].Games))
+}
+
+func Test_CompatTools_Read_SteamOS(t *testing.T) {
+	localTestConfig := &config.Config{
+		SteamRoot: testSteamRoot,
+		SteamOS:   true,
+	}
+
+	s, err := New("", localTestConfig, true)
+	assert.Empty(t, err)
+
+	err = s.ReadCompatTools()
+	assert.Empty(t, err)
+
+	compatTools := s.CompatTools
+
+	assert.Equal(t, 7, len(compatTools))
+	assert.Equal(t, 232, len(compatTools[""].Games))
 	assert.Equal(t, 4, len(compatTools["proton_63"].Games))
 	assert.Equal(t, 2, len(compatTools["proton_experimental"].Games))
 	assert.Equal(t, 4, len(compatTools["Proton-6.21-GE-2"].Games))

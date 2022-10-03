@@ -7,7 +7,7 @@ import (
 )
 
 func Test_GetID64(t *testing.T) {
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testConfig, false)
 
 	assert.Empty(t, err)
 	assert.Equal(t, "76561198050517827", s.LoginUsers.GetID64("phects"))
@@ -15,7 +15,7 @@ func Test_GetID64(t *testing.T) {
 	assert.Equal(t, "", s.LoginUsers.GetID64(""))
 	assert.Equal(t, "", s.LoginUsers.GetID64("foo"))
 
-	s, err = New("phects", testSteamRoot, false)
+	s, err = New("phects", testConfig, false)
 
 	assert.Empty(t, err)
 	assert.Equal(t, "76561198050517827", s.LoginUsers.GetID64("phects"))

@@ -10,7 +10,6 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
 )
 
@@ -61,9 +60,6 @@ func egrollDownload(cmd *cobra.Command, args []string) {
 		dirpath = "Proton-" + tag
 	}
 	filepath := dirpath + ".tar.gz"
-
-	s, err := steam.New(user, cfg.SteamRoot, false)
-	exitOnError(err)
 
 	dir := s.GetCompatibilityToolsDir()
 	_, err = os.Stat(dir)

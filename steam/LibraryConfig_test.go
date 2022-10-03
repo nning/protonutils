@@ -7,7 +7,7 @@ import (
 )
 
 func Test_LibraryConfig(t *testing.T) {
-	s, _ := New("", testSteamRoot, false)
+	s, _ := New("", testConfig, false)
 
 	p := s.LibraryConfig.GetLibraryPathByID("1091500")
 	assert.Equal(t, "/mnt/games/Shared Steam Library", p)

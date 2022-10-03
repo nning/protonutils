@@ -12,8 +12,10 @@ import (
 type Config struct {
 	User      string `yaml:"user"`
 	SteamRoot string `yaml:"steam_root"`
-	dir       string
-	file      string
+	SteamOS   bool   `yaml:"steam_os"`
+
+	dir  string
+	file string
 }
 
 // New instantiates and loads config from file

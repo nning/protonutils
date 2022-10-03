@@ -19,8 +19,8 @@ var rootCmd = &cobra.Command{
 }
 
 var manDir string
-
 var cfg config.Config
+var s *steam.Steam
 
 func exitOnAmbiguousNameError(cmd *cobra.Command, args []string, err error) {
 	if err != nil {
@@ -77,6 +77,10 @@ func main() {
 		cfg = *c
 		user = c.User
 	}
+
+	_s, err := steam.New(user, &cfg, ignoreCache)
+	exitOnError(err)
+	s = _s
 
 	rootCmd.Execute()
 }

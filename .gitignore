@@ -6,3 +6,4 @@
 /.coverage
 /flatpak
 /.flatpak-builder
+/.vscode

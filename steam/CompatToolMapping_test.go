@@ -9,7 +9,7 @@ import (
 func Test_InitCompatToolMapping(t *testing.T) {
 	t.Parallel()
 
-	s, err := New("", testSteamRoot, false)
+	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
 
 	assert.Empty(t, err)
@@ -22,7 +22,7 @@ func Test_InitCompatToolMapping(t *testing.T) {
 func Test_ReadCompatTools(t *testing.T) {
 	t.Parallel()
 
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.CompatToolMapping)
 
@@ -56,7 +56,7 @@ func Test_ReadCompatTools(t *testing.T) {
 func Test_Add(t *testing.T) {
 	t.Parallel()
 
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.CompatToolMapping)
 
@@ -85,7 +85,7 @@ func Test_Add(t *testing.T) {
 func Test_Update(t *testing.T) {
 	t.Parallel()
 
-	s, err := New("", testSteamRoot, true)
+	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 
 	ctm := s.CompatToolMapping

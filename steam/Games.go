@@ -43,6 +43,22 @@ func (games Games) Sort() []string {
 	return keys
 }
 
+func (games Games) SortByDeckCompatibilityCategory() []Game {
+	var sorted []Game
+
+	for _, game := range games {
+		if game.DeckCompatibility.Category.String() != "" {
+			sorted = append(sorted, *game)
+		}
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].DeckCompatibility.Category < sorted[j].DeckCompatibility.Category
+	})
+
+	return sorted
+}
+
 // CountInstalled returns count of installed games
 func (games Games) CountInstalled() int {
 	i := 0
