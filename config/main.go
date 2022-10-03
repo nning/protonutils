@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path"
+	"strings"
 
 	"github.com/nning/protonutils/utils"
 	"gopkg.in/yaml.v3"
@@ -49,6 +50,19 @@ func (cfg *Config) Load() error {
 
 	if cfg.SteamRoot == "" {
 		cfg.SteamRoot = "~/.local/share/Steam"
+	}
+
+	lsbRelease := "/etc/lsb-release"
+	_, err = os.Stat(lsbRelease)
+	if err == nil {
+		content, err := os.ReadFile(lsbRelease)
+		if err != nil {
+			return err
+		}
+
+		if strings.Contains(string(content), "") {
+			cfg.SteamOS = true
+		}
 	}
 
 	return nil

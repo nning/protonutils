@@ -140,10 +140,6 @@ on Arch Linux if you installed from the AUR).
 
     $ protonutils config steam_root ~/.var/app/com.valvesoftware.Steam/data/Steam
 
-### Support for Steam Deck
-
-    $ protonutils config steam_os true
-
 ### Reset Option
 
     $ protonutils config steam_root ""
