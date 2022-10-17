@@ -78,9 +78,11 @@ func main() {
 		user = c.User
 	}
 
-	_s, err := steam.New(user, &cfg, ignoreCache)
-	exitOnError(err)
-	s = _s
+	if os.Args[1] != "completion" {
+		_s, err := steam.New(user, &cfg, ignoreCache)
+		exitOnError(err)
+		s = _s
+	}
 
 	rootCmd.Execute()
 }
