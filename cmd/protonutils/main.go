@@ -78,7 +78,7 @@ func main() {
 		user = c.User
 	}
 
-	if os.Args[1] != "completion" {
+	if len(os.Args) > 1 && os.Args[1] != "completion" {
 		_s, err := steam.New(user, &cfg, ignoreCache)
 		exitOnError(err)
 		s = _s
