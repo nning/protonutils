@@ -15,7 +15,7 @@ type LocalConfigVdf struct {
 
 // GetGames returns a slice of games for which the user confirmed the
 // Steam Play disclaimer
-func (v *LocalConfigVdf) GetGames(disableViewedSteamPlay bool) ([]*Game, error) {
+func (v *LocalConfigVdf) GetGames(enableViewedSteamPlay bool) ([]*Game, error) {
 	log.Debug("LocalConfigVdf.GetGames()")
 
 	games := make([]*Game, 0)
@@ -26,7 +26,7 @@ func (v *LocalConfigVdf) GetGames(disableViewedSteamPlay bool) ([]*Game, error) 
 	for ; x != nil; x = x.NextChild() {
 		id := x.Name()
 
-		if !disableViewedSteamPlay {
+		if enableViewedSteamPlay {
 			viewedSteamPlay := x.FirstByName("ViewedSteamPlay").String()
 			if viewedSteamPlay != "1" {
 				continue

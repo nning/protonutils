@@ -3,7 +3,6 @@ package config
 import (
 	"os"
 	"path"
-	"strings"
 
 	"github.com/nning/protonutils/utils"
 	"gopkg.in/yaml.v3"
@@ -11,9 +10,9 @@ import (
 
 // Config represents YAML config file structure
 type Config struct {
-	User      string `yaml:"user"`
-	SteamRoot string `yaml:"steam_root"`
-	SteamOS   bool   `yaml:"steam_os"`
+	User                  string `yaml:"user"`
+	SteamRoot             string `yaml:"steam_root"`
+	EnableViewedSteamPlay bool   `yaml:"enable_viewed_steam_play"`
 
 	dir  string
 	file string
@@ -50,19 +49,6 @@ func (cfg *Config) Load() error {
 
 	if cfg.SteamRoot == "" {
 		cfg.SteamRoot = "~/.local/share/Steam"
-	}
-
-	lsbRelease := "/etc/lsb-release"
-	_, err = os.Stat(lsbRelease)
-	if err == nil {
-		content, err := os.ReadFile(lsbRelease)
-		if err != nil {
-			return err
-		}
-
-		if strings.Contains(string(content), "") {
-			cfg.SteamOS = true
-		}
 	}
 
 	return nil

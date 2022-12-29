@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -25,8 +26,9 @@ func configGetOrSet(cmd *cobra.Command, args []string) {
 	key := args[0]
 
 	m := map[string]interface{}{
-		"user":       cfg.User,
-		"steam_root": cfg.SteamRoot,
+		"user":                     cfg.User,
+		"steam_root":               cfg.SteamRoot,
+		"enable_viewed_steam_play": cfg.EnableViewedSteamPlay,
 	}
 
 	if len(args) == 1 {
@@ -37,6 +39,8 @@ func configGetOrSet(cmd *cobra.Command, args []string) {
 			cfg.User = args[1]
 		case "steam_root":
 			cfg.SteamRoot = args[1]
+		case "enable_viewed_steam_play":
+			cfg.EnableViewedSteamPlay, _ = strconv.ParseBool(args[1])
 		}
 		err := cfg.Save()
 		exitOnError(err)

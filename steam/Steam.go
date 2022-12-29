@@ -33,9 +33,9 @@ type Steam struct {
 
 	CompatTools CompatTools
 
-	UID                    string
-	Root                   string
-	DisableViewedSteamPlay bool
+	UID                   string
+	Root                  string
+	EnableViewedSteamPlay bool
 }
 
 // New instantiates Steam struct
@@ -74,10 +74,10 @@ func New(user string, cfg *config.Config, ignoreCache bool) (*Steam, error) {
 	}
 
 	s := &Steam{
-		AppidCache:             appidCache,
-		VersionNameCache:       protonNameCache,
-		Root:                   root,
-		DisableViewedSteamPlay: cfg.SteamOS,
+		AppidCache:            appidCache,
+		VersionNameCache:      protonNameCache,
+		Root:                  root,
+		EnableViewedSteamPlay: cfg.EnableViewedSteamPlay,
 	}
 
 	s.CompatTools = make(CompatTools)

@@ -135,11 +135,14 @@ func Test_GetAppIDAndName(t *testing.T) {
 
 	// Several matches
 	results = s.GetAppIDAndNames("fallout")
-	assert.Equal(t, 2, len(results))
+	assert.Equal(t, 5, len(results))
 
 	expected := [][]string{
-		{"377160", "Fallout 4"},
+		{"22370", "Fallout 3 - Game of the Year Edition"},
+		{"22380", "Fallout: New Vegas"},
 		{"1151340", "Fallout 76"},
+		{"377160", "Fallout 4"},
+		{"588430", "Fallout Shelter"},
 	}
 
 	for _, res := range results {

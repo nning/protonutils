@@ -79,7 +79,7 @@ func Test_CompatTools_Merge(t *testing.T) {
 	assert.Equal(t, "Portal", x["proton_experimental"].Games["Portal"].Name)
 }
 
-func Test_CompatTools_Read(t *testing.T) {
+func Test_CompatTools_Read_DisabledViewedSteamPlay(t *testing.T) {
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 
@@ -89,7 +89,7 @@ func Test_CompatTools_Read(t *testing.T) {
 	compatTools := s.CompatTools
 
 	assert.Equal(t, 7, len(compatTools))
-	assert.Equal(t, 25, len(compatTools[""].Games))
+	assert.Equal(t, 232, len(compatTools[""].Games))
 	assert.Equal(t, 4, len(compatTools["proton_63"].Games))
 	assert.Equal(t, 2, len(compatTools["proton_experimental"].Games))
 	assert.Equal(t, 4, len(compatTools["Proton-6.21-GE-2"].Games))
@@ -98,10 +98,10 @@ func Test_CompatTools_Read(t *testing.T) {
 	assert.Equal(t, 1, len(compatTools["Proton-6.20-GE-1"].Games))
 }
 
-func Test_CompatTools_Read_SteamOS(t *testing.T) {
+func Test_CompatTools_Read_EnabledViewedSteamPlay(t *testing.T) {
 	localTestConfig := &config.Config{
-		SteamRoot: testSteamRoot,
-		SteamOS:   true,
+		SteamRoot:             testSteamRoot,
+		EnableViewedSteamPlay: true,
 	}
 
 	s, err := New("", localTestConfig, true)
@@ -113,7 +113,7 @@ func Test_CompatTools_Read_SteamOS(t *testing.T) {
 	compatTools := s.CompatTools
 
 	assert.Equal(t, 7, len(compatTools))
-	assert.Equal(t, 232, len(compatTools[""].Games))
+	assert.Equal(t, 25, len(compatTools[""].Games))
 	assert.Equal(t, 4, len(compatTools["proton_63"].Games))
 	assert.Equal(t, 2, len(compatTools["proton_experimental"].Games))
 	assert.Equal(t, 4, len(compatTools["Proton-6.21-GE-2"].Games))

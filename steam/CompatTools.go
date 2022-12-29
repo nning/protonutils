@@ -91,7 +91,7 @@ func (s *Steam) ReadCompatTools() error {
 		return err
 	}
 
-	games, err := s.LocalConfig.GetGames(s.DisableViewedSteamPlay)
+	games, err := s.LocalConfig.GetGames(s.EnableViewedSteamPlay)
 	if err != nil {
 		return err
 	}
