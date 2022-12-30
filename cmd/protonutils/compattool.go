@@ -100,6 +100,11 @@ func compatToolList(cmd *cobra.Command, args []string) {
 				if !tool.IsCustom && !tool.IsDefault {
 					id = "[" + tool.ID + "]"
 				}
+
+				if tool.Name == "" {
+					break
+				}
+
 				fmt.Println(tool.Name, id)
 				break
 			}

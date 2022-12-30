@@ -35,7 +35,11 @@ func list(cmd *cobra.Command, args []string) {
 				continue
 			}
 
-			fmt.Println(tool.Name)
+			if tool.Name == "" {
+				fmt.Println("Default")
+			} else {
+				fmt.Println(tool.Name)
+			}
 
 			for _, game := range games.Sort() {
 				if all || games[game].IsInstalled {
