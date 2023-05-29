@@ -57,47 +57,59 @@ func luxtorpedaDownload(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	dirpath := "luxtorpeda-" + tag[1:]
-	filepath := dirpath + ".tar.xz"
+	var dirpath string
+	var filepath string
+	for i, t := range []string{tag, tag[1:]} {
+		dirpath = "luxtorpeda-" + t
+		filepath = dirpath + ".tar.xz"
 
-	dir := s.GetCompatibilityToolsDir()
-	_, err = os.Stat(dir)
-	if err != nil {
-		err = os.Mkdir(dir, 0700)
-		exitOnError(err)
-	}
+		dir := s.GetCompatibilityToolsDir()
+		_, err = os.Stat(dir)
+		if err != nil {
+			err = os.Mkdir(dir, 0700)
+			exitOnError(err)
+		}
 
-	err = os.Chdir(dir)
-	exitOnError(err)
-
-	stat, err := os.Stat(dirpath)
-	if err == nil && stat.IsDir() && !force {
-		fmt.Println(dirpath, "already available")
-		return
-	}
-
-	if force {
-		err := os.RemoveAll(dirpath)
-		exitOnError(err)
-	}
-
-	if extractOnly {
-		_, err := os.Stat(filepath)
-		exitOnError(err)
-	} else {
-		downloadURL := "https://github.com/luxtorpeda-dev/luxtorpeda/releases/download/" + tag + "/" + filepath
-		r, size, err := getURL(downloadURL)
+		err = os.Chdir(dir)
 		exitOnError(err)
 
-		out, err := os.Create(filepath)
-		exitOnError(err)
-		defer out.Close()
+		stat, err := os.Stat(dirpath)
+		if err == nil && stat.IsDir() && !force {
+			fmt.Println(dirpath, "already available")
+			return
+		}
 
-		counter := &WriteCounter{}
-		counter.Filename = dirpath
-		counter.Total = size
-		_, err = io.Copy(out, io.TeeReader(r, counter))
-		exitOnError(err)
+		if force {
+			err := os.RemoveAll(dirpath)
+			exitOnError(err)
+		}
+
+		if extractOnly {
+			_, err := os.Stat(filepath)
+			exitOnError(err)
+		} else {
+			downloadURL := "https://github.com/luxtorpeda-dev/luxtorpeda/releases/download/" + tag + "/" + filepath
+			r, size, err := getURL(downloadURL)
+			if err != nil {
+				if i == 0 {
+					continue
+				} else {
+					exitOnError(err)
+				}
+			}
+
+			out, err := os.Create(filepath)
+			exitOnError(err)
+			defer out.Close()
+
+			counter := &WriteCounter{}
+			counter.Filename = dirpath
+			counter.Total = size
+			_, err = io.Copy(out, io.TeeReader(r, counter))
+			exitOnError(err)
+		}
+
+		break
 	}
 
 	fmt.Println("\nExtracting...")
