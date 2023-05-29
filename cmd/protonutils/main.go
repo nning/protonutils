@@ -6,6 +6,7 @@ import (
 
 	"github.com/nning/protonutils/config"
 	"github.com/nning/protonutils/steam"
+	"github.com/nning/protonutils/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 
@@ -78,7 +79,8 @@ func main() {
 		user = c.User
 	}
 
-	if len(os.Args) > 1 && os.Args[1] != "completion" {
+	exceptCommands := utils.Slice[string]{"completion", "config", "version"}
+	if len(os.Args) > 1 && !exceptCommands.Includes(os.Args[1]) {
 		_s, err := steam.New(user, &cfg, ignoreCache)
 		exitOnError(err)
 		s = _s
