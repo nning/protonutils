@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"runtime"
 
 	"github.com/spf13/cobra"
 )
@@ -55,11 +56,15 @@ func egrollDownload(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	dirpath := tag
+	base := tag
 	if validOld {
-		dirpath = "Proton-" + tag
+		base = "Proton-" + tag
 	}
-	filepath := dirpath + ".tar.gz"
+
+	names := []string{base}
+	if validNew {
+		names = []string{base + "-" + egrollArch(), base}
+	}
 
 	dir := s.GetCompatibilityToolsDir()
 	_, err = os.Stat(dir)
@@ -71,20 +76,36 @@ func egrollDownload(cmd *cobra.Command, args []string) {
 	err = os.Chdir(dir)
 	exitOnError(err)
 
-	stat, err := os.Stat(dirpath)
-	if err == nil && stat.IsDir() && !force {
-		fmt.Println(dirpath, "already available")
-		return
+	if !force {
+		for _, name := range names {
+			stat, err := os.Stat(name)
+			if err == nil && stat.IsDir() {
+				fmt.Println(name, "already available")
+				return
+			}
+		}
 	}
+
+	var dirpath string
+	var r io.Reader
+	var size uint64
+
+	for _, name := range names {
+		dirpath = name
+		downloadURL := "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/" + tag + "/" + name + ".tar.gz"
+		r, size, err = getURL(downloadURL)
+		if err == nil {
+			break
+		}
+	}
+	exitOnError(err)
+
+	filepath := dirpath + ".tar.gz"
 
 	if force {
-		err := os.RemoveAll(dirpath)
+		err = os.RemoveAll(dirpath)
 		exitOnError(err)
 	}
-
-	downloadURL := "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/" + tag + "/" + filepath
-	r, size, err := getURL(downloadURL)
-	exitOnError(err)
 
 	out, err := os.Create(filepath)
 	exitOnError(err)
@@ -105,6 +126,14 @@ func egrollDownload(cmd *cobra.Command, args []string) {
 		err = os.Remove(filepath)
 		exitOnError(err)
 	}
+}
+
+func egrollArch() string {
+	if runtime.GOARCH == "arm64" {
+		return "aarch64"
+	}
+
+	return "x86_64"
 }
 
 func egrollUpdate(cmd *cobra.Command, args []string) {
