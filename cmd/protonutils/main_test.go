@@ -437,3 +437,36 @@ func Test_CompatToolCleanOffline(t *testing.T) {
 	mustRun(t, "compattool", "clean", "-y")
 	assert.Equal(t, []string{"GE-Proton7-1", "GE-Proton8-1", "GE-Proton9-1"}, toolDirs(t, dir))
 }
+
+func Test_CompatdataClean(t *testing.T) {
+	r := steamtest.Default()
+	// Uninstalled games with compatdata directories
+	r.Apps = append(r.Apps, steamtest.App{ID: 22380, Name: "Fallout: New Vegas"})
+	r.Users[0].Apps = append(r.Users[0].Apps, "22380")
+	dir := setup(t, r)
+
+	compatdata := filepath.Join(dir, "library", "steamapps", "compatdata")
+	for _, id := range []string{"400", "22380", "620"} {
+		require.NoError(t, os.MkdirAll(filepath.Join(compatdata, id), 0700))
+		require.NoError(t, os.WriteFile(filepath.Join(compatdata, id, "save"), []byte("data"), 0600))
+	}
+
+	// compatdata path works for uninstalled games with compatdata (#35)
+	assert.Equal(t, filepath.Join(compatdata, "400")+"\n", mustRun(t, "compatdata", "path", "portal"))
+
+	// Filter by name (#36)
+	out := mustRun(t, "compatdata", "clean", "-y", "fallout")
+	assert.Contains(t, out, "Fallout: New Vegas")
+	assert.NotContains(t, out, "Portal")
+	assert.NoDirExists(t, filepath.Join(compatdata, "22380"))
+	assert.DirExists(t, filepath.Join(compatdata, "400"))
+
+	assert.Contains(t, mustRun(t, "compatdata", "clean", "-y", "nothing"), `No unused compatdata directories found for "nothing"`)
+
+	// Without filter, all unused directories are removed, installed games
+	// are kept
+	out = mustRun(t, "compatdata", "clean", "-y")
+	assert.Contains(t, out, "Portal")
+	assert.NoDirExists(t, filepath.Join(compatdata, "400"))
+	assert.DirExists(t, filepath.Join(compatdata, "620"))
+}

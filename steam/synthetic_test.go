@@ -163,6 +163,16 @@ func Test_Synthetic_FindRoot(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, flatpakRoot, found)
 
+	// Steam from Debian/Ubuntu package without ~/.steam/root symlink (#40)
+	require.NoError(t, os.Remove(flatpakRoot))
+	debianRoot := filepath.Join(home, ".steam", "debian-installation")
+	require.NoError(t, os.MkdirAll(filepath.Dir(debianRoot), 0700))
+	require.NoError(t, os.Symlink(root, debianRoot))
+
+	found, err = FindRoot("")
+	assert.NoError(t, err)
+	assert.Equal(t, debianRoot, found)
+
 	_, err = FindRoot("/nonexistent")
 	assert.ErrorContains(t, err, "not a directory")
 }
@@ -258,8 +268,17 @@ func Test_Synthetic_GetAppIDAndName(t *testing.T) {
 	assert.Equal(t, "Portal 2", name)
 	assert.True(t, strings.HasSuffix(p, "library/steamapps/common/Portal 2"), p)
 
+	// Portal (400) is not installed and has no compatdata directory
 	_, _, err = s.GetCompatdataPath("portal")
-	assert.ErrorContains(t, err, "not installed")
+	assert.ErrorContains(t, err, "no compatdata directory found")
+
+	// ... until it has one (#35)
+	compatdata := filepath.Join(s.Root, "library", "steamapps", "compatdata", "400")
+	require.NoError(t, os.MkdirAll(compatdata, 0700))
+	p, name, err = s.GetCompatdataPath("portal")
+	assert.NoError(t, err)
+	assert.Equal(t, "Portal", name)
+	assert.Equal(t, compatdata, p)
 }
 
 func Test_Synthetic_UpdateAndSave(t *testing.T) {

@@ -6,19 +6,23 @@ import (
 )
 
 // GetCompatdataPath returns compatdata path and game name for given game ID or
-// name
+// name. For games that are not installed (anymore) and non-Steam shortcuts, the
+// library folders are searched for an existing compatdata directory.
 func (s *Steam) GetCompatdataPath(idOrName string) (string, string, error) {
 	id, name, err := s.GetAppIDAndName(idOrName)
 	if err != nil {
 		return "", "", err
 	}
 
-	p := s.LibraryConfig.GetLibraryPathByID(id)
-	if p == "" {
-		return "", "", errors.New("Game not installed")
+	if p := s.LibraryConfig.GetLibraryPathByID(id); p != "" {
+		return filepath.Join(p, "steamapps", "compatdata", id), name, nil
 	}
 
-	return filepath.Join(p, "steamapps", "compatdata", id), name, nil
+	if p := s.SearchCompatdataPath(id); p != "" {
+		return p, name, nil
+	}
+
+	return "", "", errors.New("Game not installed and no compatdata directory found")
 }
 
 // GetInstalldirPath returns installation path and game name for given game ID
