@@ -148,6 +148,10 @@ tool.
     WARNING: Backup save game data for games without Steam Cloud support!
     Do you want to delete compatdata directories? [y/N]
 
+Only consider matching games (app ID, name, or prefix of name):
+
+    $ protonutils compatdata clean fallout
+
 ## Shell Completion
 
 Completion scripts can be generated with `protonutils completion
@@ -175,8 +179,8 @@ is used.
 ### Steam Root Path
 
 By default, the Steam root is detected automatically (`~/.local/share/Steam`,
-`~/.steam/root`, `~/.steam/steam`, and Steam from Flatpak in
-`~/.var/app/com.valvesoftware.Steam`). It can be set explicitly:
+`~/.steam/root`, `~/.steam/steam`, `~/.steam/debian-installation`, and Steam
+from Flatpak in `~/.var/app/com.valvesoftware.Steam`). It can be set explicitly:
 
     $ protonutils config steam_root ~/.var/app/com.valvesoftware.Steam/data/Steam
 
