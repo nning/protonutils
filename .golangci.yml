@@ -1,0 +1,25 @@
+version: "2"
+
+linters:
+  settings:
+    errcheck:
+      exclude-functions:
+        # Output to the terminal or to in-memory buffers
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - encoding/binary.Write
+        - (net/http.ResponseWriter).Write
+        # Closing response bodies after reading
+        - (io.Closer).Close
+        - (io.ReadCloser).Close
+        # Cleanup of temporary files
+        - os.Remove
+        - os.RemoveAll
+    staticcheck:
+      checks:
+        - all
+        # Error messages are printed verbatim to users of the CLI
+        - -ST1005
+        # Package comments
+        - -ST1000

@@ -5,10 +5,8 @@
 	"build": {
 		"dockerfile": "Dockerfile",
 		"args": {
-			// Update the VARIANT arg to pick a version of Go: 1, 1.18, 1.17
-			// Append -bullseye or -buster to pin to an OS version.
-			// Use -bullseye variants on local arm64/Apple Silicon.
-			"VARIANT": "1-bullseye",
+			// Update the VARIANT arg to pick a version of Go (and Debian release)
+			"VARIANT": "1.26-trixie",
 			// Options
 			"NODE_VERSION": "none"
 		}

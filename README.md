@@ -15,6 +15,8 @@ protonutils is a CLI tool that provides different utilities to make using the [P
 ## Download Binary
 
 * [Latest version](https://github.com/nning/protonutils/releases/latest/download/protonutils) (Linux x86_64)  
+* [Latest version](https://github.com/nning/protonutils/releases/latest/download/protonutils-arm64) (Linux arm64)  
+* [SHA256SUMS](https://github.com/nning/protonutils/releases/latest/download/SHA256SUMS)
 
 Make sure, the downloaded binary is executable (e.g. by running `chmod +x protonutils`).
 
@@ -26,7 +28,7 @@ There is a [package in the AUR][2].
 
 ## Manual Build
 
-Minimal Go version is 1.18.
+Minimal Go version is 1.21.
 
 This step is only necessary if aforementioned binary does not suit your needs for some reason. Install [Go](https://golang.org/), make sure `$GOPATH` is set correctly, then run...
 
@@ -78,7 +80,7 @@ on Arch Linux if you installed from the AUR).
       -c, --ignore-cache   Ignore app ID/name cache
       -j, --json           Output JSON (implies -a and -i)
       -i, --show-id        Show app ID
-      -u, --user string    Steam user name (or SteamID3)
+      -u, --user string    Steam user name, steamID64 or account ID (SteamID3)
 
 ### Update Proton-GE
 
@@ -93,18 +95,24 @@ on Arch Linux if you installed from the AUR).
       -h, --help    help for update
       -k, --keep    Keep downloaded archive of last version
 
+Downloads are verified with the SHA-512 checksum published with the release
+(if available) and only moved into `compatibilitytools.d` after successful
+extraction.
+
 ### Bulk Update Compatibiliy Tool Versions
 
     $ protonutils compattool migrate -h
-    Migrate compatibility tool version mappings from on version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options.
+    Migrate compatibility tool version mappings of installed games from one version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options. If "default" is used as toVersion, explicit mappings are removed and games use default compatibility tool.
 
     Usage:
       protonutils compattool migrate [flags] <fromVersion> <toVersion>
 
     Flags:
-      -h, --help     help for migrate
-      -r, --remove   Remove fromVersion after migration
-      -y, --yes      Do not ask
+      -h, --help           help for migrate
+      -c, --ignore-cache   Ignore app ID/name cache
+      -r, --remove         Remove fromVersion after migration (only custom tools in compatibilitytools.d)
+      -u, --user string    Steam user name, steamID64 or account ID (SteamID3)
+      -y, --yes            Do not ask
 
     $ protonutils compattool migrate Proton-6.21-GE-2 Proton-7.0rc2-GE-1
     Proton-6.21-GE-2 -> Proton-7.0rc2-GE-1
@@ -114,6 +122,12 @@ on Arch Linux if you installed from the AUR).
       * Horizon Zero Dawn
 
     Really update? [y/N]
+
+### Clean Unused Compatibility Tools
+
+`compattool clean` deletes compatibility tools in `compatibilitytools.d` that
+are neither used by an installed game nor configured as default compatibility
+tool.
 
 ### Clean Unused `compatdata` Directories
 
@@ -128,19 +142,40 @@ on Arch Linux if you installed from the AUR).
 
 ## Configuration
 
+The configuration is stored in `$XDG_CONFIG_HOME/protonutils/protonutils.yml`
+(default: `~/.config/protonutils/protonutils.yml`), caches in
+`$XDG_CACHE_HOME/protonutils` (default: `~/.cache/protonutils`). Older versions
+stored the configuration file directly in `$XDG_CONFIG_HOME` if it was set; it
+is moved automatically.
+
 ### Default User
 
-`uid` can be a Steam user name or a SteamID3.
+`uid` can be a Steam user name, a steamID64 or an account ID (SteamID3). If no
+user is configured and several users exist, the most recently logged in user
+is used.
 
     $ protonutils config user <uid>
 
-### Support for Steam from Flatpak / Change Steam Root Path
+### Steam Root Path
+
+By default, the Steam root is detected automatically (`~/.local/share/Steam`,
+`~/.steam/root`, `~/.steam/steam`, and Steam from Flatpak in
+`~/.var/app/com.valvesoftware.Steam`). It can be set explicitly:
 
     $ protonutils config steam_root ~/.var/app/com.valvesoftware.Steam/data/Steam
 
 ### Reset Option
 
     $ protonutils config steam_root ""
+
+### Backups
+
+Before `compattool set` or `compattool migrate` change Steam's `config.vdf`, the
+previous version is saved as `config.vdf.protonutils.bak`.
+
+### Debug Output
+
+    $ DEBUG=1 protonutils list
 
 
 [0]: https://github.com/ValveSoftware/Proton

@@ -1,4 +1,4 @@
-.PHONY: clean test lint
+.PHONY: clean test lint vulncheck release_arm64 checksums
 
 DESTDIR = ~/.local
 PREFIX = $(DESTDIR)/bin
@@ -34,7 +34,7 @@ $(UTILS_BIN): $(SOURCES)
 $(UTILS_BIN_FILE): $(UTILS_BIN)
 
 clean:
-	rm -f $(UTILS_BIN) $(COMPLETION_ZSH_SRC)
+	rm -f $(UTILS_BIN) $(UTILS_BIN)-arm64 $(UTILS_BIN_DIR)/SHA256SUMS $(COMPLETION_ZSH_SRC)
 	rm -rf $(MAN_SRC)
 
 run: run_utils
@@ -49,7 +49,11 @@ coverage: test
 	go tool cover -html .coverage
 
 lint:
-	golint ./...
+	go vet ./...
+	golangci-lint run ./...
+
+vulncheck:
+	govulncheck ./...
 
 build_pie: GOLDFLAGS += -s -w -linkmode external -extldflags \"$(LDFLAGS)\"
 build_pie: GOFLAGS += -trimpath -buildmode=pie -mod=readonly -modcacherw
@@ -69,6 +73,13 @@ man: build
 release: build_pie
 	upx -qq --best $(UTILS_BIN)
 	ls -lh $(UTILS_BIN)
+
+# Static build without cgo (cross-compilation for arm64)
+release_arm64:
+	cd $(UTILS_BIN_DIR); CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "$(GOLDFLAGS) -s -w" -o $(UTILS_BIN_FILE)-arm64
+
+checksums:
+	cd $(UTILS_BIN_DIR); sha256sum $(UTILS_BIN_FILE) $(UTILS_BIN_FILE)-arm64 > SHA256SUMS
 
 install: build_pie completion man
 	mkdir -p $(PREFIX) $(ZSH_PREFIX) $(MAN_PREFIX)

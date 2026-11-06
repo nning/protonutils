@@ -19,17 +19,26 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: 1.23
+          go-version: stable
 
       - name: Lint
-        run: |
-          go install golang.org/x/lint/golint@latest
-          make lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
 
-      - name: Prepare Steam Root for Tests
+      - name: Vulnerability Check
         run: |
-          echo $KEY > key.age
-          curl -sSL https://dl.filippo.io/age/v1.0.0?for=linux/amd64 | tar xzf -
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          make vulncheck
+
+      # The encrypted copy of real Steam data is only available if the secret
+      # is (not for pull requests from forks). Tests using it are skipped
+      # otherwise, tests with synthetic data always run.
+      - name: Prepare Steam Root for Tests
+        if: env.KEY != ''
+        run: |
+          echo "$KEY" > key.age
+          curl -sSL https://dl.filippo.io/age/v1.2.1?for=linux/amd64 | tar xzf -
           PATH="$(pwd)/age:$PATH" ./test/decrypt.sh ../key.age
         env:
           KEY: ${{ secrets.STEAM_ROOT_KEY }}
