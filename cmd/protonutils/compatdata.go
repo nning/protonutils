@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/dustin/go-humanize"
 	"github.com/nning/protonutils/utils"
@@ -12,10 +13,9 @@ import (
 )
 
 var compatdataCleanCmd = &cobra.Command{
-	Use:   "clean",
+	Use:   "clean [flags] [game]",
 	Short: "Clean unused compatdata directories",
-	Long:  "Clean leftover compatdata directories of previously installed and now uninstalled games",
-	Args:  cobra.NoArgs,
+	Long:  "Clean leftover compatdata directories of previously installed and now uninstalled games. If a game search string is given, only matching games are considered. It can be app ID, game name, or prefix of game name and is matched case-insensitively.",
 	RunE:  compatdataClean,
 }
 
@@ -28,6 +28,16 @@ func compatdataClean(cmd *cobra.Command, args []string) error {
 	err := s.ReadCompatTools()
 	if err != nil {
 		return err
+	}
+
+	// Optional filter by app ID or name
+	var filter map[string]bool
+	search := strings.Join(args, " ")
+	if search != "" {
+		filter = make(map[string]bool)
+		for _, m := range s.GetAppIDAndNames(search) {
+			filter[m.ID] = true
+		}
 	}
 
 	out := cmd.OutOrStdout()
@@ -44,7 +54,7 @@ func compatdataClean(cmd *cobra.Command, args []string) error {
 	seen := make(map[string]bool)
 	for _, tool := range s.CompatTools {
 		for _, game := range tool.Games {
-			if game.IsInstalled || seen[game.ID] {
+			if game.IsInstalled || seen[game.ID] || (filter != nil && !filter[game.ID]) {
 				continue
 			}
 			seen[game.ID] = true
@@ -64,7 +74,11 @@ func compatdataClean(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(entries) == 0 {
-		fmt.Fprintln(out, "No unused compatdata directories found!")
+		if search != "" {
+			fmt.Fprintf(out, "No unused compatdata directories found for %q!\n", search)
+		} else {
+			fmt.Fprintln(out, "No unused compatdata directories found!")
+		}
 		return nil
 	}
 

@@ -25,6 +25,7 @@ var RootCandidates = []string{
 	"~/.local/share/Steam",
 	"~/.steam/root",
 	"~/.steam/steam",
+	"~/.steam/debian-installation",
 	"~/.var/app/com.valvesoftware.Steam/data/Steam",
 	"~/.var/app/com.valvesoftware.Steam/.local/share/Steam",
 }
