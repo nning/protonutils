@@ -55,8 +55,14 @@ func logInvalidGames(t *testing.T, s *Steam, games []*Game) {
 
 		legacyPos, legacyName, _ := legacyLookup(s, id)
 
-		t.Logf("not listed: id=%v type=%q inAppInfo=%v getErr=%v apiName=%q apiErr=%v legacyPos=%v legacyName=%q",
-			id, s.AppInfo.GetType(id), n != nil, getErr, apiName, apiErr, legacyPos, legacyName)
+		common := n.FirstByName("common")
+		var keys []string
+		for c := common.FirstChild(); c != nil; c = c.NextChild() {
+			keys = append(keys, c.Name())
+		}
+
+		t.Logf("not listed: id=%v type=%q oslist=%q commonKeys=%v inAppInfo=%v getErr=%v apiName=%q apiErr=%v legacyPos=%v legacyName=%q",
+			id, s.AppInfo.GetType(id), common.FirstByName("oslist").String(), keys, n != nil, getErr, apiName, apiErr, legacyPos, legacyName)
 	}
 }
 
