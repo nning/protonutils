@@ -11,7 +11,8 @@ type LocalConfigVdf struct {
 	Vdf
 }
 
-// GetGames returns a slice of games read from localconfig.vdf.
+// GetGames returns a slice of games read from localconfig.vdf (Steam tools like
+// Proton or the Steam Linux Runtime are skipped).
 // The `enableViewedSteamPlay` argument controls whether the slice only contains
 // games for which the user confirmed the Steam Play disclaimer
 func (v *LocalConfigVdf) GetGames(enableViewedSteamPlay bool) ([]*Game, error) {
@@ -23,6 +24,10 @@ func (v *LocalConfigVdf) GetGames(enableViewedSteamPlay bool) ([]*Game, error) {
 		id := x.Name()
 
 		if enableViewedSteamPlay && x.FirstByName("ViewedSteamPlay").String() != "1" {
+			continue
+		}
+
+		if v.Steam.AppInfo.IsTool(id) {
 			continue
 		}
 

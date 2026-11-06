@@ -42,7 +42,7 @@ func Test_Synthetic_AppInfoVersions(t *testing.T) {
 		s := newSynthetic(t, r, "")
 
 		assert.Equal(t, uint32(0x07564400+version/10*16+version%10), s.AppInfo.Version)
-		assert.Equal(t, 5, s.AppInfo.Len())
+		assert.Equal(t, 6, s.AppInfo.Len())
 
 		name, err := s.GetName("620")
 		assert.NoError(t, err)
@@ -177,7 +177,11 @@ func Test_Synthetic_ReadCompatTools(t *testing.T) {
 	require.NotNil(t, def)
 	assert.True(t, def.IsDefault)
 	assert.Equal(t, "GE-Proton9-1 (Default)", def.Name)
+	// Proton 6.3 (1580130) is a tool and not listed
 	assert.Equal(t, []string{"1091500"}, def.Games.Sort())
+	assert.True(t, s.AppInfo.IsTool("1580130"))
+	assert.False(t, s.AppInfo.IsTool("1091500"))
+	assert.False(t, s.AppInfo.IsTool("70"))
 
 	assert.Equal(t, "Proton 6.3-8", tools["proton_63"].Name)
 	assert.False(t, tools["proton_63"].IsCustom)

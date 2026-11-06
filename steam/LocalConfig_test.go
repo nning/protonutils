@@ -52,8 +52,8 @@ func logInvalidGames(t *testing.T, s *Steam, games []*Game) {
 
 		legacyPos, legacyName, _ := legacyLookup(s, id)
 
-		t.Logf("invalid: id=%v subtree=%v inAppInfo=%v getErr=%v apiName=%q apiErr=%v legacyPos=%v legacyName=%q",
-			id, x.FirstChild() != nil || x.String() == "", n != nil, getErr, apiName, apiErr, legacyPos, legacyName)
+		t.Logf("not listed: id=%v type=%q inAppInfo=%v getErr=%v apiName=%q apiErr=%v legacyPos=%v legacyName=%q",
+			id, s.AppInfo.GetType(id), n != nil, getErr, apiName, apiErr, legacyPos, legacyName)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/BenLubar/vdf"
 	"github.com/dustin/go-humanize"
@@ -165,6 +166,24 @@ func (a *AppInfo) Get(id string) (*vdf.Node, error) {
 
 	a.parsed[uint32(appID)] = n
 	return n, nil
+}
+
+// GetType returns the app type from appinfo.vdf (e.g. "Game", "Tool",
+// "Config"; empty string if unknown)
+func (a *AppInfo) GetType(id string) string {
+	n, err := a.Get(id)
+	if n == nil || err != nil {
+		return ""
+	}
+
+	return n.FirstByName("common").FirstByName("type").String()
+}
+
+// IsTool returns whether app id is a Steam tool (like Proton or the Steam Linux
+// Runtime) or configuration app instead of a game
+func (a *AppInfo) IsTool(id string) bool {
+	t := a.GetType(id)
+	return strings.EqualFold(t, "Tool") || strings.EqualFold(t, "Config")
 }
 
 // GetCompatToolName returns human-readable name of compatibility tool,
