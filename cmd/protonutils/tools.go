@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 
 	"github.com/nning/protonutils/steam"
 	"github.com/spf13/cobra"
@@ -76,13 +77,25 @@ func geDownload(cmd *cobra.Command, tag string) error {
 		return fmt.Errorf("No valid GE version tag: %q", tag)
 	}
 
-	name := tag
+	base := tag
 	if validOld {
-		name = "Proton-" + tag
+		base = "Proton-" + tag
+	}
+
+	// Newer releases have architecture-suffixed archives (containing a
+	// directory with the same name), older ones do not
+	names := []string{base}
+	if !validOld {
+		names = []string{base + "-" + geArch(), base}
+	}
+
+	var candidates []toolCandidate
+	for _, name := range names {
+		candidates = append(candidates, toolCandidate{name: name, archive: name + ".tar.gz"})
 	}
 
 	return installTool(cmd.OutOrStdout(), toolRelease{
-		candidates: []toolCandidate{{name: name, archive: name + ".tar.gz"}},
+		candidates: candidates,
 		baseURL:    githubURL + "/" + geRepo + "/releases/download/" + tag,
 		checksum: func(c toolCandidate) string {
 			return c.name + ".sha512sum"
@@ -111,6 +124,15 @@ func luxtorpedaDownload(cmd *cobra.Command, tag string) error {
 			return patchLuxtorpedaVdf(dir, c.name, version)
 		},
 	})
+}
+
+// geArch returns the architecture suffix of Proton-GE archives
+func geArch() string {
+	if runtime.GOARCH == "arm64" {
+		return "aarch64"
+	}
+
+	return "x86_64"
 }
 
 // patchLuxtorpedaVdf sets the internal name of the tool to the directory name

@@ -317,6 +317,7 @@ func serve(t *testing.T, files map[string][]byte) {
 func Test_GeDownload(t *testing.T) {
 	dir := setup(t, steamtest.Default())
 
+	// Old release without architecture suffix
 	archive := tarGz(t, archiveFile{"GE-Proton9-20/proton", "#!/bin/sh\n"})
 	sum := sha512.Sum512(archive)
 	base := "/" + geRepo + "/releases/download/GE-Proton9-20/"
@@ -337,6 +338,26 @@ func Test_GeDownload(t *testing.T) {
 	mustRun(t, "ge", "download", "-f", "-k", "GE-Proton9-20")
 	assert.FileExists(t, filepath.Join(dir, "compatibilitytools.d", "GE-Proton9-20.tar.gz"))
 	assert.FileExists(t, filepath.Join(dir, "compatibilitytools.d", "GE-Proton9-20", "proton"))
+}
+
+func Test_GeDownloadArchSuffix(t *testing.T) {
+	dir := setup(t, steamtest.Default())
+
+	name := "GE-Proton11-12-" + geArch()
+	archive := tarGz(t, archiveFile{name + "/proton", "#!/bin/sh\n"})
+	sum := sha512.Sum512(archive)
+	base := "/" + geRepo + "/releases/download/GE-Proton11-12/"
+
+	serve(t, map[string][]byte{
+		base + name + ".tar.gz":    archive,
+		base + name + ".sha512sum": []byte(hex.EncodeToString(sum[:]) + "  " + name + ".tar.gz\n"),
+	})
+
+	out := mustRun(t, "ge", "download", "GE-Proton11-12")
+	assert.Contains(t, out, "Checksum OK")
+	assert.FileExists(t, filepath.Join(dir, "compatibilitytools.d", name, "proton"))
+
+	assert.Contains(t, mustRun(t, "ge", "download", "GE-Proton11-12"), "already available")
 }
 
 func Test_GeDownloadChecksumMismatch(t *testing.T) {
