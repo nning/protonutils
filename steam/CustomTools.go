@@ -106,3 +106,9 @@ func (s *Steam) initCustomTools() error {
 	s.CustomTools, err = ReadCustomTools(s.GetCompatibilityToolsDir())
 	return err
 }
+
+// ReloadCustomTools reads compatibilitytools.d again (e.g. after installing a
+// tool)
+func (s *Steam) ReloadCustomTools() error {
+	return s.initCustomTools()
+}

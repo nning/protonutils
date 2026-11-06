@@ -62,3 +62,31 @@ func (s *Steam) SearchCompatdataPath(id string) string {
 
 	return ""
 }
+
+// GetGamePaths returns the existing compatdata and installation directories of
+// app id (empty strings if they do not exist)
+func (s *Steam) GetGamePaths(id string) (compatdata, install string) {
+	lib := s.LibraryConfig.GetLibraryPathByID(id)
+
+	if lib != "" {
+		p := filepath.Join(lib, "steamapps", "compatdata", id)
+		if isDir(p) {
+			compatdata = p
+		}
+	}
+
+	if compatdata == "" {
+		compatdata = s.SearchCompatdataPath(id)
+	}
+
+	if lib != "" && !IsShortcut(id) {
+		if dir, err := s.GetInstalldir(id); err == nil && dir != "" {
+			p := filepath.Join(lib, "steamapps", "common", dir)
+			if isDir(p) {
+				install = p
+			}
+		}
+	}
+
+	return compatdata, install
+}
