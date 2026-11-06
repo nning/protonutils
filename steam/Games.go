@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/nning/protonutils/cache"
 )
 
 // negativeCacheMaxAge is the time after which app IDs without known name are
@@ -20,6 +22,13 @@ type Game struct {
 	IsInstalled       bool              `json:"isInstalled"`
 	IsShortcut        bool              `json:"isShortcut"`
 	DeckCompatibility DeckCompatibility `json:"deckCompatibility"`
+
+	// Paths and sizes (in bytes) are only set on request (see
+	// Steam.GetGamePaths)
+	CompatdataPath string `json:"compatdataPath,omitempty"`
+	CompatdataSize uint64 `json:"compatdataSize,omitempty"`
+	InstallPath    string `json:"installPath,omitempty"`
+	InstallSize    uint64 `json:"installSize,omitempty"`
 }
 
 // Games maps app ID to Game
@@ -227,10 +236,16 @@ func (s *Steam) GetShortcutName(id string) (string, error) {
 // GetAppIDAndNames returns app IDs and proper names for app ID or name search
 // (from AppidCache cache), sorted by name
 func (s *Steam) GetAppIDAndNames(idOrName string) []AppIDAndName {
+	return SearchAppIDAndNames(s.AppidCache, idOrName)
+}
+
+// SearchAppIDAndNames returns app IDs and proper names for app ID or name
+// search (case-insensitive name prefix) in an app ID cache, sorted by name
+func SearchAppIDAndNames(c *cache.Cache, idOrName string) []AppIDAndName {
 	results := make([]AppIDAndName, 0)
 	b := strings.ToLower(strings.TrimSpace(idOrName))
 
-	for id, value := range s.AppidCache.Dump() {
+	for id, value := range c.Dump() {
 		if !value.Valid || value.Name == "" {
 			continue
 		}

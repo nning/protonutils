@@ -57,6 +57,7 @@ func newPathCommands(name string, f pathFunc) *cobra.Command {
 	}
 
 	for _, c := range []*cobra.Command{pathCmd, openCmd} {
+		c.ValidArgsFunction = completeGame(true)
 		addUserFlags(c)
 		addVerboseFlag(c)
 		parent.AddCommand(c)

@@ -80,6 +80,7 @@ on Arch Linux if you installed from the AUR).
       -c, --ignore-cache   Ignore app ID/name cache
       -j, --json           Output JSON (implies -a and -i)
       -i, --show-id        Show app ID
+      -s, --size           Show disk usage of compatdata and game directories (JSON: also paths)
       -u, --user string    Steam user name, steamID64 or account ID (SteamID3)
 
 ### Update Proton-GE
@@ -91,9 +92,16 @@ on Arch Linux if you installed from the AUR).
       protonutils ge update [flags]
 
     Flags:
-      -f, --force   Force last version update
-      -h, --help    help for update
-      -k, --keep    Keep downloaded archive of last version
+      -f, --force     Force last version update
+      -h, --help      help for update
+      -k, --keep      Keep downloaded archive of last version
+      -m, --migrate   Switch installed games (and the default) from older Proton-GE versions to this version
+      -y, --yes       Do not ask
+
+With `--migrate`, installed games and non-Steam shortcuts using an older
+Proton-GE version (and the default compatibility tool, if it is an older
+Proton-GE version) are switched to the new version after confirmation. Newer
+versions and special builds (like `-rtsp`) are not changed.
 
 Downloads are verified with the SHA-512 checksum published with the release
 (if available) and only moved into `compatibilitytools.d` after successful
@@ -139,6 +147,14 @@ tool.
     Total size: 19 B
     WARNING: Backup save game data for games without Steam Cloud support!
     Do you want to delete compatdata directories? [y/N]
+
+## Shell Completion
+
+Completion scripts can be generated with `protonutils completion
+bash|zsh|fish`. Besides commands and flags, game names (for `compatdata`,
+`installdir`, `appid`, `compattool set`) and compatibility tool versions are
+completed. Game names are known after any command that reads games (like
+`list`) has run once.
 
 ## Configuration
 

@@ -21,7 +21,18 @@ var (
 	toolAnnotation = map[string]string{steamAnnotation: steamRoot}
 )
 
-func newToolCommands(use, name string, download func(cmd *cobra.Command, tag string) error, repo string, withExtractOnly bool) *cobra.Command {
+// toolDownloadFunc installs the release with tag and returns the name of the
+// tool directory
+type toolDownloadFunc func(cmd *cobra.Command, tag string) (string, error)
+
+// toolOptions configures the flags of tool commands
+type toolOptions struct {
+	extractOnly bool
+	// migrate adds the --migrate flag, called with the installed tool
+	migrate func(cmd *cobra.Command, id string) error
+}
+
+func newToolCommands(use, name string, download toolDownloadFunc, repo string, opts toolOptions) *cobra.Command {
 	parent := &cobra.Command{
 		Use:         use,
 		Short:       "Commands for " + name,
@@ -33,7 +44,7 @@ func newToolCommands(use, name string, download func(cmd *cobra.Command, tag str
 		Short: "Download and extract version specified in argument",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return download(cmd, args[0])
+			return downloadAndMigrate(cmd, download, args[0], opts)
 		},
 	}
 
@@ -47,7 +58,7 @@ func newToolCommands(use, name string, download func(cmd *cobra.Command, tag str
 				return err
 			}
 
-			return download(cmd, tag)
+			return downloadAndMigrate(cmd, download, tag, opts)
 		},
 	}
 
@@ -56,8 +67,13 @@ func newToolCommands(use, name string, download func(cmd *cobra.Command, tag str
 
 	for _, c := range []*cobra.Command{downloadCmd, updateCmd} {
 		c.Flags().BoolVarP(&keep, "keep", "k", false, "Keep downloaded archive of last version")
-		if withExtractOnly {
+		if opts.extractOnly {
 			c.Flags().BoolVarP(&extractOnly, "extract-only", "e", false, "Do not download but extract only from existing archive")
+		}
+
+		if opts.migrate != nil {
+			c.Flags().BoolVarP(&migrate, "migrate", "m", false, "Switch installed games (and the default) from older "+name+" versions to this version")
+			addYesFlag(c)
 		}
 
 		parent.AddCommand(c)
@@ -67,14 +83,24 @@ func newToolCommands(use, name string, download func(cmd *cobra.Command, tag str
 }
 
 func init() {
-	rootCmd.AddCommand(newToolCommands("ge", "Proton-GE", geDownload, geRepo, false))
-	rootCmd.AddCommand(newToolCommands("luxtorpeda", "Luxtorpeda", luxtorpedaDownload, luxtorpedaRepo, true))
+	rootCmd.AddCommand(newToolCommands("ge", "Proton-GE", geDownload, geRepo, toolOptions{migrate: geMigrate}))
+	rootCmd.AddCommand(newToolCommands("luxtorpeda", "Luxtorpeda", luxtorpedaDownload, luxtorpedaRepo, toolOptions{extractOnly: true}))
 }
 
-func geDownload(cmd *cobra.Command, tag string) error {
+func downloadAndMigrate(cmd *cobra.Command, download toolDownloadFunc, tag string, opts toolOptions) error {
+	id, err := download(cmd, tag)
+	if err != nil || !migrate || opts.migrate == nil {
+		return err
+	}
+
+	fmt.Fprintln(cmd.OutOrStdout())
+	return opts.migrate(cmd, id)
+}
+
+func geDownload(cmd *cobra.Command, tag string) (string, error) {
 	validOld := geTagOld.MatchString(tag)
 	if !validOld && !geTagNew.MatchString(tag) {
-		return fmt.Errorf("No valid GE version tag: %q", tag)
+		return "", fmt.Errorf("No valid GE version tag: %q", tag)
 	}
 
 	base := tag
@@ -103,9 +129,9 @@ func geDownload(cmd *cobra.Command, tag string) error {
 	})
 }
 
-func luxtorpedaDownload(cmd *cobra.Command, tag string) error {
+func luxtorpedaDownload(cmd *cobra.Command, tag string) (string, error) {
 	if !luxtorpedaTag.MatchString(tag) {
-		return fmt.Errorf("No valid Luxtorpeda version tag: %q", tag)
+		return "", fmt.Errorf("No valid Luxtorpeda version tag: %q", tag)
 	}
 
 	version := tag[1:]

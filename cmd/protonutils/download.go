@@ -266,26 +266,26 @@ type toolRelease struct {
 }
 
 // installTool downloads and extracts a compatibility tool release into
-// compatibilitytools.d. Everything is prepared in a temporary directory and
+// compatibilitytools.d and returns the name of the tool directory. Everything is prepared in a temporary directory and
 // only moved into place after successful download, verification and extraction.
-func installTool(w io.Writer, r toolRelease) error {
+func installTool(w io.Writer, r toolRelease) (string, error) {
 	compatDir := filepath.Join(root, "compatibilitytools.d")
 
 	for _, c := range r.candidates {
 		if isDir(filepath.Join(compatDir, c.name)) && !force {
 			fmt.Fprintln(w, c.name, "already available")
-			return nil
+			return c.name, nil
 		}
 	}
 
 	err := os.MkdirAll(compatDir, 0700)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	tmp, err := os.MkdirTemp(compatDir, tmpDirPrefix)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer os.RemoveAll(tmp)
 
@@ -307,7 +307,7 @@ func installTool(w io.Writer, r toolRelease) error {
 				names = append(names, candidate.archive)
 			}
 
-			return fmt.Errorf("archive not found in %v (tried %v)", compatDir, strings.Join(names, ", "))
+			return "", fmt.Errorf("archive not found in %v (tried %v)", compatDir, strings.Join(names, ", "))
 		}
 	} else {
 		var sum []byte
@@ -320,7 +320,7 @@ func installTool(w io.Writer, r toolRelease) error {
 				continue
 			}
 			if err != nil {
-				return err
+				return "", err
 			}
 
 			keepPath = filepath.Join(compatDir, c.archive)
@@ -330,7 +330,7 @@ func installTool(w io.Writer, r toolRelease) error {
 		if r.checksum != nil {
 			err = verifyChecksum(w, r.baseURL+"/"+r.checksum(c), sum)
 			if err != nil {
-				return err
+				return "", err
 			}
 		}
 	}
@@ -347,22 +347,22 @@ func installTool(w io.Writer, r toolRelease) error {
 
 	err = os.MkdirAll(extractDir, 0700)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = extractTar(archive, extractDir, strip)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !isDir(extracted) {
-		return fmt.Errorf("unexpected archive content: %v not found", c.name)
+		return "", fmt.Errorf("unexpected archive content: %v not found", c.name)
 	}
 
 	if r.postExtract != nil {
 		err = r.postExtract(c, extracted)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -372,7 +372,7 @@ func installTool(w io.Writer, r toolRelease) error {
 	if hasOld {
 		err = os.Rename(target, old)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -380,22 +380,22 @@ func installTool(w io.Writer, r toolRelease) error {
 	if err != nil {
 		if hasOld {
 			if restoreErr := os.Rename(old, target); restoreErr != nil {
-				return errors.Join(err, fmt.Errorf("restoring previous version: %w", restoreErr))
+				return "", errors.Join(err, fmt.Errorf("restoring previous version: %w", restoreErr))
 			}
 		}
 
-		return err
+		return "", err
 	}
 
 	if keep && keepPath != "" {
 		err = os.Rename(archive, keepPath)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	fmt.Fprintln(w, "Installed", c.name)
-	return nil
+	return c.name, nil
 }
 
 // isDir returns whether p is a directory (following symlinks)

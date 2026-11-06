@@ -437,3 +437,170 @@ func Test_CompatToolCleanOffline(t *testing.T) {
 	mustRun(t, "compattool", "clean", "-y")
 	assert.Equal(t, []string{"GE-Proton7-1", "GE-Proton8-1", "GE-Proton9-1"}, toolDirs(t, dir))
 }
+
+func complete(t *testing.T, args ...string) []string {
+	t.Helper()
+
+	out := mustRun(t, append([]string{cobra.ShellCompNoDescRequestCmd}, args...)...)
+
+	var lines []string
+	for _, l := range strings.Split(strings.TrimSpace(out), "\n") {
+		if strings.HasPrefix(l, ":") || strings.HasPrefix(l, "Completion ended") {
+			continue
+		}
+		lines = append(lines, l)
+	}
+
+	return lines
+}
+
+func Test_Completion(t *testing.T) {
+	dir := setup(t, steamtest.Default())
+
+	// Cache is empty before games have been read once
+	assert.Empty(t, complete(t, "installdir", "path", "Por"))
+
+	mustRun(t, "list")
+
+	assert.Equal(t, []string{"Portal", "Portal 2", "Portal 2 Authoring Tools"}, complete(t, "installdir", "path", "por"))
+	assert.Equal(t, []string{"Cyberpunk 2077"}, complete(t, "compatdata", "path", "cy"))
+
+	// Remaining words of names are completed for joined arguments
+	assert.Equal(t, []string{"2", "2 Authoring Tools"}, complete(t, "installdir", "open", "Portal", "2"))
+	assert.Equal(t, []string{"2077"}, complete(t, "appid", "Cyberpunk", ""))
+
+	// compattool set: game (single argument), then version
+	assert.Equal(t, []string{"Portal 2", "Portal 2 Authoring Tools"}, complete(t, "compattool", "set", "Portal 2"))
+	versions := complete(t, "compattool", "set", "Portal 2", "")
+	assert.Contains(t, versions, "default")
+	assert.Contains(t, versions, "proton_63")
+	assert.Contains(t, versions, "GE-Proton8-1")
+	assert.Empty(t, complete(t, "compattool", "set", "Portal 2", "proton_63", ""))
+
+	// migrate: no "default" as fromVersion
+	assert.NotContains(t, complete(t, "compattool", "migrate", ""), "default")
+	assert.Contains(t, complete(t, "compattool", "migrate", "GE-Proton8-1", ""), "default")
+
+	_ = dir
+}
+
+func Test_ParseGEVersion(t *testing.T) {
+	older := [][2]string{
+		{"GE-Proton9-1", "GE-Proton9-20"},
+		{"GE-Proton9-27", "GE-Proton10-1"},
+		{"GE-Proton9-27", "GE-Proton11-12-x86_64"},
+		{"Proton-7.0rc6-GE-1", "Proton-7.0-GE-1"},
+		{"Proton-6.21-GE-2", "Proton-7.0rc2-GE-1"},
+		{"Proton-7.0-GE-1", "GE-Proton7-1"},
+		{"GE-Proton8-1-rtsp", "GE-Proton9-1-rtsp"},
+	}
+
+	for _, pair := range older {
+		a, ok := parseGEVersion(pair[0])
+		require.True(t, ok, pair[0])
+		b, ok := parseGEVersion(pair[1])
+		require.True(t, ok, pair[1])
+
+		assert.True(t, a.olderThan(b), pair)
+		assert.False(t, b.olderThan(a), pair)
+	}
+
+	a, _ := parseGEVersion("GE-Proton8-1-rtsp")
+	b, _ := parseGEVersion("GE-Proton9-1")
+	assert.False(t, a.olderThan(b), "different variants")
+
+	for _, id := range []string{"proton_63", "luxtorpeda-68.0", "GE-Proton"} {
+		_, ok := parseGEVersion(id)
+		assert.False(t, ok, id)
+	}
+}
+
+func Test_GeDownloadMigrate(t *testing.T) {
+	r := steamtest.Default()
+	// Newer version pinned by the user is kept
+	r.Mapping["620"] = "GE-Proton11-1"
+	// Special build is kept
+	r.Mapping["1091500"] = "GE-Proton8-1-rtsp"
+	dir := setup(t, r)
+
+	name := "GE-Proton9-20-" + geArch()
+	archive := tarGz(t,
+		archiveFile{name + "/proton", "#!/bin/sh\n"},
+		archiveFile{name + "/compatibilitytool.vdf", "\"compatibilitytools\"\n{\n\t\"compat_tools\"\n\t{\n\t\t\"" + name + "\"\n\t\t{\n\t\t\t\"install_path\" \".\"\n\t\t\t\"display_name\" \"" + name + "\"\n\t\t}\n\t}\n}\n"},
+	)
+	sum := sha512.Sum512(archive)
+	base := "/" + geRepo + "/releases/download/GE-Proton9-20/"
+
+	serve(t, map[string][]byte{
+		base + name + ".tar.gz":    archive,
+		base + name + ".sha512sum": []byte(hex.EncodeToString(sum[:]) + "  " + name + ".tar.gz\n"),
+	})
+
+	out := mustRun(t, "ge", "download", "-m", "-y", "GE-Proton9-20")
+	assert.Contains(t, out, "Installed "+name)
+	assert.Contains(t, out, "  * Default compatibility tool (GE-Proton9-1)\n")
+	assert.Contains(t, out, "  * Half-Life (GE-Proton8-1)\n")
+	assert.NotContains(t, out, "Portal")         // not installed (400) or newer version (620)
+	assert.NotContains(t, out, "Cyberpunk 2077") // special build
+
+	s := mustRun(t, "list", "-i")
+	assert.Contains(t, s, name+" (Default)\n")
+	assert.Contains(t, s, name+"\n\tHalf-Life (70)\n")
+
+	// Nothing left to migrate, already installed
+	out = mustRun(t, "ge", "download", "-m", "-y", "GE-Proton9-20")
+	assert.Contains(t, out, "already available")
+	assert.Contains(t, out, "No installed games use an older Proton-GE version")
+
+	// Without confirmation nothing is changed
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "config.vdf"), mustReadFile(t, filepath.Join(dir, "config", "config.vdf"+steam.BackupSuffix)), 0600))
+	out = mustRun(t, "ge", "download", "-m", "GE-Proton9-20")
+	assert.Contains(t, out, "Aborted")
+	assert.Contains(t, mustRun(t, "list"), "GE-Proton8-1\n\tHalf-Life\n")
+}
+
+func mustReadFile(t *testing.T, p string) []byte {
+	t.Helper()
+
+	b, err := os.ReadFile(p)
+	require.NoError(t, err)
+	return b
+}
+
+func Test_ListSize(t *testing.T) {
+	dir := setup(t, steamtest.Default())
+	lib := filepath.Join(dir, "library", "steamapps")
+
+	write := func(p string, size int) {
+		require.NoError(t, os.MkdirAll(filepath.Dir(p), 0700))
+		require.NoError(t, os.WriteFile(p, make([]byte, size), 0600))
+	}
+
+	write(filepath.Join(lib, "compatdata", "620", "pfx", "user.reg"), 1000)
+	write(filepath.Join(lib, "common", "Portal 2", "portal2.exe"), 5000)
+	write(filepath.Join(lib, "common", "Portal 2", "bin", "x.dll"), 2000)
+	write(filepath.Join(lib, "compatdata", "400", "pfx", "user.reg"), 300)
+
+	out := mustRun(t, "list", "-s")
+	assert.Contains(t, out, "\tPortal 2 [compatdata 1.0 kB, game 7.0 kB]\n")
+	assert.Contains(t, out, "\tHalf-Life\n")
+	assert.Contains(t, out, "Total: compatdata 1.0 kB, games 7.0 kB\n")
+
+	// Not installed games are included with -a
+	out = mustRun(t, "list", "-s", "-a")
+	assert.Contains(t, out, "\tPortal [NOT INSTALLED] [compatdata 300 B]\n")
+
+	var tools map[string]struct {
+		Games map[string]steam.Game `json:"games"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(mustRun(t, "list", "-j", "-s")), &tools))
+	g := tools["proton_63"].Games["Portal 2"]
+	assert.Equal(t, filepath.Join(lib, "compatdata", "620"), g.CompatdataPath)
+	assert.Equal(t, uint64(1000), g.CompatdataSize)
+	assert.Equal(t, filepath.Join(lib, "common", "Portal 2"), g.InstallPath)
+	assert.Equal(t, uint64(7000), g.InstallSize)
+
+	// Without -s, no paths in JSON
+	require.NoError(t, json.Unmarshal([]byte(mustRun(t, "list", "-j")), &tools))
+	assert.Empty(t, tools["proton_63"].Games["Portal 2"].CompatdataPath)
+}

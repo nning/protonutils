@@ -107,8 +107,11 @@ func initialize(cmd *cobra.Command, args []string) error {
 	case steamNone:
 		return nil
 	case steamRoot:
-		root, err = steam.FindRoot(cfg.SteamRoot)
-		return err
+		// Migrating mappings needs full Steam data
+		if f := cmd.Flags().Lookup("migrate"); f == nil || !f.Changed {
+			root, err = steam.FindRoot(cfg.SteamRoot)
+			return err
+		}
 	}
 
 	u := cfg.User
