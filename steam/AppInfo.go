@@ -181,9 +181,9 @@ func (a *AppInfo) GetType(id string) string {
 
 // IsInfrastructure returns whether app id is part of the Steam infrastructure
 // instead of something that can run with a compatibility tool: configuration
-// apps (like "Steam Client") and tools without Windows version (like Proton or
-// the Steam Linux Runtime). Windows tools (like authoring tools) are not
-// considered infrastructure.
+// apps (like "Steam Client") and tools with an OS list without Windows (like
+// Proton or the Steam Linux Runtime). Windows tools (like authoring tools) and
+// tools without OS list are not considered infrastructure.
 func (a *AppInfo) IsInfrastructure(id string) bool {
 	n, err := a.Get(id)
 	if n == nil || err != nil {
@@ -201,7 +201,12 @@ func (a *AppInfo) IsInfrastructure(id string) bool {
 		return false
 	}
 
-	for _, os := range strings.Split(common.FirstByName("oslist").String(), ",") {
+	oslist := common.FirstByName("oslist").String()
+	if oslist == "" {
+		return false
+	}
+
+	for _, os := range strings.Split(oslist, ",") {
 		if strings.EqualFold(strings.TrimSpace(os), "windows") {
 			return false
 		}

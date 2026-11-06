@@ -42,7 +42,7 @@ func Test_Synthetic_AppInfoVersions(t *testing.T) {
 		s := newSynthetic(t, r, "")
 
 		assert.Equal(t, uint32(0x07564400+version/10*16+version%10), s.AppInfo.Version)
-		assert.Equal(t, 8, s.AppInfo.Len())
+		assert.Equal(t, 9, s.AppInfo.Len())
 
 		name, err := s.GetName("620")
 		assert.NoError(t, err)
@@ -181,7 +181,8 @@ func Test_Synthetic_ReadCompatTools(t *testing.T) {
 	assert.Equal(t, []string{"1091500", "629"}, def.Games.Sort())
 	assert.True(t, s.AppInfo.IsInfrastructure("1580130"))
 	assert.True(t, s.AppInfo.IsInfrastructure("7"))
-	assert.False(t, s.AppInfo.IsInfrastructure("629"))
+	assert.False(t, s.AppInfo.IsInfrastructure("629")) // no oslist
+	assert.False(t, s.AppInfo.IsInfrastructure("630")) // Windows tool
 	assert.False(t, s.AppInfo.IsInfrastructure("1091500"))
 	assert.False(t, s.AppInfo.IsInfrastructure("70"))
 	assert.False(t, s.AppInfo.IsInfrastructure("11111111"))

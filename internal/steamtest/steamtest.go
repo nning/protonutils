@@ -355,7 +355,8 @@ func Default() Root {
 			{ID: 620, Name: "Portal 2", InstallDir: "Portal 2", DeckCategory: 3},
 			{ID: 1091500, Name: "Cyberpunk 2077", InstallDir: "Cyberpunk 2077", DeckCategory: 2, Type: "Game"},
 			{ID: 1580130, Name: "Proton 6.3", InstallDir: "Proton 6.3", Type: "Tool", OSList: "linux"},
-			{ID: 629, Name: "Portal 2 Authoring Tools", Type: "Tool", OSList: "windows,macos"},
+			{ID: 629, Name: "Portal 2 Authoring Tools", Type: "Tool"},
+			{ID: 630, Name: "Some Windows Tool", Type: "Tool", OSList: "windows,macos"},
 			{ID: 7, Name: "Steam Client", Type: "Config"},
 			{ID: 891390, Name: "SteamPlay 2.0 Manifests", Extra: []KV{
 				Tree("extended", Tree("compat_tools",
