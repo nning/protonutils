@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"strconv"
-	"strings"
 	"testing"
 
+	"github.com/BenLubar/vdf"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,29 +50,28 @@ func logInvalidGames(t *testing.T, s *Steam, games []*Game) {
 		n, getErr := s.AppInfo.Get(id)
 		apiName, apiErr := s.GetNameFromAPI(id)
 
-		legacyPos, legacyName := legacyLookup(s, id)
+		legacyPos, legacyName, _ := legacyLookup(s, id)
 
 		t.Logf("invalid: id=%v subtree=%v inAppInfo=%v getErr=%v apiName=%q apiErr=%v legacyPos=%v legacyName=%q",
 			id, x.FirstChild() != nil || x.String() == "", n != nil, getErr, apiName, apiErr, legacyPos, legacyName)
 	}
 }
 
-// legacyLookup returns position and name (with app ID of the entry) found by
-// the byte search used by older versions
-func legacyLookup(s *Steam, id string) (int, string) {
+// legacyLookup returns position, name and parse error of the lookup used by
+// older versions (byte search, parsing with BenLubar/vdf until the end of
+// appinfo.vdf, errors ignored)
+func legacyLookup(s *Steam, id string) (int, string, error) {
 	needle := []byte("appid\x00\x00\x00\x00\x00")
 	appID, _ := strconv.ParseUint(id, 10, 64)
 	binary.LittleEndian.PutUint32(needle[6:], uint32(appID))
 	pos := bytes.Index(s.AppInfo.data, needle)
-
-	name := ""
-	if pos >= 10 {
-		if n, err := ParseBinaryVdf(s.AppInfo.data[pos-10:]); err == nil {
-			name = n.FirstByName("common").FirstByName("name").String() + " (appid " + n.FirstByName("appid").String() + ")"
-		}
+	if pos < 10 {
+		return pos, "", nil
 	}
 
-	return pos, name
+	var n vdf.Node
+	err := n.UnmarshalBinary(s.AppInfo.data[pos-10:])
+	return pos, n.FirstByName("common").FirstByName("name").String(), err
 }
 
 // logGamesWithoutLegacyName logs games that have a name now, but had none with
@@ -86,13 +85,13 @@ func logGamesWithoutLegacyName(t *testing.T, s *Steam, games []*Game) {
 			continue
 		}
 
-		pos, legacyName := legacyLookup(s, g.ID)
-		if pos >= 0 && !strings.HasPrefix(legacyName, " (") {
+		pos, legacyName, legacyErr := legacyLookup(s, g.ID)
+		if pos < 0 || legacyName != "" {
 			continue
 		}
 
 		n, _ := s.AppInfo.Get(g.ID)
-		t.Logf("named now: id=%v name=%q appinfoName=%q legacyPos=%v legacyName=%q",
-			g.ID, g.Name, n.FirstByName("common").FirstByName("name").String(), pos, legacyName)
+		t.Logf("named now: id=%v name=%q appinfoName=%q legacyPos=%v legacyErr=%v",
+			g.ID, g.Name, n.FirstByName("common").FirstByName("name").String(), pos, legacyErr)
 	}
 }
