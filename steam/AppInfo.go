@@ -1,23 +1,181 @@
 package steam
 
 import (
+	"encoding/binary"
 	"errors"
-	"io/ioutil"
-	"path"
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/BenLubar/vdf"
 	"github.com/dustin/go-humanize"
-	log "github.com/sirupsen/logrus"
 )
 
-// InnerOffsetAppInfo sets byte count before appid match in appinfo
-const InnerOffsetAppInfo = 10
+// Magic numbers (versions) of appinfo.vdf
+const (
+	AppInfoMagicV27 = 0x07564427
+	AppInfoMagicV28 = 0x07564428
+	AppInfoMagicV29 = 0x07564429
+)
+
+// steamPlayManifestsAppID is the app ID of "SteamPlay 2.0 Manifests", which
+// contains the display names of official compatibility tools
+const steamPlayManifestsAppID = "891390"
+
+// AppInfo provides indexed access to the entries of appinfo.vdf
+type AppInfo struct {
+	Path    string
+	Version uint32
+
+	data    []byte
+	keys    []string
+	entries map[uint32][]byte
+	parsed  map[uint32]*vdf.Node
+}
+
+// ParseAppInfo indexes the content of appinfo.vdf (supported versions: 27, 28,
+// 29). Entries are only parsed on access.
+func ParseAppInfo(data []byte, path string) (*AppInfo, error) {
+	a := &AppInfo{
+		Path:    path,
+		data:    data,
+		entries: make(map[uint32][]byte),
+		parsed:  make(map[uint32]*vdf.Node),
+	}
+
+	if len(data) == 0 {
+		return a, nil
+	}
+
+	if len(data) < 8 {
+		return nil, errors.New("appinfo.vdf: file too short")
+	}
+
+	a.Version = binary.LittleEndian.Uint32(data)
+
+	var headerLen, pos int
+	end := len(data)
+
+	switch a.Version {
+	case AppInfoMagicV27:
+		headerLen, pos = 40, 8
+	case AppInfoMagicV28:
+		headerLen, pos = 60, 8
+	case AppInfoMagicV29:
+		headerLen, pos = 60, 16
+		if len(data) < 16 {
+			return nil, errors.New("appinfo.vdf: file too short")
+		}
+
+		tableOffset := binary.LittleEndian.Uint64(data[8:])
+		if tableOffset > uint64(len(data)) {
+			return nil, errors.New("appinfo.vdf: invalid string table offset")
+		}
+
+		end = int(tableOffset)
+
+		var err error
+		a.keys, err = parseAppInfoStringTable(data[tableOffset:])
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("appinfo.vdf: unsupported version 0x%08x", a.Version)
+	}
+
+	for pos+4 <= end {
+		appID := binary.LittleEndian.Uint32(data[pos:])
+		if appID == 0 {
+			break
+		}
+
+		if pos+8 > end {
+			return nil, fmt.Errorf("appinfo.vdf: truncated entry for app %d", appID)
+		}
+
+		size := int(binary.LittleEndian.Uint32(data[pos+4:]))
+		start := pos + 8
+		if size < headerLen || start+size > end {
+			return nil, fmt.Errorf("appinfo.vdf: invalid size of entry for app %d", appID)
+		}
+
+		a.entries[appID] = data[start+headerLen : start+size]
+		pos = start + size
+	}
+
+	return a, nil
+}
+
+func parseAppInfoStringTable(data []byte) ([]string, error) {
+	r := &binaryVdfReader{data: data}
+
+	count, err := r.readUint32()
+	if err != nil {
+		return nil, fmt.Errorf("appinfo.vdf: string table: %w", err)
+	}
+
+	if int(count) > len(data) {
+		return nil, errors.New("appinfo.vdf: string table: invalid count")
+	}
+
+	keys := make([]string, count)
+	for i := range keys {
+		keys[i], err = r.readCString()
+		if err != nil {
+			return nil, fmt.Errorf("appinfo.vdf: string table: %w", err)
+		}
+	}
+
+	return keys, nil
+}
+
+// Len returns the number of entries in appinfo.vdf
+func (a *AppInfo) Len() int {
+	return len(a.entries)
+}
+
+// Get returns the parsed "appinfo" node for app ID id or nil if there is no
+// entry for id
+func (a *AppInfo) Get(id string) (*vdf.Node, error) {
+	if id == "" || id == "0" {
+		return nil, nil
+	}
+
+	appID, err := strconv.ParseUint(id, 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid app ID %q", id)
+	}
+
+	if n, ok := a.parsed[uint32(appID)]; ok {
+		return n, nil
+	}
+
+	entry, ok := a.entries[uint32(appID)]
+	if !ok {
+		return nil, nil
+	}
+
+	n, err := parseBinaryVdf(entry, a.keys)
+	if err != nil {
+		return nil, fmt.Errorf("appinfo.vdf: app %v: %w", id, err)
+	}
+
+	a.parsed[uint32(appID)] = n
+	return n, nil
+}
 
 // GetCompatToolName returns human-readable name of compatibility tool,
-// for example: "proton_63" -> "Proton 6.3-8"
+// for example: "proton_63" -> "Proton 6.3-8". If no name is found, id is
+// returned.
 func (s *Steam) GetCompatToolName(id string) (string, error) {
 	if id == "" {
 		return "", nil
+	}
+
+	if tool := s.CustomTools.Get(id); tool != nil && tool.DisplayName != "" {
+		return tool.DisplayName, nil
 	}
 
 	str, _ := s.VersionNameCache.Get(id)
@@ -25,59 +183,31 @@ func (s *Steam) GetCompatToolName(id string) (string, error) {
 		return str, nil
 	}
 
-	var name string
-	var n *vdf.Node
-
-	// TODO Extract name from tool's own compatibilitytool.vdf
-
-	// Search for app ID 891390 ("SteamPlay 2.0 Manifests")
-	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, "891390")
-	if i < 0 || err != nil {
-		goto cache_and_return_error
-	}
-
-	n, err = ParseBinaryVdf(s.AppInfo.Bytes[i:])
+	n, err := s.AppInfo.Get(steamPlayManifestsAppID)
 	if err != nil {
-		goto cache_and_return_error
+		s.VersionNameCache.Add(id, id, false)
+		return id, err
 	}
 
-	n = n.FirstByName("extended").FirstByName("compat_tools")
-	n = n.FirstByName(id).FirstByName("display_name")
-
-	name = n.String()
+	name := n.FirstByName("extended").FirstByName("compat_tools").FirstByName(id).FirstByName("display_name").String()
 	if name == "" {
-		goto cache_and_return_error
+		s.VersionNameCache.Add(id, id, false)
+		return id, nil
 	}
 
 	s.VersionNameCache.Add(id, name, true)
 	return name, nil
-
-cache_and_return_error:
-	s.VersionNameCache.Add(id, id, false)
-	return id, err
 }
 
-// GetInstalldir returns installation directory of game by app ID
+// GetInstalldir returns installation directory of game by app ID (empty string
+// if app ID is unknown)
 func (s *Steam) GetInstalldir(id string) (string, error) {
-	if id == "" {
-		return "", nil
-	}
-
-	var n *vdf.Node
-
-	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
-	if i < 0 || err != nil {
+	n, err := s.AppInfo.Get(id)
+	if n == nil || err != nil {
 		return "", err
 	}
 
-	n, err = ParseBinaryVdf(s.AppInfo.Bytes[i:])
-	if err != nil {
-		return "", err
-	}
-
-	n = n.FirstByName("config").FirstByName("installdir")
-
-	dir := n.String()
+	dir := n.FirstByName("config").FirstByName("installdir").String()
 	if dir == "" {
 		return "", errors.New("installdir not found")
 	}
@@ -86,20 +216,18 @@ func (s *Steam) GetInstalldir(id string) (string, error) {
 }
 
 func (s *Steam) initAppInfo() error {
-	p := path.Join(s.Root, "appcache", "appinfo.vdf")
-	in, err := ioutil.ReadFile(p)
+	p := filepath.Join(s.Root, "appcache", "appinfo.vdf")
+	in, err := os.ReadFile(p)
 	if err != nil {
 		return err
 	}
 
-	if log.GetLevel() == log.DebugLevel {
-		log.Debug("Steam.initAppInfo(", p, "): ", humanize.Bytes(uint64(len(in))))
+	s.AppInfo, err = ParseAppInfo(in, p)
+	if err != nil {
+		return err
 	}
 
-	s.AppInfo = &BinaryVdf{
-		Bytes: in,
-		Path:  p,
-	}
+	slog.Debug("Steam.initAppInfo", "path", p, "size", humanize.Bytes(uint64(len(in))), "version", fmt.Sprintf("0x%08x", s.AppInfo.Version), "entries", s.AppInfo.Len())
 
 	return nil
 }

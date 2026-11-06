@@ -7,6 +7,7 @@ import (
 )
 
 func Test_GetID64(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, false)
 
 	assert.Empty(t, err)

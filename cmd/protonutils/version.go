@@ -14,12 +14,12 @@ var Version string
 var Buildtime string
 
 var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Show version",
-	Run:   version,
+	Use:         "version",
+	Short:       "Show version",
+	Args:        cobra.NoArgs,
+	Annotations: map[string]string{steamAnnotation: steamNone},
+	Run:         version,
 }
-
-var showVersion bool
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
@@ -28,10 +28,11 @@ func init() {
 func version(cmd *cobra.Command, args []string) {
 	url := "https://github.com/nning/protonutils/tree/" + Version
 	f := "%-12v  %v\n"
+	out := cmd.OutOrStdout()
 
-	fmt.Println(Version)
-	fmt.Printf("\n"+f, "Build time:", Buildtime)
-	fmt.Printf(f, "Code URL:", url)
-	fmt.Printf(f, "Config dir:", utils.GetConfigDir())
-	fmt.Printf(f, "Cache dir:", utils.GetCacheDir())
+	fmt.Fprintln(out, Version)
+	fmt.Fprintf(out, "\n"+f, "Build time:", Buildtime)
+	fmt.Fprintf(out, f, "Code URL:", url)
+	fmt.Fprintf(out, f, "Config dir:", utils.GetConfigDir())
+	fmt.Fprintf(out, f, "Cache dir:", utils.GetCacheDir())
 }

@@ -9,14 +9,10 @@ func (s Slice[T]) DeleteIndex(i int) Slice[T] {
 		return s
 	}
 
-	if len(s) >= i+1 {
-		return append(s[:i], s[i+1:]...)
-	}
-
-	return s[:i-1]
+	return append(s[:i], s[i+1:]...)
 }
 
-// DeleteValue deletes the first entry with value str in Slice s
+// DeleteValue deletes the first entry with value in Slice s
 func (s Slice[T]) DeleteValue(value T) Slice[T] {
 	if len(s) == 0 {
 		return s

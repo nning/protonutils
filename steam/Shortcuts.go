@@ -1,32 +1,65 @@
 package steam
 
 import (
-	"io/ioutil"
+	"errors"
+	"fmt"
+	"log/slog"
 	"os"
-	"path"
+	"path/filepath"
+	"strconv"
 
 	"github.com/dustin/go-humanize"
-	log "github.com/sirupsen/logrus"
 )
 
-// InnerOffsetShortcuts sets byte count before appid match in shortcuts
-const InnerOffsetShortcuts = 1
+// Shortcuts holds names of non-Steam game shortcuts (shortcuts.vdf) by app ID
+type Shortcuts struct {
+	Path  string
+	names map[uint32]string
+}
+
+// ParseShortcuts parses the content of shortcuts.vdf
+func ParseShortcuts(data []byte, path string) (*Shortcuts, error) {
+	sc := &Shortcuts{Path: path, names: make(map[uint32]string)}
+	if len(data) == 0 {
+		return sc, nil
+	}
+
+	n, err := ParseBinaryVdf(data)
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", path, err)
+	}
+
+	for x := n.FirstSubTree(); x != nil; x = x.NextSubTree() {
+		id := x.FirstByName("appid")
+		if id == nil {
+			continue
+		}
+
+		sc.names[uint32(id.Int())] = x.FirstByName("AppName").String()
+	}
+
+	return sc, nil
+}
+
+// GetName returns the name of a shortcut by app ID (empty string if not found)
+func (sc *Shortcuts) GetName(id string) string {
+	appID, err := strconv.ParseUint(id, 10, 32)
+	if err != nil {
+		return ""
+	}
+
+	return sc.names[uint32(appID)]
+}
 
 func (s *Steam) initShortcuts() error {
-	p := path.Join(s.Root, "userdata", s.UID, "config", "shortcuts.vdf")
-	in, err := ioutil.ReadFile(p)
-	if err != nil && !os.IsNotExist(err) {
+	p := filepath.Join(s.Root, "userdata", s.UID, "config", "shortcuts.vdf")
+	in, err := os.ReadFile(p)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 
-	if log.GetLevel() == log.DebugLevel {
-		log.Debug("Steam.initShortcuts(", p, "): ", humanize.Bytes(uint64(len(in))))
-	}
+	slog.Debug("Steam.initShortcuts", "path", p, "size", humanize.Bytes(uint64(len(in))))
 
-	s.Shortcuts = &BinaryVdf{
-		Bytes: in,
-		Path:  p,
-	}
-
-	return nil
+	s.Shortcuts, err = ParseShortcuts(in, p)
+	return err
 }

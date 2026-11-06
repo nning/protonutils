@@ -3,22 +3,22 @@ package utils
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
+	"strings"
 )
 
-// AskYesOrNo shows text and waits for users to confirm
-func AskYesOrNo(text string) (bool, error) {
-	fmt.Print(text, " [y/N] ")
+// AskYesOrNo writes text to w and reads a line from r. It returns true if the
+// answer starts with "y" or "Y". End of input is treated as "no".
+func AskYesOrNo(r io.Reader, w io.Writer, text string) (bool, error) {
+	fmt.Fprint(w, text, " [y/N] ")
 
-	reader := bufio.NewReader(os.Stdin)
-	char, _, err := reader.ReadRune()
-	if err != nil {
+	line, err := bufio.NewReader(r).ReadString('\n')
+	if err == io.EOF {
+		fmt.Fprintln(w)
+	} else if err != nil {
 		return false, err
 	}
 
-	if char != 121 && char != 89 {
-		return false, nil
-	}
-
-	return true, nil
+	answer := strings.TrimSpace(line)
+	return strings.HasPrefix(answer, "y") || strings.HasPrefix(answer, "Y"), nil
 }

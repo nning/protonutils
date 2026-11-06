@@ -7,6 +7,7 @@ import (
 )
 
 func Test_GetGames_EnabledViewedSteamPlay(t *testing.T) {
+	requireTestRoot(t)
 	s, _ := New("", testConfig, false)
 
 	games, err := s.LocalConfig.GetGames(true)
@@ -15,6 +16,7 @@ func Test_GetGames_EnabledViewedSteamPlay(t *testing.T) {
 }
 
 func Test_GetGames_DisabledViewedSteamPlay(t *testing.T) {
+	requireTestRoot(t)
 	s, _ := New("", testConfig, false)
 
 	games, err := s.LocalConfig.GetGames(false)

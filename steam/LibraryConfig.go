@@ -1,9 +1,8 @@
 package steam
 
 import (
-	"path"
-
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+	"path/filepath"
 )
 
 // LibraryConfigVdf represents parsed VDF config for library config from
@@ -13,41 +12,28 @@ type LibraryConfigVdf struct {
 }
 
 // GetLibraryPaths returns array of Steam library paths
-func (vdf LibraryConfigVdf) GetLibraryPaths() []string {
+func (v LibraryConfigVdf) GetLibraryPaths() []string {
 	var paths []string
 
-	x := vdf.Root.FirstSubTree()
-	for {
-		paths = append(paths, x.FirstByName("path").String())
-
-		x = x.NextSubTree()
-		if x == nil {
-			break
+	for x := v.Root.FirstSubTree(); x != nil; x = x.NextSubTree() {
+		if p := x.FirstByName("path").String(); p != "" {
+			paths = append(paths, p)
 		}
 	}
 
 	return paths
 }
 
-// GetLibraryPathByID returns library path for app id
-func (vdf LibraryConfigVdf) GetLibraryPathByID(id string) string {
-	x := vdf.Root.FirstSubTree()
-	for {
-		z := x.FirstByName("apps").FirstChild()
-		for {
-			if z.Name() == id {
-				return x.FirstByName("path").String()
-			}
+// GetLibraryPathByID returns library path for app id (empty string if app is
+// not installed)
+func (v LibraryConfigVdf) GetLibraryPathByID(id string) string {
+	if id == "" {
+		return ""
+	}
 
-			z = z.NextChild()
-			if z == nil {
-				break
-			}
-		}
-
-		x = x.NextSubTree()
-		if x == nil {
-			break
+	for x := v.Root.FirstSubTree(); x != nil; x = x.NextSubTree() {
+		if x.FirstByName("apps").FirstByName(id) != nil {
+			return x.FirstByName("path").String()
 		}
 	}
 
@@ -55,13 +41,13 @@ func (vdf LibraryConfigVdf) GetLibraryPathByID(id string) string {
 }
 
 // IsInstalled returns whether app id is installed
-func (vdf LibraryConfigVdf) IsInstalled(id string) bool {
-	return vdf.GetLibraryPathByID(id) != ""
+func (v LibraryConfigVdf) IsInstalled(id string) bool {
+	return v.GetLibraryPathByID(id) != ""
 }
 
 func (s *Steam) initLibraryConfig() error {
-	p := path.Join(s.Root, "steamapps", "libraryfolders.vdf")
-	log.Debug("steam.initLibraryConfig(", p, ")")
+	p := filepath.Join(s.Root, "steamapps", "libraryfolders.vdf")
+	slog.Debug("steam.initLibraryConfig", "path", p)
 
 	n, err := ParseTextConfig(p)
 	if err != nil {

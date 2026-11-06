@@ -8,6 +8,7 @@ import (
 )
 
 func Test_CompatTools_Add(t *testing.T) {
+	requireTestRoot(t)
 	compatTools := make(CompatTools)
 	version := "proton_63"
 	id := "620"
@@ -31,7 +32,7 @@ func Test_CompatTools_Add(t *testing.T) {
 	assert.Equal(t, "Proton 6.3-8", v.Name)
 	assert.Equal(t, 1, len(v.Games))
 
-	g := v.Games["Portal 2"]
+	g := v.Games["620"]
 	assert.NotEmpty(t, g)
 	assert.Equal(t, id, g.ID)
 	assert.Equal(t, "Portal 2", g.Name)
@@ -40,6 +41,7 @@ func Test_CompatTools_Add(t *testing.T) {
 }
 
 func Test_CompatTools_Merge(t *testing.T) {
+	requireTestRoot(t)
 	data1 := map[string][]string{
 		"proton_63": {
 			"620", // Portal 2
@@ -69,17 +71,18 @@ func Test_CompatTools_Merge(t *testing.T) {
 	assert.Equal(t, 2, len(x["proton_63"].Games))
 	assert.Equal(t, 1, len(x["proton_experimental"].Games))
 
-	assert.Equal(t, "620", x["proton_63"].Games["Portal 2"].ID)
-	assert.Equal(t, "Portal 2", x["proton_63"].Games["Portal 2"].Name)
+	assert.Equal(t, "620", x["proton_63"].Games["620"].ID)
+	assert.Equal(t, "Portal 2", x["proton_63"].Games["620"].Name)
 
-	assert.Equal(t, "70", x["proton_63"].Games["Half-Life"].ID)
-	assert.Equal(t, "Half-Life", x["proton_63"].Games["Half-Life"].Name)
+	assert.Equal(t, "70", x["proton_63"].Games["70"].ID)
+	assert.Equal(t, "Half-Life", x["proton_63"].Games["70"].Name)
 
-	assert.Equal(t, "400", x["proton_experimental"].Games["Portal"].ID)
-	assert.Equal(t, "Portal", x["proton_experimental"].Games["Portal"].Name)
+	assert.Equal(t, "400", x["proton_experimental"].Games["400"].ID)
+	assert.Equal(t, "Portal", x["proton_experimental"].Games["400"].Name)
 }
 
 func Test_CompatTools_Read_DisabledViewedSteamPlay(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 
@@ -99,6 +102,7 @@ func Test_CompatTools_Read_DisabledViewedSteamPlay(t *testing.T) {
 }
 
 func Test_CompatTools_Read_EnabledViewedSteamPlay(t *testing.T) {
+	requireTestRoot(t)
 	localTestConfig := &config.Config{
 		SteamRoot:             testSteamRoot,
 		EnableViewedSteamPlay: true,

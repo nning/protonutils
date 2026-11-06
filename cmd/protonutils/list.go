@@ -11,60 +11,70 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List games by runtime",
 	Long:  "List games by configured Proton/CompatTool version. This includes games that either have an explicit Proton/CompatTool mapping or have been started with Proton at least once.",
-	Run:   list,
+	Args:  cobra.NoArgs,
+	RunE:  list,
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+	addUserFlags(listCmd)
 	listCmd.Flags().BoolVarP(&all, "all", "a", false, "List both installed and non-installed games")
-	listCmd.Flags().BoolVarP(&ignoreCache, "ignore-cache", "c", false, "Ignore app ID/name cache")
 	listCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output JSON (implies -a and -i)")
 	listCmd.Flags().BoolVarP(&showAppID, "show-id", "i", false, "Show app ID")
-	listCmd.Flags().StringVarP(&user, "user", "u", "", "Steam user name (or SteamID3)")
 }
 
-func list(cmd *cobra.Command, args []string) {
+func list(cmd *cobra.Command, args []string) error {
 	err := s.ReadCompatTools()
-	exitOnError(err)
+	if err != nil {
+		return err
+	}
 
-	if !jsonOutput {
-		for _, toolID := range s.CompatTools.Sort() {
-			tool := s.CompatTools[toolID]
-			games := tool.Games
-			if !all && games.CountInstalled() == 0 {
+	out := cmd.OutOrStdout()
+
+	if jsonOutput {
+		j, err := json.MarshalIndent(s.CompatTools, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintln(out, string(j))
+		return nil
+	}
+
+	for _, toolID := range s.CompatTools.Sort() {
+		tool := s.CompatTools[toolID]
+		games := tool.Games
+		if !all && games.CountInstalled() == 0 {
+			continue
+		}
+
+		if tool.Name == "" {
+			fmt.Fprintln(out, "Default")
+		} else {
+			fmt.Fprintln(out, tool.Name)
+		}
+
+		for _, id := range games.Sort() {
+			game := games[id]
+			if !all && !game.IsInstalled {
 				continue
 			}
 
-			if tool.Name == "" {
-				fmt.Println("Default")
-			} else {
-				fmt.Println(tool.Name)
+			fmt.Fprint(out, "\t"+game.Name)
+			if showAppID {
+				fmt.Fprint(out, " ("+game.ID+")")
 			}
-
-			for _, game := range games.Sort() {
-				if all || games[game].IsInstalled {
-					fmt.Print("\t" + game)
-					if showAppID {
-						fmt.Print(" (" + games[game].ID + ")")
-					}
-					if !games[game].IsInstalled {
-						fmt.Print(" [NOT INSTALLED]")
-					}
-					if games[game].IsShortcut {
-						fmt.Print(" [SHORTCUT]")
-					}
-					fmt.Println()
-				}
+			if !game.IsInstalled {
+				fmt.Fprint(out, " [NOT INSTALLED]")
 			}
-
-			fmt.Println()
+			if game.IsShortcut {
+				fmt.Fprint(out, " [SHORTCUT]")
+			}
+			fmt.Fprintln(out)
 		}
-	} else {
-		j, err := json.MarshalIndent(s.CompatTools, "", "  ")
-		exitOnError(err)
-		fmt.Println(string(j))
+
+		fmt.Fprintln(out)
 	}
 
-	err = s.SaveCache()
-	exitOnError(err)
+	return nil
 }
