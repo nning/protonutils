@@ -48,11 +48,20 @@ jobs:
       - name: Test
         run: make test
 
-      - name: Build
-        run: make
+      # Same build as in cd.yml, so that releases do not fail on tag push
+      - name: Release Build
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install upx-ucl
+          make release release_arm64 checksums
+          ./cmd/protonutils/protonutils version
+          cat cmd/protonutils/SHA256SUMS
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: protonutils
-          path: cmd/protonutils/protonutils
+          path: |
+            cmd/protonutils/protonutils
+            cmd/protonutils/protonutils-arm64
+            cmd/protonutils/SHA256SUMS

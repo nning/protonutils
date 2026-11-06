@@ -330,6 +330,10 @@ func Test_GeDownload(t *testing.T) {
 
 	out := mustRun(t, "ge", "update")
 	assert.Contains(t, out, "Checksum OK")
+	// No terminal: no progress lines with control characters
+	assert.Contains(t, out, "Downloaded GE-Proton9-20 (")
+	assert.NotContains(t, out, "\r")
+	assert.NotContains(t, out, "\033")
 	assert.FileExists(t, filepath.Join(dir, "compatibilitytools.d", "GE-Proton9-20", "proton"))
 	assert.NotContains(t, strings.Join(toolDirs(t, dir), ","), tmpDirPrefix)
 

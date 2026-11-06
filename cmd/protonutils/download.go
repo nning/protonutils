@@ -45,17 +45,35 @@ type feed struct {
 	} `xml:"entry"`
 }
 
-// progressWriter prints download progress (at most once per percent or MB)
+// progressWriter prints download progress (at most once per percent or MB).
+// If the output is not a terminal, only a single line is printed when the
+// download is finished.
 type progressWriter struct {
 	w        io.Writer
 	name     string
 	total    uint64
 	finished uint64
 	last     uint64
+	terminal bool
+}
+
+// isTerminal returns whether w is a terminal (character device)
+func isTerminal(w io.Writer) bool {
+	f, ok := w.(*os.File)
+	if !ok {
+		return false
+	}
+
+	info, err := f.Stat()
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
 }
 
 func (p *progressWriter) Write(b []byte) (int, error) {
 	p.finished += uint64(len(b))
+
+	if !p.terminal {
+		return len(b), nil
+	}
 
 	step := p.finished / (1 << 20)
 	if p.total > 0 {
@@ -68,6 +86,16 @@ func (p *progressWriter) Write(b []byte) (int, error) {
 	}
 
 	return len(b), nil
+}
+
+// finish prints the final state of the download
+func (p *progressWriter) finish() {
+	if p.terminal {
+		fmt.Fprintln(p.w)
+		return
+	}
+
+	fmt.Fprintf(p.w, "Downloaded %s (%s)\n", p.name, humanize.Bytes(p.finished))
 }
 
 func (p *progressWriter) print() {
@@ -127,9 +155,9 @@ func downloadFile(w io.Writer, url, dest, name string) ([]byte, error) {
 	}
 
 	h := sha512.New()
-	progress := &progressWriter{w: w, name: name, total: total}
+	progress := &progressWriter{w: w, name: name, total: total, terminal: isTerminal(w)}
 	_, err = io.Copy(io.MultiWriter(f, h, progress), res.Body)
-	fmt.Fprintln(w)
+	progress.finish()
 
 	if closeErr := f.Close(); err == nil {
 		err = closeErr
