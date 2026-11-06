@@ -172,28 +172,32 @@ func (c CompatTools) Includes(appID string) bool {
 	return false
 }
 
-// UsedToolIDs returns set of IDs of compatibility tools that are used by at
-// least one installed game or configured as default
+// UsedToolIDs returns set of IDs of compatibility tools that are configured as
+// default, used by an installed game or used by a non-Steam shortcut. It reads
+// the mapping directly and does not depend on game name lookups (which can
+// fail, e.g. offline). Shortcuts always count as used, because config.vdf is
+// shared by all users while shortcuts are stored per user.
 func (s *Steam) UsedToolIDs() map[string]bool {
 	used := make(map[string]bool)
 
-	for id, tool := range s.CompatTools {
-		if id != "" && tool.Games.CountInstalled() > 0 {
-			used[id] = true
+	for x := s.CompatToolMapping.Node.FirstSubTree(); x != nil; x = x.NextSubTree() {
+		id := x.Name()
+		version := x.FirstByName("name").String()
+		if version == "" {
+			continue
 		}
-	}
 
-	if def := s.CompatToolMapping.GetDefaultID(); def != "" {
-		used[def] = true
+		if id == "0" || IsShortcut(id) || s.LibraryConfig.IsInstalled(id) {
+			used[version] = true
+		}
 	}
 
 	return used
 }
 
 // UnusedCustomToolDirs returns sorted list of directories in
-// compatibilitytools.d that only contain tools that are neither used by an
-// installed game nor configured as default. s.ReadCompatTools has to be called
-// before.
+// compatibilitytools.d that only contain tools that are not used (see
+// UsedToolIDs)
 func (s *Steam) UnusedCustomToolDirs() []string {
 	used := s.UsedToolIDs()
 

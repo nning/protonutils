@@ -145,7 +145,8 @@ func (a *AppInfo) Get(id string) (*vdf.Node, error) {
 
 	appID, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("invalid app ID %q", id)
+		// Not a valid app ID, so there is no entry
+		return nil, nil
 	}
 
 	if n, ok := a.parsed[uint32(appID)]; ok {
@@ -224,7 +225,10 @@ func (s *Steam) initAppInfo() error {
 
 	s.AppInfo, err = ParseAppInfo(in, p)
 	if err != nil {
-		return err
+		// Do not fail completely (e.g. on a future format change), names
+		// can still be retrieved from the store API
+		fmt.Fprintf(s.Stderr, "Warning: %v, game and tool names may be missing\n\n", err)
+		s.AppInfo, _ = ParseAppInfo(nil, p)
 	}
 
 	slog.Debug("Steam.initAppInfo", "path", p, "size", humanize.Bytes(uint64(len(in))), "version", fmt.Sprintf("0x%08x", s.AppInfo.Version), "entries", s.AppInfo.Len())

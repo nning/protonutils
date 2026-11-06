@@ -61,5 +61,10 @@ func (s *Steam) initShortcuts() error {
 	slog.Debug("Steam.initShortcuts", "path", p, "size", humanize.Bytes(uint64(len(in))))
 
 	s.Shortcuts, err = ParseShortcuts(in, p)
-	return err
+	if err != nil {
+		fmt.Fprintf(s.Stderr, "Warning: %v, shortcut names are missing\n\n", err)
+		s.Shortcuts, _ = ParseShortcuts(nil, p)
+	}
+
+	return nil
 }

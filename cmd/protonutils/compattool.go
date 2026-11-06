@@ -229,7 +229,7 @@ func compatToolMigrate(cmd *cobra.Command, args []string) error {
 
 	var removeDir string
 	if remove {
-		removeDir, err = removableToolDir(fromVersion)
+		removeDir, err = removableToolDir(fromVersion, map[string]bool{fromVersion: true})
 		if err != nil {
 			return err
 		}
@@ -267,6 +267,15 @@ func compatToolMigrate(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if removeDir != "" {
+		// Mappings not migrated (e.g. non-Steam shortcuts of other users) may
+		// still use fromVersion
+		if _, err := removableToolDir(fromVersion, nil); err != nil {
+			fmt.Fprintf(out, "WARNING: %v is not deleted: %v\n", removeDir, err)
+			removeDir = ""
+		}
+	}
+
 	err = ctm.Save()
 	if err != nil {
 		return err
@@ -283,9 +292,10 @@ func compatToolMigrate(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// removableToolDir returns the directory of custom tool id if it can be
-// removed after migrating all installed games to another version
-func removableToolDir(id string) (string, error) {
+// removableToolDir returns the directory of custom tool id if it is not used
+// (see steam.UsedToolIDs). Tools in ignore are not considered as used (e.g. the
+// tool that is about to be migrated away from).
+func removableToolDir(id string, ignore map[string]bool) (string, error) {
 	tool := s.CustomTools.Get(id)
 	if tool == nil {
 		return "", fmt.Errorf("%v is not a custom compatibility tool in %v, cannot remove it", id, s.GetCompatibilityToolsDir())
@@ -295,14 +305,17 @@ func removableToolDir(id string) (string, error) {
 		return "", fmt.Errorf("%v is configured as default compatibility tool, cannot remove it", id)
 	}
 
+	used := s.UsedToolIDs()
 	for otherID, other := range s.CustomTools {
-		if otherID == id || other.Dir != tool.Dir {
+		if other.Dir != tool.Dir || ignore[otherID] || !used[otherID] {
 			continue
 		}
 
-		if s.UsedToolIDs()[otherID] {
-			return "", fmt.Errorf("%v also contains %v, which is in use, cannot remove it", tool.Dir, otherID)
+		if otherID == id {
+			return "", fmt.Errorf("%v is still in use", id)
 		}
+
+		return "", fmt.Errorf("%v also contains %v, which is in use, cannot remove it", tool.Dir, otherID)
 	}
 
 	return tool.Dir, nil

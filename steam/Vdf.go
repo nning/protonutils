@@ -38,11 +38,17 @@ func (v *Vdf) Save() error {
 		return err
 	}
 
+	// Write to the target of a symlink instead of replacing the symlink
+	p := v.Path
+	if resolved, err := filepath.EvalSymlinks(p); err == nil {
+		p = resolved
+	}
+
 	var mode os.FileMode = 0600
-	if info, err := os.Stat(v.Path); err == nil {
+	if info, err := os.Stat(p); err == nil {
 		mode = info.Mode().Perm()
 
-		old, err := os.ReadFile(v.Path)
+		old, err := os.ReadFile(p)
 		if err != nil {
 			return err
 		}
@@ -53,7 +59,7 @@ func (v *Vdf) Save() error {
 		}
 	}
 
-	return writeFileAtomic(v.Path, out, mode)
+	return writeFileAtomic(p, out, mode)
 }
 
 // writeFileAtomic writes data to a temporary file in the directory of p and

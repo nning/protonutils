@@ -317,3 +317,98 @@ func Test_Synthetic_IsShortcut(t *testing.T) {
 	assert.False(t, IsShortcut("99999999999"))
 	assert.False(t, IsShortcut("foo"))
 }
+
+func Test_Synthetic_UnsupportedAppInfoIsNotFatal(t *testing.T) {
+	root := steamtest.Setup(t, steamtest.Default())
+	require.NoError(t, os.WriteFile(filepath.Join(root, "appcache", "appinfo.vdf"), []byte{0x30, 0x44, 0x56, 0x07, 1, 0, 0, 0}, 0600))
+
+	s, err := New("", &config.Config{SteamRoot: root}, false)
+	require.NoError(t, err)
+	assert.Equal(t, 0, s.AppInfo.Len())
+	require.NoError(t, s.ReadCompatTools())
+}
+
+func Test_Synthetic_CorruptShortcutsIsNotFatal(t *testing.T) {
+	r := steamtest.Default()
+	root := steamtest.Setup(t, r)
+	p := filepath.Join(root, "userdata", r.Users[0].ID32(), "config", "shortcuts.vdf")
+	require.NoError(t, os.WriteFile(p, []byte{0x00, 's', 0, 0x42}, 0600))
+
+	s, err := New("", &config.Config{SteamRoot: root}, false)
+	require.NoError(t, err)
+	assert.Equal(t, "", s.Shortcuts.GetName("3228583970"))
+	require.NoError(t, s.ReadCompatTools())
+}
+
+func Test_Synthetic_BrokenAppInfoEntryIsNotFatal(t *testing.T) {
+	r := steamtest.Default()
+	// Unknown value type in one entry
+	r.Apps[0].Extra = []steamtest.KV{{Key: "x", Value: uint64(1)}}
+	root := steamtest.Setup(t, r)
+
+	p := filepath.Join(root, "appcache", "appinfo.vdf")
+	data, err := os.ReadFile(p)
+	require.NoError(t, err)
+	// Replace the type byte of the uint64 node (0x07) of the first entry
+	i := strings.Index(string(data), "\x07")
+	for ; i >= 0 && i < len(data); i++ {
+		if data[i] == 0x07 && i > 16 {
+			data[i] = 0x42
+			break
+		}
+	}
+	require.NoError(t, os.WriteFile(p, data, 0600))
+
+	s, err := New("", &config.Config{SteamRoot: root}, false)
+	require.NoError(t, err)
+
+	_, err = s.AppInfo.Get("70")
+	assert.Error(t, err)
+
+	require.NoError(t, s.ReadCompatTools())
+	assert.Equal(t, "Portal 2", s.CompatTools["proton_63"].Games["620"].Name)
+
+	n, err := s.AppInfo.Get("99999999999")
+	assert.NoError(t, err)
+	assert.Nil(t, n)
+}
+
+func Test_Synthetic_UsedToolIDsWithoutNames(t *testing.T) {
+	r := steamtest.Default()
+	// Shortcut of another user (not in alice's shortcuts.vdf)
+	r.Mapping["3000000000"] = "GE-Proton6-1"
+	// Installed game without appinfo.vdf entry (name lookup fails offline)
+	r.Mapping["999999"] = "GE-Proton7-1"
+	r.Installed = append(r.Installed, "999999")
+
+	s := newSynthetic(t, r, "")
+	require.NoError(t, s.ReadCompatTools())
+
+	used := s.UsedToolIDs()
+	assert.True(t, used["GE-Proton6-1"])
+	assert.True(t, used["GE-Proton7-1"])
+	assert.Empty(t, s.UnusedCustomToolDirs())
+}
+
+func Test_Synthetic_SaveThroughSymlink(t *testing.T) {
+	s := newSynthetic(t, steamtest.Default(), "")
+	ctm := s.CompatToolMapping
+
+	real := filepath.Join(t.TempDir(), "config.vdf")
+	data, err := os.ReadFile(ctm.Path)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(real, data, 0600))
+	require.NoError(t, os.Remove(ctm.Path))
+	require.NoError(t, os.Symlink(real, ctm.Path))
+
+	require.NoError(t, ctm.Update("620", "GE-Proton6-1"))
+	require.NoError(t, ctm.Save())
+
+	info, err := os.Lstat(ctm.Path)
+	require.NoError(t, err)
+	assert.True(t, info.Mode()&os.ModeSymlink != 0, "symlink was replaced")
+
+	data, err = os.ReadFile(real)
+	require.NoError(t, err)
+	assert.Contains(t, string(data), "GE-Proton6-1")
+}

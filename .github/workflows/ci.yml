@@ -14,6 +14,9 @@ jobs:
     name: Lint, Test, Build, Upload Artifact
     runs-on: ubuntu-latest
 
+    env:
+      STEAM_ROOT_KEY: ${{ secrets.STEAM_ROOT_KEY }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -35,13 +38,12 @@ jobs:
       # is (not for pull requests from forks). Tests using it are skipped
       # otherwise, tests with synthetic data always run.
       - name: Prepare Steam Root for Tests
-        if: env.KEY != ''
+        # (step-level env is not available in the step's own if condition)
+        if: env.STEAM_ROOT_KEY != ''
         run: |
-          echo "$KEY" > key.age
+          echo "$STEAM_ROOT_KEY" > key.age
           curl -sSL https://dl.filippo.io/age/v1.2.1?for=linux/amd64 | tar xzf -
           PATH="$(pwd)/age:$PATH" ./test/decrypt.sh ../key.age
-        env:
-          KEY: ${{ secrets.STEAM_ROOT_KEY }}
 
       - name: Test
         run: make test

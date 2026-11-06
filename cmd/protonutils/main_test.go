@@ -389,3 +389,26 @@ func Test_LuxtorpedaDownload(t *testing.T) {
 	require.NotNil(t, tools["luxtorpeda-68.0"])
 	assert.Equal(t, "Luxtorpeda 68.0", tools["luxtorpeda-68.0"].DisplayName)
 }
+
+func Test_CompatToolMigrateRemoveStillUsed(t *testing.T) {
+	r := steamtest.Default()
+	// Shortcut of another user also uses GE-Proton8-1
+	r.Mapping["3000000000"] = "GE-Proton8-1"
+	dir := setup(t, r)
+
+	out := mustRun(t, "compattool", "migrate", "-y", "-r", "GE-Proton8-1", "proton_63")
+	assert.Contains(t, out, "is not deleted")
+	assert.Contains(t, toolDirs(t, dir), "GE-Proton8-1")
+	assert.Contains(t, mustRun(t, "list"), "Proton 6.3-8\n\tHalf-Life\n")
+}
+
+func Test_CompatToolCleanOffline(t *testing.T) {
+	r := steamtest.Default()
+	// Installed game without appinfo.vdf entry, store API is unreachable
+	r.Mapping["999999"] = "GE-Proton7-1"
+	r.Installed = append(r.Installed, "999999")
+	dir := setup(t, r)
+
+	mustRun(t, "compattool", "clean", "-y")
+	assert.Equal(t, []string{"GE-Proton7-1", "GE-Proton8-1", "GE-Proton9-1"}, toolDirs(t, dir))
+}

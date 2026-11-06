@@ -160,7 +160,9 @@ func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 
 	g, err := s.GetGame(id)
 	if err != nil {
-		return nil, false, err
+		// A single unparsable appinfo.vdf entry must not break everything
+		slog.Debug("Steam.GetGameData: ignoring appinfo.vdf entry", "id", id, "err", err)
+		g = nil
 	}
 
 	if g != nil && g.Name != "" {

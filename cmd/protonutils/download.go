@@ -339,8 +339,10 @@ func installTool(w io.Writer, r toolRelease) error {
 	}
 
 	target := filepath.Join(compatDir, c.name)
-	if isDir(target) {
-		err = os.Rename(target, filepath.Join(tmp, "old"))
+	old := filepath.Join(tmp, "old")
+	hasOld := isDir(target)
+	if hasOld {
+		err = os.Rename(target, old)
 		if err != nil {
 			return err
 		}
@@ -348,6 +350,12 @@ func installTool(w io.Writer, r toolRelease) error {
 
 	err = os.Rename(extracted, target)
 	if err != nil {
+		if hasOld {
+			if restoreErr := os.Rename(old, target); restoreErr != nil {
+				return errors.Join(err, fmt.Errorf("restoring previous version: %w", restoreErr))
+			}
+		}
+
 		return err
 	}
 
