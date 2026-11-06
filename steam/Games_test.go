@@ -7,6 +7,7 @@ import (
 )
 
 func Test_GetName(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
@@ -32,6 +33,7 @@ func Test_GetName(t *testing.T) {
 }
 
 func Test_GetGame(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
@@ -52,6 +54,7 @@ func Test_GetGame(t *testing.T) {
 }
 
 func Test_GetShortcutName(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.Shortcuts)
@@ -66,6 +69,7 @@ func Test_GetShortcutName(t *testing.T) {
 }
 
 func Test_GetGameData(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
@@ -94,6 +98,7 @@ func Test_GetGameData(t *testing.T) {
 }
 
 func Test_GetGameData_MissingShortcut(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
@@ -109,29 +114,31 @@ func Test_GetGameData_MissingShortcut(t *testing.T) {
 }
 
 func Test_GetAppIDAndName(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s)
 
-	s.ReadCompatTools()
+	err = s.ReadCompatTools()
+	assert.Empty(t, err)
 
 	// Exact name match but lowercase
 	results := s.GetAppIDAndNames("horizon zero dawn")
 	assert.Equal(t, 1, len(results))
-	assert.Equal(t, "1151640", results[0][0])
-	assert.Equal(t, "Horizon Zero Dawn", results[0][1])
+	assert.Equal(t, "1151640", results[0].ID)
+	assert.Equal(t, "Horizon Zero Dawn", results[0].Name)
 
 	// ID match
 	results = s.GetAppIDAndNames("1151640")
 	assert.Equal(t, 1, len(results))
-	assert.Equal(t, "1151640", results[0][0])
-	assert.Equal(t, "Horizon Zero Dawn", results[0][1])
+	assert.Equal(t, "1151640", results[0].ID)
+	assert.Equal(t, "Horizon Zero Dawn", results[0].Name)
 
 	// Prefix and lowercase match
 	results = s.GetAppIDAndNames("cyberpunk")
 	assert.Equal(t, 1, len(results))
-	assert.Equal(t, "1091500", results[0][0])
-	assert.Equal(t, "Cyberpunk 2077", results[0][1])
+	assert.Equal(t, "1091500", results[0].ID)
+	assert.Equal(t, "Cyberpunk 2077", results[0].Name)
 
 	// Several matches
 	results = s.GetAppIDAndNames("fallout")
@@ -146,21 +153,21 @@ func Test_GetAppIDAndName(t *testing.T) {
 	}
 
 	for _, res := range results {
-		var x []string
+		found := false
 
 		for _, ex := range expected {
-			if res[0] == ex[0] {
-				x = res
+			if res.ID == ex[0] {
+				found = true
+				assert.Equal(t, ex[1], res.Name)
 			}
 		}
 
-		assert.Equal(t, 2, len(x))
-		assert.Equal(t, x[0], res[0])
-		assert.Equal(t, x[1], res[1])
+		assert.True(t, found, res.ID)
 	}
 }
 
 func Test_GetGameVersion(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s)

@@ -1,11 +1,7 @@
 package steam
 
 import (
-	"errors"
-	"os"
-	"path"
 	"sort"
-	"strings"
 )
 
 // CompatTool holds info about a compatibility tool (like human-readable name
@@ -29,34 +25,20 @@ func (t CompatTool) IsInstalled(s *Steam) bool {
 		return false
 	}
 
-	file, err := os.Open(path.Join(s.GetCompatibilityToolsDir(), t.ID))
-	if err != nil {
-		return false
-	}
-
-	fInfo, err := file.Stat()
-	if err != nil || !fInfo.IsDir() {
-		return false
-	}
-
-	return true
+	tool := s.CustomTools.Get(t.ID)
+	return tool != nil && isDir(tool.Dir)
 }
 
 // IsValid checks whether a version ID (v) exists in the CompatTools config
 func (c CompatTools) IsValid(v string) bool {
-	for id := range c {
-		if id == v {
-			return true
-		}
-	}
-
-	return false
+	_, ok := c[v]
+	return ok
 }
 
 // Add adds an entry to the CompatTools config (by tool id and (display) name)
 func (c CompatTools) Add(id, name string) {
 	if c[id] != nil {
-		if c[id].Name != name && name != "" {
+		if name != "" {
 			c[id].Name = name
 		}
 
@@ -78,7 +60,7 @@ func (c CompatTools) AddGame(toolID string, game *Game) bool {
 		return false
 	}
 
-	c[toolID].Games[game.Name] = game
+	c[toolID].Games[game.ID] = game
 	return true
 }
 
@@ -96,31 +78,29 @@ func (s *Steam) ReadCompatTools() error {
 	}
 
 	def := tools.GetDefault()
-	if def != nil {
-		for _, game := range games {
-			if tools.Includes(game.ID) {
-				continue
-			}
-
-			tools.AddGame(def.ID, game)
-		}
+	if def == nil {
+		// No explicit default configured, Steam uses its built-in default
+		tools.Add("", "Default")
+		def = tools[""]
 	}
 
-	files, err := os.ReadDir(s.GetCompatibilityToolsDir())
-	if err != nil {
-		// If this directory does not exist, that's actually fine.
-		// It can be treated as an empty folder in that scenario.
-		if !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
-	}
-
-	for _, file := range files {
-		id := file.Name()
-		if strings.HasPrefix(id, ".") {
+	mapped := tools.GameIDs()
+	for _, game := range games {
+		if mapped[game.ID] {
 			continue
 		}
-		tools.Add(id, id)
+
+		tools.AddGame(def.ID, game)
+	}
+
+	for id, tool := range s.CustomTools {
+		name := tool.DisplayName
+		if name == "" {
+			name = id
+		}
+
+		tools.Add(id, name)
+		tools[id].IsCustom = true
 	}
 
 	s.CompatTools = tools
@@ -150,25 +130,32 @@ func (c CompatTools) GetDefault() *CompatTool {
 	return nil
 }
 
-// Sort returns slice of alphabetically sorted CompatTools IDs
+// Sort returns slice of CompatTools IDs sorted by name (and ID)
 func (c CompatTools) Sort() []string {
-	type kv struct {
-		key   string
-		value *CompatTool
+	ids := make([]string, 0, len(c))
+	for id := range c {
+		ids = append(ids, id)
 	}
 
-	var tmp []kv
-	for k, v := range c {
-		tmp = append(tmp, kv{k, v})
-	}
+	sort.Slice(ids, func(i, j int) bool {
+		a, b := c[ids[i]], c[ids[j]]
+		if a.Name != b.Name {
+			return a.Name < b.Name
+		}
 
-	sort.Slice(tmp, func(i, j int) bool {
-		return tmp[i].value.Name < tmp[j].value.Name
+		return a.ID < b.ID
 	})
 
-	var ids []string
-	for _, tool := range tmp {
-		ids = append(ids, tool.key)
+	return ids
+}
+
+// GameIDs returns set of app IDs of all games in c
+func (c CompatTools) GameIDs() map[string]bool {
+	ids := make(map[string]bool)
+	for _, tool := range c {
+		for id := range tool.Games {
+			ids[id] = true
+		}
 	}
 
 	return ids
@@ -183,6 +170,52 @@ func (c CompatTools) Includes(appID string) bool {
 	}
 
 	return false
+}
+
+// UsedToolIDs returns set of IDs of compatibility tools that are configured as
+// default, used by an installed game or used by a non-Steam shortcut. It reads
+// the mapping directly and does not depend on game name lookups (which can
+// fail, e.g. offline). Shortcuts always count as used, because config.vdf is
+// shared by all users while shortcuts are stored per user.
+func (s *Steam) UsedToolIDs() map[string]bool {
+	used := make(map[string]bool)
+
+	for x := s.CompatToolMapping.Node.FirstSubTree(); x != nil; x = x.NextSubTree() {
+		id := x.Name()
+		version := x.FirstByName("name").String()
+		if version == "" {
+			continue
+		}
+
+		if id == "0" || IsShortcut(id) || s.LibraryConfig.IsInstalled(id) {
+			used[version] = true
+		}
+	}
+
+	return used
+}
+
+// UnusedCustomToolDirs returns sorted list of directories in
+// compatibilitytools.d that only contain tools that are not used (see
+// UsedToolIDs)
+func (s *Steam) UnusedCustomToolDirs() []string {
+	used := s.UsedToolIDs()
+
+	usedDirs := make(map[string]bool)
+	for id, tool := range s.CustomTools {
+		if used[id] {
+			usedDirs[tool.Dir] = true
+		}
+	}
+
+	var dirs []string
+	for _, dir := range s.CustomTools.Dirs() {
+		if !usedDirs[dir] {
+			dirs = append(dirs, dir)
+		}
+	}
+
+	return dirs
 }
 
 // NewCompatTools returns new CompatTools struct (optionally initialized with

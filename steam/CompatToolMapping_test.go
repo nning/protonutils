@@ -8,6 +8,7 @@ import (
 
 func Test_InitCompatToolMapping(t *testing.T) {
 	t.Parallel()
+	requireTestRoot(t)
 
 	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
@@ -21,6 +22,7 @@ func Test_InitCompatToolMapping(t *testing.T) {
 
 func Test_ReadCompatTools(t *testing.T) {
 	t.Parallel()
+	requireTestRoot(t)
 
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
@@ -55,6 +57,7 @@ func Test_ReadCompatTools(t *testing.T) {
 
 func Test_Add(t *testing.T) {
 	t.Parallel()
+	requireTestRoot(t)
 
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
@@ -84,6 +87,7 @@ func Test_Add(t *testing.T) {
 
 func Test_Update(t *testing.T) {
 	t.Parallel()
+	requireTestRoot(t)
 
 	s, err := New("", testConfig, true)
 	assert.Empty(t, err)
@@ -110,7 +114,8 @@ func Test_Update(t *testing.T) {
 		assert.Equal(t, 1, len(compatTools[v1].Games))
 	}
 
-	ctm.Update(id, v2)
+	err = ctm.Update(id, v2)
+	assert.Empty(t, err)
 
 	compatTools, err = ctm.ReadCompatTools()
 	assert.Empty(t, err)

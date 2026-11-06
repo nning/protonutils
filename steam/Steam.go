@@ -1,99 +1,137 @@
 package steam
 
 import (
+	"errors"
 	"fmt"
-	"io/fs"
+	"io"
+	"log/slog"
 	"os"
-	osUser "os/user"
-	"path"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/nning/protonutils/cache"
 	"github.com/nning/protonutils/config"
-	log "github.com/sirupsen/logrus"
+	"github.com/nning/protonutils/utils"
 )
 
-const testSteamRoot = "../test/root"
+// LegacyDefaultRoot is the Steam root that was used as default by older
+// versions of protonutils (and written to the config file)
+const LegacyDefaultRoot = "~/.local/share/Steam"
 
-var testConfig = &config.Config{
-	SteamRoot: testSteamRoot,
+// RootCandidates are the Steam root locations that are tried if no Steam root
+// is configured
+var RootCandidates = []string{
+	"~/.local/share/Steam",
+	"~/.steam/root",
+	"~/.steam/steam",
+	"~/.var/app/com.valvesoftware.Steam/data/Steam",
+	"~/.var/app/com.valvesoftware.Steam/.local/share/Steam",
 }
+
+// versionNameCacheMaxAge is the time after which names of compatibility tools
+// are looked up again
+const versionNameCacheMaxAge = 6 * time.Hour
 
 // Steam struct wraps caches and exposes functions for Steam data retrieval
 type Steam struct {
 	AppidCache       *cache.Cache
 	VersionNameCache *cache.Cache
 
-	AppInfo           *BinaryVdf
+	AppInfo           *AppInfo
 	CompatToolMapping *CompatToolMappingVdf
 	LibraryConfig     *LibraryConfigVdf
 	LocalConfig       *LocalConfigVdf
 	LoginUsers        *LoginUsersVdf
-	Shortcuts         *BinaryVdf
+	Shortcuts         *Shortcuts
+	CustomTools       CustomTools
 
 	CompatTools CompatTools
 
 	UID                   string
 	Root                  string
 	EnableViewedSteamPlay bool
+
+	// Stderr receives warnings (defaults to os.Stderr)
+	Stderr io.Writer
+
+	apiUnavailable bool
+}
+
+func isDir(p string) bool {
+	info, err := os.Stat(p)
+	return err == nil && info.IsDir()
+}
+
+func isSteamRoot(p string) bool {
+	return isDir(filepath.Join(p, "config")) && isDir(filepath.Join(p, "steamapps"))
+}
+
+// FindRoot returns the Steam root directory. If configured is empty (or the
+// legacy default), the RootCandidates are tried.
+func FindRoot(configured string) (string, error) {
+	if configured != "" && configured != LegacyDefaultRoot {
+		root := utils.ExpandHome(configured)
+		if !isDir(root) {
+			return "", fmt.Errorf("Steam root not a directory: %v", root)
+		}
+
+		return root, nil
+	}
+
+	for _, candidate := range RootCandidates {
+		root := utils.ExpandHome(candidate)
+		if isSteamRoot(root) {
+			return root, nil
+		}
+	}
+
+	return "", errors.New("Steam root not found (tried " + strings.Join(RootCandidates, ", ") + "), " +
+		"set it with: protonutils config steam_root <path>")
 }
 
 // New instantiates Steam struct
 func New(user string, cfg *config.Config, ignoreCache bool) (*Steam, error) {
-	root := cfg.SteamRoot
-
-	t := -1
-	if ignoreCache {
-		t = 0
-	}
-
-	appidCache, err := cache.New("appids", int64(t))
+	root, err := FindRoot(cfg.SteamRoot)
 	if err != nil {
 		return nil, err
 	}
 
-	t = 6 * 60 * 60 // 6h
+	var appidMaxAge, versionNameMaxAge time.Duration = -1, versionNameCacheMaxAge
 	if ignoreCache {
-		t = 1
+		appidMaxAge, versionNameMaxAge = 0, 0
 	}
 
-	protonNameCache, err := cache.New("proton-names", int64(t))
+	appidCache, err := cache.New("appids", appidMaxAge)
 	if err != nil {
 		return nil, err
 	}
 
-	if strings.HasPrefix(root, "~/") {
-		usr, _ := osUser.Current()
-		root = path.Join(usr.HomeDir, root[2:])
-	}
-
-	var fInfo fs.FileInfo
-	fInfo, err = os.Stat(root)
-	if err != nil || !fInfo.IsDir() {
-		return nil, fmt.Errorf("Steam root not a directory: %v", root)
+	versionNameCache, err := cache.New("proton-names", versionNameMaxAge)
+	if err != nil {
+		return nil, err
 	}
 
 	s := &Steam{
 		AppidCache:            appidCache,
-		VersionNameCache:      protonNameCache,
+		VersionNameCache:      versionNameCache,
 		Root:                  root,
 		EnableViewedSteamPlay: cfg.EnableViewedSteamPlay,
+		CompatTools:           make(CompatTools),
+		Stderr:                os.Stderr,
 	}
-
-	s.CompatTools = make(CompatTools)
 
 	err = s.initLoginUsers()
 	if err != nil {
 		return nil, err
 	}
 
-	uid, _ := s.userToID32(user)
-	s.UID, err = s.getUID(uid)
+	s.UID, err = s.resolveUID(user, s.Stderr)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debug("steam.New(", user, "[", s.UID, "], ", root, ", cache=", !ignoreCache, ", enableViewedSteamPlay=", s.EnableViewedSteamPlay, ")")
+	slog.Debug("steam.New", "user", user, "uid", s.UID, "root", root, "cache", !ignoreCache, "enableViewedSteamPlay", s.EnableViewedSteamPlay)
 
 	err = s.initConfigs()
 	if err != nil {
@@ -104,29 +142,19 @@ func New(user string, cfg *config.Config, ignoreCache bool) (*Steam, error) {
 }
 
 func (s *Steam) initConfigs() error {
-	err := s.initAppInfo()
-	if err != nil {
-		return err
+	inits := []func() error{
+		s.initAppInfo,
+		s.initCustomTools,
+		s.initCompatToolMapping,
+		s.initLibraryConfig,
+		s.initLocalConfig,
+		s.initShortcuts,
 	}
 
-	err = s.initCompatToolMapping()
-	if err != nil {
-		return err
-	}
-
-	err = s.initLibraryConfig()
-	if err != nil {
-		return err
-	}
-
-	err = s.initLocalConfig()
-	if err != nil {
-		return err
-	}
-
-	err = s.initShortcuts()
-	if err != nil {
-		return err
+	for _, init := range inits {
+		if err := init(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -139,21 +167,22 @@ func (s *Steam) SaveCache() error {
 		return err
 	}
 
-	err = s.VersionNameCache.Write()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.VersionNameCache.Write()
 }
 
 // GetCompatibilityToolsDir returns compatibilitytools.d location
 func (s *Steam) GetCompatibilityToolsDir() string {
-	return path.Join(s.Root, "compatibilitytools.d")
+	return filepath.Join(s.Root, "compatibilitytools.d")
 }
 
-// IsRunning returns whether a process is running that contains "steam" in its
-// binary path. Always returns false if ran in Flatpak sandbox.
+// IsFlatpak returns whether protonutils runs in a Flatpak sandbox
+func IsFlatpak() bool {
+	_, err := os.Stat("/.flatpak-info")
+	return err == nil
+}
+
+// IsRunning returns whether the Steam client is running (a process with an
+// executable named "steam"). Always returns false if run in Flatpak sandbox.
 func (s *Steam) IsRunning() (bool, error) {
 	entries, err := os.ReadDir("/proc")
 	if err != nil {
@@ -165,12 +194,12 @@ func (s *Steam) IsRunning() (bool, error) {
 			continue
 		}
 
-		link, err := os.Readlink("/proc/" + entry.Name() + "/exe")
+		link, err := os.Readlink(filepath.Join("/proc", entry.Name(), "exe"))
 		if err != nil {
 			continue
 		}
 
-		if strings.Contains(link, "steam") {
+		if filepath.Base(strings.TrimSuffix(link, " (deleted)")) == "steam" {
 			return true, nil
 		}
 	}

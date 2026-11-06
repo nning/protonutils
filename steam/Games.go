@@ -1,58 +1,100 @@
 package steam
 
 import (
+	"encoding/json"
 	"errors"
+	"log/slog"
 	"sort"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
+	"time"
 )
+
+// negativeCacheMaxAge is the time after which app IDs without known name are
+// looked up again
+const negativeCacheMaxAge = 7 * 24 * time.Hour
 
 // Game represents Steam game or shortcut
 type Game struct {
 	ID                string            `json:"appID"`
-	Name              string            `json:"-"`
+	Name              string            `json:"name"`
 	IsInstalled       bool              `json:"isInstalled"`
 	IsShortcut        bool              `json:"isShortcut"`
 	DeckCompatibility DeckCompatibility `json:"deckCompatibility"`
 }
 
-// Games maps game name to Game (app ID, install status)
+// Games maps app ID to Game
 type Games map[string]*Game
 
 // AmbiguousNameError is returned if game search by app ID or name leads to
 // several results
-type AmbiguousNameError struct{}
+type AmbiguousNameError struct {
+	Matches []AppIDAndName
+}
 
 // Error returns description string
 func (err *AmbiguousNameError) Error() string {
 	return "Ambiguous name, try using app ID"
 }
 
-// Sort returns slice of alphabetically sorted Game names
-func (games Games) Sort() []string {
-	keys := make([]string, len(games))
-
-	i := 0
-	for key := range games {
-		keys[i] = key
-		i++
-	}
-
-	sort.Strings(keys)
-	return keys
+// AppIDAndName holds app ID and name of a game search result
+type AppIDAndName struct {
+	ID   string
+	Name string
 }
 
+// MarshalJSON serializes games as object with game names as keys (duplicate
+// names are suffixed with the app ID)
+func (games Games) MarshalJSON() ([]byte, error) {
+	count := make(map[string]int)
+	for _, game := range games {
+		count[game.Name]++
+	}
+
+	byName := make(map[string]*Game, len(games))
+	for _, game := range games {
+		key := game.Name
+		if count[key] > 1 || key == "" {
+			key += " (" + game.ID + ")"
+		}
+
+		byName[key] = game
+	}
+
+	return json.Marshal(byName)
+}
+
+// Sort returns slice of app IDs sorted by game name (and app ID)
+func (games Games) Sort() []string {
+	ids := make([]string, 0, len(games))
+	for id := range games {
+		ids = append(ids, id)
+	}
+
+	sort.Slice(ids, func(i, j int) bool {
+		a, b := games[ids[i]], games[ids[j]]
+		if a.Name != b.Name {
+			return a.Name < b.Name
+		}
+
+		return a.ID < b.ID
+	})
+
+	return ids
+}
+
+// SortByDeckCompatibilityCategory returns games with deck compatibility info
+// sorted by category
 func (games Games) SortByDeckCompatibilityCategory() []Game {
 	var sorted []Game
 
-	for _, game := range games {
+	for _, id := range games.Sort() {
+		game := games[id]
 		if game.DeckCompatibility.Category.String() != "" {
 			sorted = append(sorted, *game)
 		}
 	}
 
-	sort.Slice(sorted, func(i, j int) bool {
+	sort.SliceStable(sorted, func(i, j int) bool {
 		return sorted[i].DeckCompatibility.Category < sorted[j].DeckCompatibility.Category
 	})
 
@@ -72,19 +114,14 @@ func (games Games) CountInstalled() int {
 	return i
 }
 
-// Includes returns whether app id is included in g
+// Includes returns whether app id is included in games
 func (games Games) Includes(id string) bool {
-	for _, data := range games {
-		if data.ID == id {
-			return true
-		}
-	}
-
-	return false
+	_, ok := games[id]
+	return ok
 }
 
-// GetGameData returns initialized Game struct by app ID
-// TODO Rename/rewrite GetGameCached? How to handle non-cached data?
+// GetGameData returns initialized Game struct by app ID and whether a name was
+// found
 func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 	isShortcut := IsShortcut(id)
 	isInstalled := s.LibraryConfig.IsInstalled(id) || isShortcut
@@ -95,149 +132,160 @@ func (s *Steam) GetGameData(id string) (*Game, bool, error) {
 		IsShortcut:  isShortcut,
 	}
 
-	name, valid := s.AppidCache.Get(id)
-	if name != "" && valid && !isShortcut {
-		game.Name = name
-		log.Debug("Steam.GetGameData(", id, "): ", name, " (Cache Hit)")
-		return game, true, nil
-	}
-
-	var err error
-
 	if isShortcut {
-		game.Name, err = s.GetShortcutName(id)
-		if err != nil {
-			return nil, false, err
-		}
-
+		game.Name = s.Shortcuts.GetName(id)
 		if game.Name == "" {
 			game.IsInstalled = false
 		}
-	} else {
-		game1, err := s.GetGame(id)
-		if err != nil {
-			return nil, false, err
-		}
 
-		if game1 != nil {
-			game = game1
-		} else if id != "0" {
-			game.Name, err = s.GetNameFromAPI(id)
-			if err != nil {
-				return nil, false, err
-			}
-		}
+		// Cache name for searching by name (GetAppIDAndNames)
+		valid := game.Name != ""
+		s.AppidCache.Add(id, game.Name, valid)
 
-		log.Debug("Steam.GetGameData(", id, "): ", game.Name, " (Cache Miss)")
+		return game, valid, nil
 	}
 
-	valid = game.Name != ""
+	if entry, ok := s.AppidCache.Lookup(id); ok {
+		if entry.Valid && entry.Name != "" {
+			game.Name = entry.Name
+			slog.Debug("Steam.GetGameData (cache hit)", "id", id, "name", entry.Name)
+			return game, true, nil
+		}
+
+		if !entry.Valid && entry.Age() < negativeCacheMaxAge {
+			slog.Debug("Steam.GetGameData (negative cache hit)", "id", id)
+			return game, false, nil
+		}
+	}
+
+	g, err := s.GetGame(id)
+	if err != nil {
+		// A single unparsable appinfo.vdf entry must not break everything
+		slog.Debug("Steam.GetGameData: ignoring appinfo.vdf entry", "id", id, "err", err)
+		g = nil
+	}
+
+	if g != nil && g.Name != "" {
+		game = g
+	} else if id != "0" {
+		if s.apiUnavailable {
+			return game, false, nil
+		}
+
+		game.Name, err = s.GetNameFromAPI(id)
+		if err != nil {
+			// Do not fail (or cache) if the store API is not reachable
+			slog.Debug("Steam.GetGameData: store API unavailable", "id", id, "err", err)
+			s.apiUnavailable = true
+			return game, false, nil
+		}
+	}
+
+	slog.Debug("Steam.GetGameData (cache miss)", "id", id, "name", game.Name)
+
+	valid := game.Name != ""
 	s.AppidCache.Add(id, game.Name, valid)
 
 	return game, valid, nil
 }
 
-// GetGame returns Game struct by app id
-// If nameOnly is true, Game struct will only contain name
-func (s *Steam) GetGame(id string, nameOnly ...bool) (*Game, error) {
-	log.Debug("Steam.GetGame(", id, ")")
+// GetGame returns Game struct by app id (nil if app ID is not in appinfo.vdf)
+func (s *Steam) GetGame(id string) (*Game, error) {
+	slog.Debug("Steam.GetGame", "id", id)
 
-	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
-	if i < 0 || err != nil {
+	n, err := s.AppInfo.Get(id)
+	if n == nil || err != nil {
 		return nil, err
 	}
 
-	n, err := ParseBinaryVdf(s.AppInfo.Bytes[i:])
-	// if err != nil && err.Error() != "vdf: unknown pack type 114" && err.Error() != "vdf: unknown pack type 220" && err.Error() != "vdf: unknown pack type 111" {
-	// 	return nil, err
-	// }
+	common := n.FirstByName("common")
 
-	name := n.FirstByName("common").FirstByName("name").String()
-	game := &Game{
-		ID:   id,
-		Name: name,
-	}
-
-	if len(nameOnly) == 0 || (len(nameOnly) > 0 && nameOnly[0] == false) {
-		game.IsInstalled = s.LibraryConfig.IsInstalled(id)
-		game.IsShortcut = IsShortcut(id)
-
-		cn := n.FirstByName("common").FirstByName("steam_deck_compatibility")
-		game.DeckCompatibility = *GetDeckCompatibility(cn)
-	}
-
-	return game, nil
+	return &Game{
+		ID:                id,
+		Name:              common.FirstByName("name").String(),
+		IsInstalled:       s.LibraryConfig.IsInstalled(id),
+		IsShortcut:        IsShortcut(id),
+		DeckCompatibility: *GetDeckCompatibility(common.FirstByName("steam_deck_compatibility")),
+	}, nil
 }
 
 // GetName returns name of game by app id
 func (s *Steam) GetName(id string) (string, error) {
-	game, err := s.GetGame(id, true)
+	game, err := s.GetGame(id)
 	if game == nil || err != nil {
 		return "", err
 	}
 
-	return game.Name, err
+	return game.Name, nil
 }
 
 // GetShortcutName returns name of shortcut by app id
 func (s *Steam) GetShortcutName(id string) (string, error) {
-	i, err := s.Shortcuts.GetNextEntryStartByID(0, InnerOffsetShortcuts, id)
-	if i < 0 || err != nil {
-		return "", nil
-	}
-
-	n, err := ParseBinaryVdf(s.Shortcuts.Bytes[i:])
-	if err != nil {
-		return "", err
-	}
-
-	name := n.NextByName("AppName").String()
-	log.Debug("Steam.GetShortcutName(", id, "): ", name)
-
-	return name, nil
+	return s.Shortcuts.GetName(id), nil
 }
 
 // GetAppIDAndNames returns app IDs and proper names for app ID or name search
-// (from AppidCache cache)
-func (s *Steam) GetAppIDAndNames(idOrName string) [][]string {
-	data := s.AppidCache.Dump()
+// (from AppidCache cache), sorted by name
+func (s *Steam) GetAppIDAndNames(idOrName string) []AppIDAndName {
+	results := make([]AppIDAndName, 0)
+	b := strings.ToLower(strings.TrimSpace(idOrName))
 
-	results := make([][]string, 0)
+	for id, value := range s.AppidCache.Dump() {
+		if !value.Valid || value.Name == "" {
+			continue
+		}
 
-	for id, value := range data {
 		a := strings.ToLower(value.Name)
-		b := strings.ToLower(idOrName)
 
-		if a == b || strings.HasPrefix(a, b) || id == idOrName {
-			results = append(results, []string{id, value.Name})
+		if strings.HasPrefix(a, b) || id == idOrName {
+			results = append(results, AppIDAndName{id, value.Name})
 		}
 	}
+
+	sort.Slice(results, func(i, j int) bool {
+		if results[i].Name != results[j].Name {
+			return results[i].Name < results[j].Name
+		}
+
+		return results[i].ID < results[j].ID
+	})
 
 	return results
 }
 
-// GetAppIDAndName returns first found app ID and proper name for app ID or name
-// search (from AppidCache cache)
+// GetAppIDAndName returns app ID and proper name for app ID or name search
+// (from AppidCache cache). If several games match, an exact (case-insensitive)
+// match of app ID or name is preferred.
 func (s *Steam) GetAppIDAndName(idOrName string) (string, string, error) {
-	idAndNames := s.GetAppIDAndNames(idOrName)
+	results := s.GetAppIDAndNames(idOrName)
 
-	l := len(idAndNames)
-	if l == 0 {
+	if len(results) == 0 {
 		return "", "", errors.New("App ID or name not found")
-	} else if l > 1 {
-		return "", "", &AmbiguousNameError{}
 	}
 
-	return idAndNames[0][0], idAndNames[0][1], nil
+	if len(results) == 1 {
+		return results[0].ID, results[0].Name, nil
+	}
+
+	var exact []AppIDAndName
+	for _, r := range results {
+		if r.ID == idOrName || strings.EqualFold(r.Name, strings.TrimSpace(idOrName)) {
+			exact = append(exact, r)
+		}
+	}
+
+	if len(exact) == 1 {
+		return exact[0].ID, exact[0].Name, nil
+	}
+
+	return "", "", &AmbiguousNameError{Matches: results}
 }
 
-// GetGameVersion returns Version struct for a given game ID
+// GetGameVersion returns compatibility tool used by game with app ID id
 func (s *Steam) GetGameVersion(id string) *CompatTool {
 	for _, tool := range s.CompatTools {
-		for _, game := range tool.Games {
-			if id == game.ID {
-				return tool
-			}
+		if tool.Games.Includes(id) {
+			return tool
 		}
 	}
 

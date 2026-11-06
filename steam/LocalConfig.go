@@ -1,10 +1,8 @@
 package steam
 
 import (
-	"path"
-
-	"github.com/BenLubar/vdf"
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+	"path/filepath"
 )
 
 // LocalConfigVdf represents parsed VDF config for app config from
@@ -13,25 +11,25 @@ type LocalConfigVdf struct {
 	Vdf
 }
 
-// GetGames returns a slice of gamesr read from localconfig.vdf.
+// GetGames returns a slice of games read from localconfig.vdf (Steam
+// infrastructure like Proton or the Steam Linux Runtime is skipped, see
+// AppInfo.IsInfrastructure).
 // The `enableViewedSteamPlay` argument controls whether the slice only contains
 // games for which the user confirmed the Steam Play disclaimer
 func (v *LocalConfigVdf) GetGames(enableViewedSteamPlay bool) ([]*Game, error) {
-	log.Debug("LocalConfigVdf.GetGames()")
+	slog.Debug("LocalConfigVdf.GetGames")
 
 	games := make([]*Game, 0)
-	var x *vdf.Node
 
-	x = v.Node.FirstSubTree()
-
-	for ; x != nil; x = x.NextChild() {
+	for x := v.Node.FirstSubTree(); x != nil; x = x.NextSubTree() {
 		id := x.Name()
 
-		if enableViewedSteamPlay {
-			viewedSteamPlay := x.FirstByName("ViewedSteamPlay").String()
-			if viewedSteamPlay != "1" {
-				continue
-			}
+		if enableViewedSteamPlay && x.FirstByName("ViewedSteamPlay").String() != "1" {
+			continue
+		}
+
+		if v.Steam.AppInfo.IsInfrastructure(id) {
+			continue
 		}
 
 		game, isValid, err := v.Steam.GetGameData(id)
@@ -50,8 +48,8 @@ func (v *LocalConfigVdf) GetGames(enableViewedSteamPlay bool) ([]*Game, error) {
 }
 
 func (s *Steam) initLocalConfig() error {
-	p := path.Join(s.Root, "userdata", s.UID, "config", "localconfig.vdf")
-	log.Debug("steam.initLocalConfig(", p, ")")
+	p := filepath.Join(s.Root, "userdata", s.UID, "config", "localconfig.vdf")
+	slog.Debug("steam.initLocalConfig", "path", p)
 
 	n, err := ParseTextConfig(p)
 	if err != nil {

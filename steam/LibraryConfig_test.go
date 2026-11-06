@@ -7,6 +7,7 @@ import (
 )
 
 func Test_LibraryConfig(t *testing.T) {
+	requireTestRoot(t)
 	s, _ := New("", testConfig, false)
 
 	p := s.LibraryConfig.GetLibraryPathByID("1091500")

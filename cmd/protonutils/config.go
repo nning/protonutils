@@ -2,47 +2,47 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
+	"github.com/nning/protonutils/config"
 	"github.com/spf13/cobra"
 )
 
 var configCmd = &cobra.Command{
-	Use:   "config [flags] [key] [value]",
-	Short: "Get or set configuration options",
-	Run:   configGetOrSet,
+	Use:         "config [flags] [key] [value]",
+	Short:       "Get or set configuration options",
+	Long:        "Get or set configuration options. Without arguments, all options are shown. Valid keys: user, steam_root (empty for auto-detection), enable_viewed_steam_play.",
+	Args:        cobra.MaximumNArgs(2),
+	ValidArgs:   config.Keys(),
+	Annotations: map[string]string{steamAnnotation: steamNone},
+	RunE:        configGetOrSet,
 }
 
 func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
-func configGetOrSet(cmd *cobra.Command, args []string) {
+func configGetOrSet(cmd *cobra.Command, args []string) error {
+	out := cmd.OutOrStdout()
+
 	if len(args) == 0 {
-		fmt.Println(&cfg)
-		return
-	}
-
-	key := args[0]
-
-	m := map[string]interface{}{
-		"user":                     cfg.User,
-		"steam_root":               cfg.SteamRoot,
-		"enable_viewed_steam_play": cfg.EnableViewedSteamPlay,
+		fmt.Fprint(out, cfg)
+		return nil
 	}
 
 	if len(args) == 1 {
-		fmt.Println(m[key])
-	} else if len(args) >= 2 {
-		switch key {
-		case "user":
-			cfg.User = args[1]
-		case "steam_root":
-			cfg.SteamRoot = args[1]
-		case "enable_viewed_steam_play":
-			cfg.EnableViewedSteamPlay, _ = strconv.ParseBool(args[1])
+		v, err := cfg.Get(args[0])
+		if err != nil {
+			return err
 		}
-		err := cfg.Save()
-		exitOnError(err)
+
+		fmt.Fprintln(out, v)
+		return nil
 	}
+
+	err := cfg.Set(args[0], args[1])
+	if err != nil {
+		return err
+	}
+
+	return cfg.Save()
 }

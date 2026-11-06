@@ -6,32 +6,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetNextEntryStartByID(t *testing.T) {
+func Test_AppInfoGet(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
 
-	id := "1091500"
-	pos := 10233146
-
-	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
+	n, err := s.AppInfo.Get("1091500")
 	assert.Empty(t, err)
-	assert.Equal(t, pos, i)
+	assert.NotNil(t, n)
 
-	i, err = s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, "0")
-	assert.Empty(t, err)
-	assert.Equal(t, -1, i)
-
-	i, err = s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, "")
-	assert.Empty(t, err)
-	assert.Equal(t, -1, i)
-
-	i, err = s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, "41414141")
-	assert.Empty(t, err)
-	assert.Equal(t, -1, i)
+	for _, id := range []string{"0", "", "41414141"} {
+		n, err = s.AppInfo.Get(id)
+		assert.Empty(t, err)
+		assert.Nil(t, n)
+	}
 }
 
 func Test_ParseAppInfoEntry(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
@@ -39,10 +32,7 @@ func Test_ParseAppInfoEntry(t *testing.T) {
 	id := "1091500"
 	name := "Cyberpunk 2077"
 
-	i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
-	assert.Empty(t, err)
-
-	n, err := ParseBinaryVdf(s.AppInfo.Bytes[i:])
+	n, err := s.AppInfo.Get(id)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, n)
 	assert.Equal(t, id, n.FirstByName("appid").String())
@@ -51,6 +41,7 @@ func Test_ParseAppInfoEntry(t *testing.T) {
 }
 
 func Test_GetDeckCompatibility(t *testing.T) {
+	requireTestRoot(t)
 	s, err := New("", testConfig, false)
 	assert.Empty(t, err)
 	assert.NotEmpty(t, s.AppInfo)
@@ -66,13 +57,9 @@ func Test_GetDeckCompatibility(t *testing.T) {
 	}
 
 	for id, expectedCategory := range tests {
-		i, err := s.AppInfo.GetNextEntryStartByID(0, InnerOffsetAppInfo, id)
+		n, err := s.AppInfo.Get(id)
 		assert.Empty(t, err)
-		assert.True(t, i > 0, id)
-
-		n, err := ParseBinaryVdf(s.AppInfo.Bytes[i:])
-		assert.Empty(t, err)
-		assert.NotEmpty(t, n)
+		assert.NotNil(t, n, id)
 		assert.Equal(t, id, n.FirstByName("appid").String())
 
 		cn := n.FirstByName("common").FirstByName("steam_deck_compatibility")

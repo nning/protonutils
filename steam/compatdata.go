@@ -2,8 +2,7 @@ package steam
 
 import (
 	"errors"
-	"os"
-	"path"
+	"path/filepath"
 )
 
 // GetCompatdataPath returns compatdata path and game name for given game ID or
@@ -19,22 +18,40 @@ func (s *Steam) GetCompatdataPath(idOrName string) (string, string, error) {
 		return "", "", errors.New("Game not installed")
 	}
 
-	return path.Join(p, "steamapps", "compatdata", id), name, nil
+	return filepath.Join(p, "steamapps", "compatdata", id), name, nil
+}
+
+// GetInstalldirPath returns installation path and game name for given game ID
+// or name
+func (s *Steam) GetInstalldirPath(idOrName string) (string, string, error) {
+	id, name, err := s.GetAppIDAndName(idOrName)
+	if err != nil {
+		return "", "", err
+	}
+
+	p := s.LibraryConfig.GetLibraryPathByID(id)
+	if p == "" {
+		return "", "", errors.New("Game not installed")
+	}
+
+	dir, err := s.GetInstalldir(id)
+	if err != nil {
+		return "", "", err
+	}
+
+	if dir == "" {
+		return "", "", errors.New("installdir not found")
+	}
+
+	return filepath.Join(p, "steamapps", "common", dir), name, nil
 }
 
 // SearchCompatdataPath searches for compatdata path for given game id in all
 // library paths
 func (s *Steam) SearchCompatdataPath(id string) string {
-	paths := s.LibraryConfig.GetLibraryPaths()
-	for _, p := range paths {
-		x := path.Join(p, "steamapps", "compatdata", id)
-
-		info, err := os.Stat(x)
-		if err != nil {
-			continue
-		}
-
-		if info.IsDir() {
+	for _, p := range s.LibraryConfig.GetLibraryPaths() {
+		x := filepath.Join(p, "steamapps", "compatdata", id)
+		if isDir(x) {
 			return x
 		}
 	}

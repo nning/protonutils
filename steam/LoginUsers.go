@@ -1,9 +1,9 @@
 package steam
 
 import (
-	"path"
-
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+	"path/filepath"
+	"strings"
 )
 
 // LoginUsersVdf represents parsed VDF config for app config from
@@ -14,12 +14,26 @@ type LoginUsersVdf struct {
 
 // GetID64 return steamID64 for given username
 func (lu *LoginUsersVdf) GetID64(username string) string {
-	log.Debug("LoginUsersVdf.GetID64(", username, ")")
+	slog.Debug("LoginUsersVdf.GetID64", "username", username)
 
-	x := lu.Root.FirstSubTree()
+	if username == "" {
+		return ""
+	}
 
-	for ; x != nil; x = x.NextChild() {
-		if x.FirstByName("AccountName").String() == username {
+	for x := lu.Root.FirstSubTree(); x != nil; x = x.NextSubTree() {
+		if strings.EqualFold(x.FirstByName("AccountName").String(), username) {
+			return x.Name()
+		}
+	}
+
+	return ""
+}
+
+// GetMostRecentID64 returns steamID64 of the user that logged in most recently
+// (empty string if unknown)
+func (lu *LoginUsersVdf) GetMostRecentID64() string {
+	for x := lu.Root.FirstSubTree(); x != nil; x = x.NextSubTree() {
+		if x.FirstByName("MostRecent").String() == "1" {
 			return x.Name()
 		}
 	}
@@ -28,7 +42,7 @@ func (lu *LoginUsersVdf) GetID64(username string) string {
 }
 
 func (s *Steam) initLoginUsers() error {
-	p := path.Join(s.Root, "config", "loginusers.vdf")
+	p := filepath.Join(s.Root, "config", "loginusers.vdf")
 
 	n, err := ParseTextConfig(p)
 	if err != nil {

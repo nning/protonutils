@@ -7,6 +7,7 @@ import (
 )
 
 func Test_GetCompatToolName(t *testing.T) {
+	requireTestRoot(t)
 	s, _ := New("", testConfig, true)
 
 	name, err := s.GetCompatToolName("proton_63")
@@ -21,6 +22,7 @@ func Test_GetCompatToolName(t *testing.T) {
 }
 
 func Test_GetInstalldir(t *testing.T) {
+	requireTestRoot(t)
 	s, _ := New("", testConfig, true)
 
 	dir, err := s.GetInstalldir("1091500")

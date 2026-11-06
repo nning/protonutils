@@ -1,6 +1,6 @@
 app-id: io.nning.protonutils
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 command: protonutils
 modules:
@@ -13,4 +13,5 @@ modules:
         path: cmd/protonutils/protonutils
 finish-args:
   - --filesystem=~/.local/share/Steam
+  - --filesystem=~/.var/app/com.valvesoftware.Steam/data/Steam
   - --share=network
