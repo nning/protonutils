@@ -180,7 +180,7 @@ func Test_PathsWithoutPreviousList(t *testing.T) {
 	assert.Contains(t, buf.String(), "Ambiguous name")
 
 	out = mustRun(t, "appid", "portal", "2")
-	assert.Equal(t, "       620  Portal 2\n", out)
+	assert.Equal(t, "       620  Portal 2\n       629  Portal 2 Authoring Tools\n", out)
 }
 
 func toolDirs(t *testing.T, dir string) []string {

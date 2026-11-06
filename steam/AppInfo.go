@@ -179,11 +179,35 @@ func (a *AppInfo) GetType(id string) string {
 	return n.FirstByName("common").FirstByName("type").String()
 }
 
-// IsTool returns whether app id is a Steam tool (like Proton or the Steam Linux
-// Runtime) or configuration app instead of a game
-func (a *AppInfo) IsTool(id string) bool {
-	t := a.GetType(id)
-	return strings.EqualFold(t, "Tool") || strings.EqualFold(t, "Config")
+// IsInfrastructure returns whether app id is part of the Steam infrastructure
+// instead of something that can run with a compatibility tool: configuration
+// apps (like "Steam Client") and tools without Windows version (like Proton or
+// the Steam Linux Runtime). Windows tools (like authoring tools) are not
+// considered infrastructure.
+func (a *AppInfo) IsInfrastructure(id string) bool {
+	n, err := a.Get(id)
+	if n == nil || err != nil {
+		return false
+	}
+
+	common := n.FirstByName("common")
+	t := common.FirstByName("type").String()
+
+	if strings.EqualFold(t, "Config") {
+		return true
+	}
+
+	if !strings.EqualFold(t, "Tool") {
+		return false
+	}
+
+	for _, os := range strings.Split(common.FirstByName("oslist").String(), ",") {
+		if strings.EqualFold(strings.TrimSpace(os), "windows") {
+			return false
+		}
+	}
+
+	return true
 }
 
 // GetCompatToolName returns human-readable name of compatibility tool,

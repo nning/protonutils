@@ -97,6 +97,8 @@ type App struct {
 	DeckCategory int32
 	// Type is the app type (e.g. "Game", "Tool")
 	Type string
+	// OSList is the comma-separated list of operating systems
+	OSList string
 	// Extra nodes appended to the "appinfo" node
 	Extra []KV
 }
@@ -105,6 +107,9 @@ func (a App) kv() KV {
 	common := []KV{Str("name", a.Name)}
 	if a.Type != "" {
 		common = append(common, Str("type", a.Type))
+	}
+	if a.OSList != "" {
+		common = append(common, Str("oslist", a.OSList))
 	}
 	if a.DeckCategory != 0 {
 		common = append(common, Tree("steam_deck_compatibility", Int("category", a.DeckCategory)))
@@ -337,7 +342,9 @@ func (r Root) Write(t testing.TB, dir string) {
 //   - Half-Life (70, installed) -> GE-Proton8-1 (custom)
 //   - Portal (400, not installed) -> GE-Proton7-1 (custom)
 //   - Cyberpunk 2077 (1091500, installed) -> default
-//   - Proton 6.3 (1580130, installed, type Tool, must not be listed as game)
+//   - Proton 6.3 (1580130, installed, Linux tool) and Steam Client (7,
+//     installed, config) must not be listed, Portal 2 Authoring Tools (629,
+//     installed, Windows tool) is listed with default
 //   - shortcut "My Game" (3228583970) -> proton_63
 //   - unused custom tool GE-Proton6-1
 func Default() Root {
@@ -347,7 +354,9 @@ func Default() Root {
 			{ID: 400, Name: "Portal", InstallDir: "Portal"},
 			{ID: 620, Name: "Portal 2", InstallDir: "Portal 2", DeckCategory: 3},
 			{ID: 1091500, Name: "Cyberpunk 2077", InstallDir: "Cyberpunk 2077", DeckCategory: 2, Type: "Game"},
-			{ID: 1580130, Name: "Proton 6.3", InstallDir: "Proton 6.3", Type: "Tool"},
+			{ID: 1580130, Name: "Proton 6.3", InstallDir: "Proton 6.3", Type: "Tool", OSList: "linux"},
+			{ID: 629, Name: "Portal 2 Authoring Tools", Type: "Tool", OSList: "windows,macos"},
+			{ID: 7, Name: "Steam Client", Type: "Config"},
 			{ID: 891390, Name: "SteamPlay 2.0 Manifests", Extra: []KV{
 				Tree("extended", Tree("compat_tools",
 					Tree("proton_63", Str("display_name", "Proton 6.3-8")),
@@ -358,7 +367,7 @@ func Default() Root {
 		Users: []User{
 			{
 				ID64: 76561198050517827, AccountName: "alice", MostRecent: true,
-				Apps:      []string{"70", "400", "620", "1091500", "1580130", "3228583970"},
+				Apps:      []string{"7", "70", "400", "620", "629", "1091500", "1580130", "3228583970"},
 				Shortcuts: []Shortcut{{ID: 3228583970, Name: "My Game"}},
 			},
 			{ID64: 76561198050517828, AccountName: "bob", Apps: []string{"620"}},
@@ -370,7 +379,7 @@ func Default() Root {
 			"400":        "GE-Proton7-1",
 			"3228583970": "proton_63",
 		},
-		Installed: []string{"70", "620", "1091500", "1580130"},
+		Installed: []string{"7", "70", "620", "629", "1091500", "1580130"},
 		Tools: []Tool{
 			{Dir: "GE-Proton6-1", ID: "GE-Proton6-1", DisplayName: "GE-Proton6-1"},
 			{Dir: "GE-Proton7-1", ID: "GE-Proton7-1", DisplayName: "GE-Proton7-1"},

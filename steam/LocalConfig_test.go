@@ -25,7 +25,10 @@ func Test_GetGames_DisabledViewedSteamPlay(t *testing.T) {
 
 	games, err := s.LocalConfig.GetGames(false)
 	assert.Empty(t, err)
-	if !assert.Equal(t, 245, len(games)) {
+	// Compared to older versions: +1 Half-Life 2 (dropped because the byte
+	// search hit a wrong entry), -4 config apps (Steam Client, Steam
+	// Screenshots, Steam Input Configs, EALink)
+	if !assert.Equal(t, 242, len(games)) {
 		logInvalidGames(t, s, games)
 		logGamesWithoutLegacyName(t, s, games)
 	}
