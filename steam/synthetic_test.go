@@ -12,15 +12,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func init() {
-	// Never query the real store API in tests
+// setupOffline writes a synthetic Steam root and makes the store API
+// unreachable for the duration of the test (tests using the encrypted real data
+// still query the real API)
+func setupOffline(t *testing.T, r steamtest.Root) string {
+	t.Helper()
+
+	old := StoreAPIURL
 	StoreAPIURL = "http://127.0.0.1:1/"
+	t.Cleanup(func() { StoreAPIURL = old })
+
+	return steamtest.Setup(t, r)
 }
 
 func newSynthetic(t *testing.T, r steamtest.Root, user string) *Steam {
 	t.Helper()
 
-	root := steamtest.Setup(t, r)
+	root := setupOffline(t, r)
 	s, err := New(user, &config.Config{SteamRoot: root}, false)
 	require.NoError(t, err)
 
@@ -104,13 +112,13 @@ func Test_Synthetic_Users(t *testing.T) {
 	assert.Equal(t, r.Users[0].ID32(), s.UID)
 
 	for _, u := range []string{"bob", "BOB", r.Users[1].ID32(), "76561198050517828"} {
-		root := steamtest.Setup(t, r)
+		root := setupOffline(t, r)
 		s, err := New(u, &config.Config{SteamRoot: root}, false)
 		require.NoError(t, err, u)
 		assert.Equal(t, r.Users[1].ID32(), s.UID, u)
 	}
 
-	root := steamtest.Setup(t, r)
+	root := setupOffline(t, r)
 	_, err := New("mallory", &config.Config{SteamRoot: root}, false)
 	assert.ErrorContains(t, err, "Steam user not found: mallory")
 
@@ -119,7 +127,7 @@ func Test_Synthetic_Users(t *testing.T) {
 
 	// Empty userdata directory must not panic
 	r.Users = nil
-	root = steamtest.Setup(t, r)
+	root = setupOffline(t, r)
 	_, err = New("", &config.Config{SteamRoot: root}, false)
 	assert.ErrorContains(t, err, "No Steam user found")
 }
@@ -128,14 +136,14 @@ func Test_Synthetic_UsersWithoutMostRecent(t *testing.T) {
 	r := steamtest.Default()
 	r.Users[0].MostRecent = false
 
-	root := steamtest.Setup(t, r)
+	root := setupOffline(t, r)
 	s, err := New("", &config.Config{SteamRoot: root}, false)
 	require.NoError(t, err)
 	assert.Equal(t, r.Users[0].ID32(), s.UID)
 }
 
 func Test_Synthetic_FindRoot(t *testing.T) {
-	root := steamtest.Setup(t, steamtest.Default())
+	root := setupOffline(t, steamtest.Default())
 	home := os.Getenv("HOME")
 
 	_, err := FindRoot("")
@@ -287,7 +295,7 @@ func Test_Synthetic_ParseTextConfigError(t *testing.T) {
 	assert.ErrorContains(t, err, "broken.vdf")
 
 	r := steamtest.Default()
-	root := steamtest.Setup(t, r)
+	root := setupOffline(t, r)
 	require.NoError(t, os.WriteFile(filepath.Join(root, "config", "config.vdf"), []byte("\"x\"\n{\n"), 0600))
 
 	_, err = New("", &config.Config{SteamRoot: root}, false)
@@ -295,7 +303,7 @@ func Test_Synthetic_ParseTextConfigError(t *testing.T) {
 }
 
 func Test_Synthetic_MissingCompatToolMapping(t *testing.T) {
-	root := steamtest.Setup(t, steamtest.Default())
+	root := setupOffline(t, steamtest.Default())
 	require.NoError(t, os.WriteFile(filepath.Join(root, "config", "config.vdf"), []byte("\"InstallConfigStore\"\n{\n}\n"), 0600))
 
 	s, err := New("", &config.Config{SteamRoot: root}, false)
@@ -319,7 +327,7 @@ func Test_Synthetic_IsShortcut(t *testing.T) {
 }
 
 func Test_Synthetic_UnsupportedAppInfoIsNotFatal(t *testing.T) {
-	root := steamtest.Setup(t, steamtest.Default())
+	root := setupOffline(t, steamtest.Default())
 	require.NoError(t, os.WriteFile(filepath.Join(root, "appcache", "appinfo.vdf"), []byte{0x30, 0x44, 0x56, 0x07, 1, 0, 0, 0}, 0600))
 
 	s, err := New("", &config.Config{SteamRoot: root}, false)
@@ -330,7 +338,7 @@ func Test_Synthetic_UnsupportedAppInfoIsNotFatal(t *testing.T) {
 
 func Test_Synthetic_CorruptShortcutsIsNotFatal(t *testing.T) {
 	r := steamtest.Default()
-	root := steamtest.Setup(t, r)
+	root := setupOffline(t, r)
 	p := filepath.Join(root, "userdata", r.Users[0].ID32(), "config", "shortcuts.vdf")
 	require.NoError(t, os.WriteFile(p, []byte{0x00, 's', 0, 0x42}, 0600))
 
@@ -344,7 +352,7 @@ func Test_Synthetic_BrokenAppInfoEntryIsNotFatal(t *testing.T) {
 	r := steamtest.Default()
 	// Unknown value type in one entry
 	r.Apps[0].Extra = []steamtest.KV{{Key: "x", Value: uint64(1)}}
-	root := steamtest.Setup(t, r)
+	root := setupOffline(t, r)
 
 	p := filepath.Join(root, "appcache", "appinfo.vdf")
 	data, err := os.ReadFile(p)
