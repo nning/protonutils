@@ -96,7 +96,7 @@ on Arch Linux if you installed from the AUR).
 ### Bulk Update Compatibiliy Tool Versions
 
     $ protonutils compattool migrate -h
-    Migrate compatibility tool version mappings from on version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options.
+    Migrate compatibility tool version mappings from one version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options.
 
     Usage:
       protonutils compattool migrate [flags] <fromVersion> <toVersion>
