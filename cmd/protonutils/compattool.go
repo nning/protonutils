@@ -34,8 +34,8 @@ var compatToolSetCmd = &cobra.Command{
 
 var compatToolMigrateCmd = &cobra.Command{
 	Use:   "migrate [flags] <fromVersion> <toVersion>",
-	Short: "Migrate compatibility tool version mappings from on version to another",
-	Long:  "Migrate compatibility tool version mappings from on version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options.",
+	Short: "Migrate compatibility tool version mappings from one version to another",
+	Long:  "Migrate compatibility tool version mappings from one version to another. Version parameters have to be version IDs. See `compattool list` for list of possible options.",
 	Args:  cobra.MinimumNArgs(2),
 	Run:   compatToolMigrate,
 }
